@@ -17,7 +17,7 @@ pub fn main() !void {
     while (true) {
         const input = try reader.readByte();
         switch (input) {
-            'q' => {
+            'q', 3 => {
                 try writer.print("Goodbye\n", .{});
                 break;
             },
