@@ -10,6 +10,10 @@ pub fn main() !void {
     while (true) {
         const input = try reader.readByte();
         switch (input) {
+            'q' => {
+                try writer.print("Goodbye\n", .{});
+                break;
+            },
             else => {},
         }
     }
