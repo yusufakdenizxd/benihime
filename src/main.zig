@@ -1,5 +1,6 @@
 const std = @import("std");
 const term = @import("term.zig");
+const keys = @import("keys.zig");
 const io = std.io;
 
 pub fn main() !void {
@@ -15,13 +16,22 @@ pub fn main() !void {
     defer raw_term.disableRawMode() catch {};
 
     while (true) {
-        const input = try reader.readByte();
-        switch (input) {
-            'q', 3 => {
-                try writer.print("Goodbye\n", .{});
-                break;
+        // const next = try events.nextWithTimeout(stdin, 1000);
+        const next = try keys.next(reader);
+        switch (next) {
+            .key => |k| switch (k) {
+                .ctrl => |c| switch (c) {
+                    'q' => break,
+                    else => try stdout.writer().print("ctrl+{u}\n\r", .{c}),
+                },
+                .char => |c| switch (c) {
+                    else => try stdout.writer().print("{}\n\r", .{c}),
+                },
             },
-            else => {},
+            .none => try stdout.writer().print("Timeout.\n\r", .{}),
+
+            // ex. mouse events not supported yet
+            else => try stdout.writer().print("Event: {}\n\r", .{next}),
         }
     }
 }
