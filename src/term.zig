@@ -1,22 +1,30 @@
 const std = @import("std");
 
 const os = std.os;
+const fs = std.fs;
 const posix = std.posix;
+
+const TIOCGWINSZ = 0x5413; // ioctl code for getting window size on Linux
 
 pub const RawTerm = struct {
     orig_termios: std.posix.termios,
+    size: std.posix.system.winsize,
 
-    handle: os.linux.fd_t,
+    inHandle: os.linux.fd_t,
+    outHandle: os.linux.fd_t,
+
+    reader: fs.File.Reader,
+    writer: fs.File.Writer,
 
     const Self = @This();
 
     pub fn disableRawMode(self: *Self) !void {
-        try posix.tcsetattr(self.handle, .FLUSH, self.orig_termios);
+        try posix.tcsetattr(self.inHandle, .FLUSH, self.orig_termios);
     }
 };
 
-pub fn enableRawMode(handle: posix.fd_t) !RawTerm {
-    const original_termios = try posix.tcgetattr(handle);
+pub fn enableRawMode(inHandle: posix.fd_t, outHandle: posix.fd_t, reader: fs.File.Reader, writer: fs.File.Writer) !RawTerm {
+    const original_termios = try posix.tcgetattr(inHandle);
 
     var termios = original_termios;
 
@@ -42,10 +50,17 @@ pub fn enableRawMode(handle: posix.fd_t) !RawTerm {
     termios.cc[@intFromEnum(posix.V.MIN)] = 1;
     termios.cc[@intFromEnum(posix.V.TIME)] = 0;
 
-    try posix.tcsetattr(handle, .FLUSH, termios);
+    try posix.tcsetattr(inHandle, .FLUSH, termios);
+
+    var ws: std.posix.system.winsize = undefined;
+    _ = std.os.linux.ioctl(outHandle, TIOCGWINSZ, @intFromPtr(&ws));
 
     return RawTerm{
         .orig_termios = original_termios,
-        .handle = handle,
+        .inHandle = inHandle,
+        .outHandle = outHandle,
+        .reader = reader,
+        .writer = writer,
+        .size = ws,
     };
 }
