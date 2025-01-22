@@ -53,7 +53,7 @@ pub fn enableRawMode(inHandle: posix.fd_t, outHandle: posix.fd_t, reader: fs.Fil
     try posix.tcsetattr(inHandle, .FLUSH, termios);
 
     var ws: std.posix.system.winsize = undefined;
-    _ = std.os.linux.ioctl(outHandle, TIOCGWINSZ, @intFromPtr(&ws));
+    _ = std.posix.system.ioctl(outHandle, std.posix.T.IOCGWINSZ, @intFromPtr(&ws));
 
     return RawTerm{
         .orig_termios = original_termios,
