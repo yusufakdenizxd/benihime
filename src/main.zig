@@ -16,5 +16,5 @@ pub fn main() !void {
 
     // std.debug.print("Welcome to Benihime\n", .{});
 
-    try editor.start(raw_term);
+    try editor.start(&raw_term);
 }
