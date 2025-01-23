@@ -16,7 +16,7 @@ pub const Abuf = struct {
 
         var new_buffer = try self.allocator.realloc(self.buffer, new_len);
 
-        std.mem.copyForwards(u8, new_buffer[self.buffer.len..], data);
+        @memcpy(new_buffer[self.buffer.len..], data);
 
         self.buffer = new_buffer;
     }
