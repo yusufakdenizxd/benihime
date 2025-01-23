@@ -47,11 +47,31 @@ fn refreshScreen(term: t.RawTerm, allocator: std.mem.Allocator) !void {
 
 fn drawRows(term: t.RawTerm, ab: *buffer.Abuf) !void {
     for (0..term.size.ws_row) |i| {
-        try ab.append("~");
+        if (i == term.size.ws_row / 3) {
+            try drawWelcomeText(term, ab);
+        } else {
+            try ab.append("~");
+        }
         try ab.append("\x1b[K");
 
         if (i < term.size.ws_row - 1) {
             try ab.append("\r\n");
         }
     }
+}
+
+fn drawWelcomeText(term: t.RawTerm, ab: *buffer.Abuf) !void {
+    const message = "Welcome to Benihime";
+
+    var padding = (term.size.ws_col - message.len) / 2;
+    if (padding != 0) {
+        try ab.append("~");
+        padding -= 1;
+    }
+    while (padding > 0) {
+        try ab.append(" ");
+        padding -= 1;
+    }
+
+    try ab.append(message);
 }
