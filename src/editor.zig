@@ -15,15 +15,15 @@ pub fn start(term: t.RawTerm) !void {
             .key => |k| switch (k) {
                 .ctrl => |c| switch (c) {
                     'q' => break,
-                    else => try term.writer.print("ctrl+{u}\n\r", .{c}),
+                    else => {},
                 },
                 .char => |c| switch (c) {
-                    else => try term.writer.print("{}\n\r", .{c}),
+                    else => {},
                 },
             },
             .none => try term.writer.print("Timeout.\n\r", .{}),
 
-            else => try term.writer.print("Event: {}\n\r", .{next}),
+            else => {},
         }
     }
 }
