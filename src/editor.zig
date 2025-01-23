@@ -15,6 +15,10 @@ pub fn start(term: *t.RawTerm) !void {
             .key => |k| switch (k) {
                 .ctrl => |c| switch (c) {
                     'q' => break,
+                    'd' => try moveDocument(c, term),
+                    'f' => try moveDocument(c, term),
+                    'b' => try moveDocument(c, term),
+                    'u' => try moveDocument(c, term),
                     else => {},
                 },
                 .char => |c| switch (c) {
@@ -101,6 +105,42 @@ fn moveCursor(char: u21, term: *t.RawTerm) !void {
         'k' => {
             if (term.cy > 0) {
                 term.cy -= 1;
+            }
+        },
+        else => {},
+    }
+}
+
+fn moveDocument(char: u21, term: *t.RawTerm) !void {
+    switch (char) {
+        'd' => {
+            const new_cy = term.cy + (term.size.ws_row / 2);
+            if (new_cy < term.size.ws_row) {
+                term.cy = new_cy;
+            } else {
+                term.cy = term.size.ws_row - 1;
+            }
+        },
+        'b' => {
+            if (term.cy > (term.size.ws_row / 2)) {
+                term.cy -= term.size.ws_row / 2;
+            } else {
+                term.cy = 0;
+            }
+        },
+        'f' => {
+            const new_cy = term.cy + (term.size.ws_row);
+            if (new_cy < term.size.ws_row) {
+                term.cy = new_cy;
+            } else {
+                term.cy = term.size.ws_row - 1;
+            }
+        },
+        'u' => {
+            if (term.cy > term.size.ws_row) {
+                term.cy -= term.size.ws_row;
+            } else {
+                term.cy = 0;
             }
         },
         else => {},
