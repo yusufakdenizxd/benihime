@@ -84,16 +84,24 @@ fn drawWelcomeText(term: *t.RawTerm, ab: *buffer.Abuf) !void {
 fn moveCursor(char: u21, term: *t.RawTerm) !void {
     switch (char) {
         'h' => {
-            term.cx -= 1;
+            if (term.cx > 0) {
+                term.cx -= 1;
+            }
         },
         'l' => {
-            term.cx += 1;
+            if (term.cx < term.size.ws_col - 1) {
+                term.cx += 1;
+            }
         },
         'j' => {
-            term.cy += 1;
+            if (term.cy < term.size.ws_row - 1) {
+                term.cy += 1;
+            }
         },
         'k' => {
-            term.cy -= 1;
+            if (term.cy > 0) {
+                term.cy -= 1;
+            }
         },
         else => {},
     }
