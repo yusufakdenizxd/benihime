@@ -38,9 +38,10 @@ fn refreshScreen(term: t.RawTerm, allocator: std.mem.Allocator) !void {
 
     try drawRows(term, &ab);
 
-    try ab.append("\x1b[H");
+    const cursorPosition = try std.fmt.allocPrint(allocator, "\x1b[{d};{d}H", .{ term.cx, term.cy });
+    try ab.append(cursorPosition);
 
-    try ab.append("\x1b[?25l");
+    try ab.append("\x1b[?25h");
 
     _ = try term.writer.write(ab.buffer);
 }

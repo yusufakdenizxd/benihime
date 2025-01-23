@@ -16,6 +16,9 @@ pub const RawTerm = struct {
     reader: fs.File.Reader,
     writer: fs.File.Writer,
 
+    cx: usize = 0,
+    cy: usize = 0,
+
     const Self = @This();
 
     pub fn disableRawMode(self: *Self) !void {
