@@ -71,6 +71,13 @@ impl Editor {
         self.cursor.col = min(self.cursor.col, self.buf.line_len(self.cursor.row));
     }
 
+    pub fn beginning_of_line(&mut self) {
+        self.cursor.col = 0;
+    }
+    pub fn end_of_line(&mut self) {
+        self.cursor.col = self.buf.line_len(self.cursor.row);
+    }
+
     pub fn ensure_cursor_on_screen(&mut self, width: u16, height: u16) {
         let h = height as usize - 1;
         if self.cursor.row < self.top {

@@ -8,6 +8,20 @@ pub fn handle_normal(ed: &mut Editor, key: KeyEvent) {
         KeyCode::Char('j') => ed.move_down(),
         KeyCode::Char('k') => ed.move_up(),
         KeyCode::Char('l') => ed.move_right(),
+        KeyCode::Char('0') => ed.beginning_of_line(),
+        KeyCode::Char('-') => ed.start_of_line(),
+        KeyCode::Char('=') => ed.end_of_line(),
+        KeyCode::Char('w') => ed.word_forward(),
+        KeyCode::Char('e') => ed.word_end(),
+        KeyCode::Char('b') => ed.word_backward(),
+        KeyCode::Char('o') => {
+            ed.new_line_below();
+            ed.mode = Mode::Insert;
+        }
+        KeyCode::Char('O') => {
+            ed.new_line_above();
+            ed.mode = Mode::Insert;
+        }
         KeyCode::Char('i') => {
             ed.mode = Mode::Insert;
         }
