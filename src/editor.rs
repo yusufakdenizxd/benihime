@@ -74,8 +74,54 @@ impl Editor {
     pub fn beginning_of_line(&mut self) {
         self.cursor.col = 0;
     }
+
     pub fn end_of_line(&mut self) {
         self.cursor.col = self.buf.line_len(self.cursor.row);
+    }
+
+    pub fn word_forward(&mut self) {
+        let line = &self.buf.lines[self.cursor.row];
+        let mut i = self.cursor.col;
+        if i < line.len() {
+            i += 1;
+        }
+        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        while i < line.len() && !line.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        self.cursor.col = min(i, line.len());
+    }
+
+    pub fn word_backward(&mut self) {
+        let line = &self.buf.lines[self.cursor.row];
+        let mut i = self.cursor.col;
+        if i > 0 {
+            i -= 1;
+        }
+        while i > 0 && line.as_bytes()[i].is_ascii_whitespace() {
+            i -= 1;
+        }
+        while i > 0 && !line.as_bytes()[i - 1].is_ascii_whitespace() {
+            i -= 1;
+        }
+        self.cursor.col = i;
+    }
+
+    pub fn word_end(&mut self) {
+        let line = &self.buf.lines[self.cursor.row];
+        let mut i = self.cursor.col;
+        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        while i < line.len() {
+            if i + 1 >= line.len() || line.as_bytes()[i + 1].is_ascii_whitespace() {
+                break;
+            }
+            i += 1;
+        }
+        self.cursor.col = min(i, line.len());
     }
 
     pub fn ensure_cursor_on_screen(&mut self, width: u16, height: u16) {
