@@ -102,6 +102,18 @@ impl Editor {
         }
         self.cursor.col = min(i, line.len());
     }
+    pub fn new_line_below(&mut self) {
+        let i = self.buf.lines[self.cursor.row].len();
+        let rest = self.buf.lines[self.cursor.row].split_off(i);
+        self.buf.lines.insert(self.cursor.row + 1, rest);
+        self.cursor.row += 1;
+        self.cursor.col = 0;
+    }
+
+    pub fn new_line_above(&mut self) {
+        self.buf.lines.insert(self.cursor.row, String::new());
+        self.cursor.col = 0;
+    }
 
     pub fn word_backward(&mut self) {
         let line = &self.buf.lines[self.cursor.row];
