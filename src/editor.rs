@@ -75,6 +75,15 @@ impl Editor {
         self.cursor.col = 0;
     }
 
+    pub fn start_of_line(&mut self) {
+        let line = &self.buf.lines[self.cursor.row];
+        let mut i = 0;
+        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        self.cursor.col = min(i, line.len());
+    }
+
     pub fn end_of_line(&mut self) {
         self.cursor.col = self.buf.line_len(self.cursor.row);
     }

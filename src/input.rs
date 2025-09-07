@@ -39,6 +39,18 @@ pub fn handle_normal(ed: &mut Editor, key: KeyEvent) {
 pub fn handle_insert(ed: &mut Editor, key: KeyEvent) {
     match key.code {
         KeyCode::Esc => ed.mode = Mode::Normal,
+        KeyCode::Backspace => {
+            if ed.cursor.col > 0 {
+                ed.cursor.col -= 1;
+                ed.buf.lines[ed.cursor.row].remove(ed.cursor.col);
+            } else if ed.cursor.row > 0 {
+                let cursorrent = ed.buf.lines.remove(ed.cursor.row);
+                ed.cursor.row -= 1;
+                let prev_len = ed.buf.lines[ed.cursor.row].len();
+                ed.buf.lines[ed.cursor.row].push_str(&cursorrent);
+                ed.cursor.col = prev_len;
+            }
+        }
         KeyCode::Char(c) => {
             if key.modifiers.contains(KeyModifiers::CONTROL) { /* ignore ctrl chars in insert */
             } else {
