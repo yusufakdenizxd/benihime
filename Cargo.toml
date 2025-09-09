@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.99"
 crossterm = "0.29.0"
+env_logger = "0.11.8"
