@@ -46,6 +46,10 @@ impl KeyCode {
             return KeyCode::Esc;
         }
 
+        if k.is_enter() {
+            return KeyCode::Enter;
+        }
+
         if k.is_backspace() {
             return KeyCode::Backspace;
         }
@@ -78,6 +82,7 @@ impl KeyCode {
 
 pub fn handle_normal(ed: &mut Editor, k: KeyEvent) {
     match KeyCode::form_crossterm(k.code) {
+        KeyCode::Enter => ed.move_down(),
         KeyCode::Char('h') => ed.move_left(),
         KeyCode::Char('j') => ed.move_down(),
         KeyCode::Char('k') => ed.move_up(),
