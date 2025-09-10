@@ -1,6 +1,6 @@
 use crossterm::event::{KeyEvent, KeyModifiers};
 
-use crate::editor::{Editor, Mode};
+use crate::{buffer::Mode, editor::Editor};
 
 #[derive(Debug, PartialOrd, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum ModifierKeyCode {
@@ -90,21 +90,21 @@ pub fn handle_normal(ed: &mut Editor, k: KeyEvent) {
         KeyCode::Char('b') => ed.word_backward(),
         KeyCode::Char('o') => {
             ed.new_line_below();
-            ed.mode = Mode::Insert;
+            ed.focused_buf.mode = Mode::Insert;
         }
         KeyCode::Char('O') => {
             ed.new_line_above();
-            ed.mode = Mode::Insert;
+            ed.focused_buf.mode = Mode::Insert;
         }
         KeyCode::Char('i') => {
-            ed.mode = Mode::Insert;
+            ed.focused_buf.mode = Mode::Insert;
         }
         KeyCode::Char('a') => {
             ed.move_right();
-            ed.mode = Mode::Insert;
+            ed.focused_buf.mode = Mode::Insert;
         }
         KeyCode::Char('v') => {
-            ed.mode = Mode::Visual;
+            ed.focused_buf.mode = Mode::Visual;
         } // placeholder
         _ => {}
     }
@@ -112,17 +112,21 @@ pub fn handle_normal(ed: &mut Editor, k: KeyEvent) {
 
 pub fn handle_insert(ed: &mut Editor, key: KeyEvent) {
     match KeyCode::form_crossterm(key.code) {
-        KeyCode::Esc => ed.mode = Mode::Normal,
+        KeyCode::Esc => ed.focused_buf.mode = Mode::Normal,
+        KeyCode::Enter => {
+            ed.new_line_below();
+            ed.move_down();
+        }
         KeyCode::Backspace => {
-            if ed.cursor.col > 0 {
-                ed.cursor.col -= 1;
-                ed.buf.lines[ed.cursor.row].remove(ed.cursor.col);
-            } else if ed.cursor.row > 0 {
-                let cursorrent = ed.buf.lines.remove(ed.cursor.row);
-                ed.cursor.row -= 1;
-                let prev_len = ed.buf.lines[ed.cursor.row].len();
-                ed.buf.lines[ed.cursor.row].push_str(&cursorrent);
-                ed.cursor.col = prev_len;
+            if ed.focused_buf.cursor.col > 0 {
+                ed.focused_buf.cursor.col -= 1;
+                ed.focused_buf.lines[ed.focused_buf.cursor.row].remove(ed.focused_buf.cursor.col);
+            } else if ed.focused_buf.cursor.row > 0 {
+                let cursorrent = ed.focused_buf.lines.remove(ed.focused_buf.cursor.row);
+                ed.focused_buf.cursor.row -= 1;
+                let prev_len = ed.focused_buf.lines[ed.focused_buf.cursor.row].len();
+                ed.focused_buf.lines[ed.focused_buf.cursor.row].push_str(&cursorrent);
+                ed.focused_buf.cursor.col = prev_len;
             }
         }
         KeyCode::Char(c) => {

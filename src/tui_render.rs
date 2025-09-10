@@ -18,7 +18,8 @@ use crossterm::terminal::{
 };
 use std::io::stdout;
 
-use crate::editor::{Editor, Mode};
+use crate::buffer::Mode;
+use crate::editor::Editor;
 use crate::input;
 
 pub fn run() -> Result<()> {
@@ -38,7 +39,7 @@ pub fn run() -> Result<()> {
             match read()? {
                 Event::Key(key) => {
                     if key.code == KeyCode::Esc
-                        && ed.mode == Mode::Normal
+                        && ed.focused_buf.mode == Mode::Normal
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         break;
@@ -49,12 +50,12 @@ pub fn run() -> Result<()> {
                         break;
                     }
 
-                    match ed.mode {
+                    match ed.focused_buf.mode {
                         Mode::Normal => input::handle_normal(&mut ed, key),
                         Mode::Insert => input::handle_insert(&mut ed, key),
                         Mode::Visual => {
                             if let KeyCode::Esc = key.code {
-                                ed.mode = Mode::Normal;
+                                ed.focused_buf.mode = Mode::Normal;
                             } else { /* TODO: selections */
                             }
                         }
@@ -78,19 +79,19 @@ pub fn run() -> Result<()> {
 
 pub fn render(editor: &mut Editor) -> Result<bool> {
     let (w, h) = size()?;
-    editor.ensure_cursor_on_screen(w, h);
+    editor.focused_buf.ensure_cursor_on_screen(w, h);
     let mut out = std::io::stdout();
     let _ = out.queue(Clear(ClearType::All));
 
     let text_rows = h.saturating_sub(1) as usize;
     for row in 0..text_rows {
-        let buf_row = editor.top + row;
-        if buf_row >= editor.buf.line_count() {
+        let buf_row = editor.focused_buf.top + row;
+        if buf_row >= editor.focused_buf.line_count() {
             break;
         }
-        let line = &editor.buf.lines[buf_row];
-        let visible = if editor.left < line.len() {
-            &line[editor.left..min(line.len(), editor.left + w as usize)]
+        let line = &editor.focused_buf.lines[buf_row];
+        let visible = if editor.focused_buf.left < line.len() {
+            &line[editor.focused_buf.left..min(line.len(), editor.focused_buf.left + w as usize)]
         } else {
             ""
         };
@@ -99,18 +100,12 @@ pub fn render(editor: &mut Editor) -> Result<bool> {
     }
 
     out.queue(MoveTo(0, h - 1))?;
-    // let mode = match editor.mode {
-    //     Mode::Normal => "NORMAL",
-    //     Mode::Insert => "INSERT",
-    //     Mode::Visual => "VISUAL",
-    // };
-    let status = format!("Deneme");
-    out.queue(Print(status))?;
+    out.queue(Print(editor.status_line()))?;
 
-    let cy = (editor.cursor.row) as u16;
-    let cx = (editor.cursor.col) as u16;
+    let cy = (editor.focused_buf.cursor.row) as u16;
+    let cx = (editor.focused_buf.cursor.col) as u16;
     out.queue(MoveTo(cx, cy))?;
-    match editor.mode {
+    match editor.focused_buf.mode {
         Mode::Normal => {
             out.queue(SetCursorStyle::SteadyBlock)?;
         }

@@ -1,96 +1,92 @@
 use std::cmp::min;
 
-use crate::buffer::Buffer;
-
-#[derive(Clone)]
-pub struct Cursor {
-    pub row: usize,
-    pub col: usize,
-}
-
-impl Cursor {
-    fn new() -> Cursor {
-        Cursor { row: 0, col: 0 }
-    }
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Mode {
-    Normal,
-    Insert,
-    Visual,
-}
+use crate::buffer::{Buffer, Mode};
 
 #[derive(Clone)]
 pub struct Editor {
-    pub buf: Buffer,
-    pub cursor: Cursor,
-    pub mode: Mode,
-    pub top: usize,
-    pub left: usize,
+    pub focused_buf: Buffer,
+    pub buffers: Vec<Buffer>,
 }
 
 impl Editor {
     pub fn new() -> Editor {
         Editor {
-            buf: Buffer::new(),
-            cursor: Cursor::new(),
-            mode: Mode::Normal,
-            top: 0,
-            left: 0,
+            focused_buf: Buffer::new(1),
+            buffers: vec![],
         }
+    }
+
+    pub fn status_line(&self) -> String {
+        let mode = match self.focused_buf.mode {
+            Mode::Normal => "NORMAL",
+            Mode::Insert => "INSERT",
+            Mode::Visual => "VISUAL",
+        };
+        format!("{} {}", mode, self.focused_buf.id)
     }
 
     pub fn with_text(text: &str) -> Self {
         Self {
-            buf: Buffer::from(text),
+            focused_buf: Buffer::from(1, text),
             ..Self::new()
         }
     }
 
     pub fn move_left(&mut self) {
-        self.cursor.col = self.cursor.col.saturating_sub(1);
+        self.focused_buf.cursor.col = self.focused_buf.cursor.col.saturating_sub(1);
     }
 
     pub fn move_right(&mut self) {
-        self.cursor.col = min(self.cursor.col + 1, self.buf.line_len(self.cursor.row));
+        self.focused_buf.cursor.col = min(
+            self.focused_buf.cursor.col + 1,
+            self.focused_buf.line_len(self.focused_buf.cursor.row),
+        );
     }
 
     pub fn insert_char(&mut self, ch: char) {
-        self.buf.lines[self.cursor.row].insert(self.cursor.col, ch);
-        self.cursor.col += 1;
+        self.focused_buf.lines[self.focused_buf.cursor.row].insert(self.focused_buf.cursor.col, ch);
+        self.focused_buf.cursor.col += 1;
     }
 
     pub fn move_up(&mut self) {
-        self.cursor.row = self.cursor.row.saturating_sub(1);
-        self.cursor.col = min(self.cursor.col, self.buf.line_len(self.cursor.row));
+        self.focused_buf.cursor.row = self.focused_buf.cursor.row.saturating_sub(1);
+        self.focused_buf.cursor.col = min(
+            self.focused_buf.cursor.col,
+            self.focused_buf.line_len(self.focused_buf.cursor.row),
+        );
     }
 
     pub fn move_down(&mut self) {
-        self.cursor.row = min(self.cursor.row + 1, self.buf.line_count() - 1);
-        self.cursor.col = min(self.cursor.col, self.buf.line_len(self.cursor.row));
+        self.focused_buf.cursor.row = min(
+            self.focused_buf.cursor.row + 1,
+            self.focused_buf.line_count() - 1,
+        );
+        self.focused_buf.cursor.col = min(
+            self.focused_buf.cursor.col,
+            self.focused_buf.line_len(self.focused_buf.cursor.row),
+        );
     }
 
     pub fn beginning_of_line(&mut self) {
-        self.cursor.col = 0;
+        self.focused_buf.cursor.col = 0;
     }
 
     pub fn start_of_line(&mut self) {
-        let line = &self.buf.lines[self.cursor.row];
+        let line = &self.focused_buf.lines[self.focused_buf.cursor.row];
         let mut i = 0;
         while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
             i += 1;
         }
-        self.cursor.col = min(i, line.len());
+        self.focused_buf.cursor.col = min(i, line.len());
     }
 
     pub fn end_of_line(&mut self) {
-        self.cursor.col = self.buf.line_len(self.cursor.row);
+        self.focused_buf.cursor.col = self.focused_buf.line_len(self.focused_buf.cursor.row);
     }
 
     pub fn word_forward(&mut self) {
-        let line = &self.buf.lines[self.cursor.row];
-        let mut i = self.cursor.col;
+        let line = &self.focused_buf.lines[self.focused_buf.cursor.row];
+        let mut i = self.focused_buf.cursor.col;
         if i < line.len() {
             i += 1;
         }
@@ -100,24 +96,28 @@ impl Editor {
         while i < line.len() && !line.as_bytes()[i].is_ascii_whitespace() {
             i += 1;
         }
-        self.cursor.col = min(i, line.len());
+        self.focused_buf.cursor.col = min(i, line.len());
     }
     pub fn new_line_below(&mut self) {
-        let i = self.buf.lines[self.cursor.row].len();
-        let rest = self.buf.lines[self.cursor.row].split_off(i);
-        self.buf.lines.insert(self.cursor.row + 1, rest);
-        self.cursor.row += 1;
-        self.cursor.col = 0;
+        let i = self.focused_buf.lines[self.focused_buf.cursor.row].len();
+        let rest = self.focused_buf.lines[self.focused_buf.cursor.row].split_off(i);
+        self.focused_buf
+            .lines
+            .insert(self.focused_buf.cursor.row + 1, rest);
+        self.focused_buf.cursor.row += 1;
+        self.focused_buf.cursor.col = 0;
     }
 
     pub fn new_line_above(&mut self) {
-        self.buf.lines.insert(self.cursor.row, String::new());
-        self.cursor.col = 0;
+        self.focused_buf
+            .lines
+            .insert(self.focused_buf.cursor.row, String::new());
+        self.focused_buf.cursor.col = 0;
     }
 
     pub fn word_backward(&mut self) {
-        let line = &self.buf.lines[self.cursor.row];
-        let mut i = self.cursor.col;
+        let line = &self.focused_buf.lines[self.focused_buf.cursor.row];
+        let mut i = self.focused_buf.cursor.col;
         if i > 0 {
             i -= 1;
         }
@@ -127,12 +127,12 @@ impl Editor {
         while i > 0 && !line.as_bytes()[i - 1].is_ascii_whitespace() {
             i -= 1;
         }
-        self.cursor.col = i;
+        self.focused_buf.cursor.col = i;
     }
 
     pub fn word_end(&mut self) {
-        let line = &self.buf.lines[self.cursor.row];
-        let mut i = self.cursor.col;
+        let line = &self.focused_buf.lines[self.focused_buf.cursor.row];
+        let mut i = self.focused_buf.cursor.col;
         while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
             i += 1;
         }
@@ -142,23 +142,6 @@ impl Editor {
             }
             i += 1;
         }
-        self.cursor.col = min(i, line.len());
-    }
-
-    pub fn ensure_cursor_on_screen(&mut self, width: u16, height: u16) {
-        let h = height as usize - 1;
-        if self.cursor.row < self.top {
-            self.top = self.cursor.row;
-        }
-        if self.cursor.row >= self.top + h {
-            self.top = self.cursor.row + 1 - h;
-        }
-
-        if self.cursor.col < self.left {
-            self.left = self.cursor.col;
-        }
-        if self.cursor.col >= self.left + width as usize {
-            self.left = self.cursor.col + 1 - width as usize;
-        }
+        self.focused_buf.cursor.col = min(i, line.len());
     }
 }
