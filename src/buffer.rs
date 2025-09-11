@@ -10,7 +10,7 @@ impl Cursor {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
     Normal,
     Insert,
