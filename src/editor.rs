@@ -1,7 +1,4 @@
-use crate::{
-    buffer::{Buffer, Mode},
-    keymap::Keymap,
-};
+use crate::buffer::{Buffer, Mode};
 
 #[derive(Clone)]
 pub struct Editor {

@@ -5,5 +5,5 @@ mod keymap;
 mod tui_render;
 
 fn main() {
-    tui_render::run();
+    let _ = tui_render::run();
 }
