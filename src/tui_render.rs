@@ -19,10 +19,12 @@ use crossterm::terminal::{
 use std::io::stdout;
 
 use crate::buffer::Mode;
+use crate::commands;
 use crate::editor::Editor;
-use crate::input;
+use crate::keymap::Keymap;
 
 pub fn run() -> Result<()> {
+    let mut keymap = Keymap::default();
     let mut ed = Editor::with_text(
         "Hello, Vim‑ish world!\nThis is a demo buffer.\nUse hjkl, wbe, 0,$, gg/G, i/a/o/O, x, dd, yy, p, u, Ctrl‑r.",
     );
@@ -50,14 +52,12 @@ pub fn run() -> Result<()> {
                         break;
                     }
 
-                    match ed.focused_buf.mode {
-                        Mode::Normal => input::handle_normal(&mut ed, key),
-                        Mode::Insert => input::handle_insert(&mut ed, key),
-                        Mode::Visual => {
-                            if let KeyCode::Esc = key.code {
-                                ed.focused_buf.mode = Mode::Normal;
-                            } else { /* TODO: selections */
-                            }
+                    let result = keymap.execute(&mut ed, key);
+
+                    if result.is_ok_and(|a| a == false) {
+                        if ed.focused_buf.mode == Mode::Insert && key.code.as_char().is_some() {
+                            let _ = commands::insert_char(&mut ed, key.code.as_char().unwrap());
+                            continue;
                         }
                     }
                 }

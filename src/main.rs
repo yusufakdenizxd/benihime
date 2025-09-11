@@ -1,6 +1,7 @@
 mod buffer;
+mod commands;
 mod editor;
-mod input;
+mod keymap;
 mod tui_render;
 
 fn main() {
