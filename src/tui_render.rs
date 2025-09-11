@@ -7,6 +7,8 @@ use crossterm::{
 };
 use std::cmp::min;
 use std::io::Write;
+use std::path::PathBuf;
+use std::str::FromStr;
 
 use crossterm::ExecutableCommand;
 use crossterm::cursor::Hide;
@@ -26,6 +28,7 @@ use crate::keymap::Keymap;
 pub fn run() -> Result<()> {
     let mut keymap = Keymap::default();
     let mut ed = Editor::new();
+    ed.open_file("/Users/akdeniz/dev/benihime/src/editor.rs")?;
 
     enable_raw_mode()?;
     let mut out = stdout();

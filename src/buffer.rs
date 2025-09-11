@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[derive(Debug, Clone)]
 pub struct Cursor {
     pub row: usize,
@@ -26,10 +28,11 @@ pub struct Buffer {
     pub mode: Mode,
     pub top: usize,
     pub left: usize,
+    pub file_path: Option<PathBuf>,
 }
 
 impl Buffer {
-    pub fn new(id: i32, name: &str) -> Self {
+    pub fn new(id: i32, name: &str, file_path: Option<PathBuf>) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -38,9 +41,11 @@ impl Buffer {
             mode: Mode::Normal,
             top: 0,
             left: 0,
+            file_path,
         }
     }
-    pub fn from(id: i32, name: &str, text: &str) -> Self {
+
+    pub fn from(id: i32, name: &str, text: &str, file_path: Option<PathBuf>) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -49,8 +54,10 @@ impl Buffer {
             mode: Mode::Normal,
             top: 0,
             left: 0,
+            file_path,
         }
     }
+
     pub fn line_count(&self) -> usize {
         self.lines.len()
     }

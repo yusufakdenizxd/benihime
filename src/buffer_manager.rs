@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use crate::buffer::Buffer;
 
@@ -42,19 +44,30 @@ impl BufferManager {
         let id = self.next_id;
         self.next_id += 1;
 
-        let buf = Buffer::new(id, name);
+        let buf = Buffer::new(id, name, None);
         self.buffers.insert(id, buf);
 
         id
     }
 
-    pub fn create_buffer_from(&mut self, name: &str, text: &str) -> i32 {
+    pub fn create_buffer_from(
+        &mut self,
+        name: &str,
+        text: &str,
+        file_path: Option<PathBuf>,
+    ) -> i32 {
         let id = self.next_id;
         self.next_id += 1;
 
-        let buf = Buffer::from(id, name, text);
+        let buf = Buffer::from(id, name, text, file_path);
         self.buffers.insert(id, buf);
 
+        id
+    }
+
+    pub fn open_file(&mut self, path: PathBuf) -> i32 {
+        let contents = fs::read_to_string(&path).unwrap_or_default();
+        let id = self.create_buffer_from("name", &contents, Some(path));
         id
     }
 }

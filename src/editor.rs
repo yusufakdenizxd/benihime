@@ -1,3 +1,6 @@
+use anyhow::Result;
+use std::path::PathBuf;
+
 use crate::{
     buffer::{Buffer, Mode},
     buffer_manager::BufferManager,
@@ -38,5 +41,11 @@ impl Editor {
             Mode::Visual => "VISUAL",
         };
         format!("{} {}", mode, self.focused_buf().id)
+    }
+
+    pub fn open_file(&mut self, path: &str) -> Result<()> {
+        let id = self.buffer_manager.open_file(PathBuf::from(path));
+        self.focused_buf_id = id;
+        Ok(())
     }
 }
