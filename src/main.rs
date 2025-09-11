@@ -1,4 +1,5 @@
 mod buffer;
+mod buffer_manager;
 mod commands;
 mod editor;
 mod keymap;

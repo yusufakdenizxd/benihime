@@ -122,7 +122,7 @@ impl Keymap {
 
     pub fn execute(&mut self, editor: &mut Editor, event: KeyEvent) -> anyhow::Result<bool> {
         if let Some((modes, action)) = self.bindings.get(&event) {
-            if modes.contains(&editor.focused_buf.mode) {
+            if modes.contains(&editor.focused_buf().mode) {
                 let result = action(editor);
                 if result.is_err() {
                     return Err(anyhow!("There was a error {}", result.err().unwrap()));

@@ -25,9 +25,7 @@ use crate::keymap::Keymap;
 
 pub fn run() -> Result<()> {
     let mut keymap = Keymap::default();
-    let mut ed = Editor::with_text(
-        "Hello, Vim‑ish world!\nThis is a demo buffer.\nUse hjkl, wbe, 0,$, gg/G, i/a/o/O, x, dd, yy, p, u, Ctrl‑r.",
-    );
+    let mut ed = Editor::new();
 
     enable_raw_mode()?;
     let mut out = stdout();
@@ -41,7 +39,7 @@ pub fn run() -> Result<()> {
             match read()? {
                 Event::Key(key) => {
                     if key.code == KeyCode::Esc
-                        && ed.focused_buf.mode == Mode::Normal
+                        && ed.focused_buf().mode == Mode::Normal
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         break;
@@ -55,7 +53,7 @@ pub fn run() -> Result<()> {
                     let result = keymap.execute(&mut ed, key);
 
                     if result.is_ok_and(|a| a == false) {
-                        if ed.focused_buf.mode == Mode::Insert && key.code.as_char().is_some() {
+                        if ed.focused_buf().mode == Mode::Insert && key.code.as_char().is_some() {
                             let _ = commands::insert_char(&mut ed, key.code.as_char().unwrap());
                             continue;
                         }
@@ -78,20 +76,22 @@ pub fn run() -> Result<()> {
 }
 
 pub fn render(editor: &mut Editor) -> Result<bool> {
+    let status_line = editor.status_line();
     let (w, h) = size()?;
-    editor.focused_buf.ensure_cursor_on_screen(w, h);
+    let buf = editor.focused_buf_mut();
+    buf.ensure_cursor_on_screen(w, h);
     let mut out = std::io::stdout();
     let _ = out.queue(Clear(ClearType::All));
 
     let text_rows = h.saturating_sub(1) as usize;
     for row in 0..text_rows {
-        let buf_row = editor.focused_buf.top + row;
-        if buf_row >= editor.focused_buf.line_count() {
+        let buf_row = buf.top + row;
+        if buf_row >= buf.line_count() {
             break;
         }
-        let line = &editor.focused_buf.lines[buf_row];
-        let visible = if editor.focused_buf.left < line.len() {
-            &line[editor.focused_buf.left..min(line.len(), editor.focused_buf.left + w as usize)]
+        let line = &buf.lines[buf_row];
+        let visible = if buf.left < line.len() {
+            &line[buf.left..min(line.len(), buf.left + w as usize)]
         } else {
             ""
         };
@@ -100,12 +100,12 @@ pub fn render(editor: &mut Editor) -> Result<bool> {
     }
 
     out.queue(MoveTo(0, h - 1))?;
-    out.queue(Print(editor.status_line()))?;
+    out.queue(Print(status_line))?;
 
-    let cy = (editor.focused_buf.cursor.row) as u16;
-    let cx = (editor.focused_buf.cursor.col) as u16;
+    let cy = (buf.cursor.row) as u16;
+    let cx = (buf.cursor.col) as u16;
     out.queue(MoveTo(cx, cy))?;
-    match editor.focused_buf.mode {
+    match buf.mode {
         Mode::Normal => {
             out.queue(SetCursorStyle::SteadyBlock)?;
         }

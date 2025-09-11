@@ -21,6 +21,7 @@ pub enum Mode {
 pub struct Buffer {
     pub id: i32,
     pub lines: Vec<String>,
+    pub name: String,
     pub cursor: Cursor,
     pub mode: Mode,
     pub top: usize,
@@ -28,9 +29,10 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    pub fn new(id: i32) -> Self {
+    pub fn new(id: i32, name: &str) -> Self {
         Self {
             id,
+            name: name.to_string(),
             lines: vec![String::new()],
             cursor: Cursor::new(),
             mode: Mode::Normal,
@@ -38,9 +40,10 @@ impl Buffer {
             left: 0,
         }
     }
-    pub fn from(id: i32, text: &str) -> Self {
+    pub fn from(id: i32, name: &str, text: &str) -> Self {
         Self {
             id,
+            name: name.to_string(),
             lines: text.split('\n').map(|s| s.to_string()).collect(),
             cursor: Cursor::new(),
             mode: Mode::Normal,
