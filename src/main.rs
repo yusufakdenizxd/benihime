@@ -1,6 +1,6 @@
 mod buffer;
 mod buffer_manager;
-mod commands;
+mod command;
 mod editor;
 mod keymap;
 mod tui_render;

@@ -17,6 +17,7 @@ pub enum Mode {
     Normal,
     Insert,
     Visual,
+    Command,
 }
 
 #[derive(Debug, Clone)]
@@ -79,6 +80,23 @@ impl Buffer {
         }
         if self.cursor.col >= self.left + width as usize {
             self.left = self.cursor.col + 1 - width as usize;
+        }
+    }
+    pub fn insert_char(&mut self, c: char) {
+        let row = self.cursor.row;
+        let col = self.cursor.col;
+
+        if row >= self.lines.len() {
+            self.lines.push(String::new());
+        }
+
+        let line = &mut self.lines[row];
+        if col <= line.len() {
+            line.insert(col, c);
+            self.cursor.col += 1;
+        } else {
+            line.push(c);
+            self.cursor.col = line.len();
         }
     }
 }
