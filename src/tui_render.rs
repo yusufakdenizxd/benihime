@@ -1,34 +1,25 @@
-use anyhow::{Ok, Result};
-use crossterm::QueueableCommand;
-use crossterm::terminal::{Clear, ClearType, size};
+use anyhow::Result;
 use crossterm::{
-    cursor::{MoveTo, SetCursorStyle, Show},
+    ExecutableCommand, QueueableCommand,
+    cursor::{Hide, MoveTo, SetCursorStyle, Show},
+    event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers, read},
     style::Print,
+    terminal::{
+        Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
+        enable_raw_mode, size,
+    },
 };
-use std::cmp::min;
-use std::io::Write;
-use std::path::PathBuf;
-use std::str::FromStr;
 
-use crossterm::ExecutableCommand;
-use crossterm::cursor::Hide;
-use crossterm::event::{
-    DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers, read,
-};
-use crossterm::terminal::{
-    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
-};
-use std::io::stdout;
+use std::cmp::min;
+use std::io::{Write, stdout};
 
 use crate::buffer::Mode;
-use crate::commands;
-use crate::editor::Editor;
-use crate::keymap::Keymap;
+use crate::editor::{Editor, EditorState};
 
 pub fn run() -> Result<()> {
-    let mut keymap = Keymap::default();
-    let mut ed = Editor::new();
-    ed.open_file("/Users/akdeniz/dev/benihime/src/editor.rs")?;
+    // Initialize editor + state
+    let editor = Editor::new();
+    editor.open_file("/Users/akdeniz/dev/benihime/src/editor.rs")?;
 
     enable_raw_mode()?;
     let mut out = stdout();
@@ -38,31 +29,46 @@ pub fn run() -> Result<()> {
 
     let result = (|| -> Result<()> {
         loop {
-            render(&mut ed)?;
+            render(&mut editor.state.lock().unwrap())?;
+
             match read()? {
-                Event::Key(key) => {
-                    if key.code == KeyCode::Esc
-                        && ed.focused_buf().mode == Mode::Normal
-                        && key.modifiers.contains(KeyModifiers::SHIFT)
-                    {
-                        break;
-                    }
-                    if key.code == KeyCode::Char('c')
-                        && key.modifiers.contains(KeyModifiers::CONTROL)
+                Event::Key(key_event) => {
+                    if key_event.code == KeyCode::Char('c')
+                        && key_event.modifiers.contains(KeyModifiers::CONTROL)
                     {
                         break;
                     }
 
-                    let result = keymap.execute(&mut ed, key);
-
-                    if result.is_ok_and(|a| a == false) {
-                        if ed.focused_buf().mode == Mode::Insert && key.code.as_char().is_some() {
-                            let _ = commands::insert_char(&mut ed, key.code.as_char().unwrap());
-                            continue;
+                    let mut state = editor.state.lock().unwrap();
+                    if key_event.code == KeyCode::Esc
+                        && state.focused_buf().mode == Mode::Normal
+                        && key_event.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        break;
+                    }
+                    let executed = editor.handle_key(&mut state, key_event);
+                    if executed.is_err() {
+                        let buf = state.focused_buf_mut();
+                        match buf.mode {
+                            Mode::Insert => {
+                                if let Some(c) = key_event.code.as_char() {
+                                    buf.insert_char(c);
+                                }
+                            }
+                            Mode::Command => match key_event.code {
+                                KeyCode::Char(c) => state.command_buffer.push(c),
+                                KeyCode::Backspace => {
+                                    state.command_buffer.pop();
+                                }
+                                _ => {}
+                            },
+                            _ => {}
                         }
                     }
                 }
-                Event::Resize(_, _) => {}
+                Event::Resize(_, _) => {
+                    // optional: handle resize
+                }
                 _ => {}
             }
         }
@@ -78,15 +84,19 @@ pub fn run() -> Result<()> {
     result
 }
 
-pub fn render(editor: &mut Editor) -> Result<bool> {
-    let status_line = editor.status_line();
-    let (w, h) = size()?;
-    let buf = editor.focused_buf_mut();
-    buf.ensure_cursor_on_screen(w, h);
-    let mut out = std::io::stdout();
-    let _ = out.queue(Clear(ClearType::All));
+pub fn render(state: &mut EditorState) -> Result<()> {
+    let status_line = state.status_line();
+    let command_line = state.command_buffer.clone();
 
-    let text_rows = h.saturating_sub(1) as usize;
+    let buf = state.focused_buf_mut();
+    let (term_w, term_h) = size()?;
+
+    buf.ensure_cursor_on_screen(term_w, term_h);
+
+    let mut out = stdout();
+    out.queue(Clear(ClearType::All))?;
+
+    let text_rows = term_h.saturating_sub(1) as usize;
     for row in 0..text_rows {
         let buf_row = buf.top + row;
         if buf_row >= buf.line_count() {
@@ -94,7 +104,7 @@ pub fn render(editor: &mut Editor) -> Result<bool> {
         }
         let line = &buf.lines[buf_row];
         let visible = if buf.left < line.len() {
-            &line[buf.left..min(line.len(), buf.left + w as usize)]
+            &line[buf.left..min(line.len(), buf.left + term_w as usize)]
         } else {
             ""
         };
@@ -102,26 +112,33 @@ pub fn render(editor: &mut Editor) -> Result<bool> {
         out.queue(Print(visible))?;
     }
 
-    out.queue(MoveTo(0, h - 1))?;
-    out.queue(Print(status_line))?;
+    out.queue(MoveTo(0, term_h - 1))?;
+    if buf.mode == Mode::Command {
+        out.queue(Print(format!(":{}", command_line)))?;
+    } else {
+        out.queue(Print(status_line))?;
+    }
 
-    let cy = (buf.cursor.row) as u16;
-    let cx = (buf.cursor.col) as u16;
-    out.queue(MoveTo(cx, cy))?;
+    if buf.mode == Mode::Command {
+        let cy = term_h.saturating_sub(1);
+        let cx = (1 + command_line.len()) as u16;
+        out.queue(MoveTo(cx, cy))?;
+    } else {
+        let cy = buf.cursor.row as u16;
+        let cx = buf.cursor.col as u16;
+        out.queue(MoveTo(cx, cy))?;
+    }
+
     match buf.mode {
-        Mode::Normal => {
+        Mode::Normal | Mode::Visual | Mode::Command => {
             out.queue(SetCursorStyle::SteadyBlock)?;
         }
         Mode::Insert => {
             out.queue(SetCursorStyle::SteadyBar)?;
         }
-        Mode::Visual => {
-            out.queue(SetCursorStyle::SteadyBlock)?;
-        }
     }
     out.queue(Show)?;
+    out.flush()?;
 
-    let _ = out.flush();
-
-    Ok(true)
+    Ok(())
 }
