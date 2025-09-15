@@ -1,6 +1,4 @@
-use std::cmp::min;
-
-use maplit::hashmap;
+use std::{cmp::min, path::PathBuf};
 
 use crate::{buffer::Mode, editor::HandleKeyError};
 
@@ -37,7 +35,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("set-mode", |ctx: &mut CommandContext| {
-        let mode: Mode = ctx.get_arg("mode")?;
+        let mode: Mode = ctx.get_arg(0)?;
         if mode == Mode::Command {
             ctx.state.command_buffer.clear();
         }
@@ -81,9 +79,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "set-mode",
             &mut CommandContext {
                 state: ctx.state,
-                args: &Some(hashmap![
-                    "mode".to_string()=>CommandArg::Mode(Mode::Insert),
-                ]),
+                args: &Some(vec![CommandArg::Mode(Mode::Insert)]),
                 registry: ctx.registry,
             },
         )?;
@@ -102,9 +98,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "set-mode",
             &mut CommandContext {
                 state: ctx.state,
-                args: &Some(hashmap![
-                    "mode".to_string()=>CommandArg::Mode(Mode::Insert),
-                ]),
+                args: &Some(vec![CommandArg::Mode(Mode::Insert)]),
                 registry: ctx.registry,
             },
         )?;
@@ -168,33 +162,40 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "set-mode",
             &mut CommandContext {
                 state: ctx.state,
-                args: &Some(hashmap![
-                    "mode".to_string()=>CommandArg::Mode(Mode::Normal),
-                ]),
+                args: &Some(vec![CommandArg::Mode(Mode::Normal)]),
                 registry: ctx.registry,
             },
         )?;
 
         let line = ctx.state.command_buffer.clone();
+        ctx.state.command_buffer.clear();
+
         if line.is_empty() {
             return Ok(());
         }
 
-        let command_name = line
-            .split_whitespace()
+        let mut parts = line.split_whitespace();
+        let command_name = parts
             .next()
             .ok_or_else(|| HandleKeyError::ExecutionFailed(anyhow::anyhow!("Empty command")))?;
 
-        ctx.state.command_buffer.clear();
+        let args: Vec<CommandArg> = parts.map(|tok| CommandArg::parse_arg(tok)).collect();
 
         let mut command_ctx = CommandContext {
             state: ctx.state,
-            args: &None,
+            args: &Some(args),
             registry: ctx.registry,
         };
 
         ctx.registry.execute(command_name, &mut command_ctx)?;
+        Ok(())
+    });
 
+    registry.register("open-file", |ctx: &mut CommandContext| {
+        let path: PathBuf = ctx.get_arg(0)?;
+        let state = &mut ctx.state;
+        let id = state.buffer_manager.open_file(PathBuf::from(path));
+        state.focused_buf_id = id;
         Ok(())
     });
 }

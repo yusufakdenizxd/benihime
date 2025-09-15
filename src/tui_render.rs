@@ -13,13 +13,12 @@ use crossterm::{
 use std::cmp::min;
 use std::io::{Write, stdout};
 
-use crate::buffer::Mode;
 use crate::editor::{Editor, EditorState};
+use crate::{buffer::Mode, command::command::CommandContext};
 
 pub fn run() -> Result<()> {
     // Initialize editor + state
     let editor = Editor::new();
-    editor.open_file("/Users/akdeniz/dev/benihime/src/editor.rs")?;
 
     enable_raw_mode()?;
     let mut out = stdout();

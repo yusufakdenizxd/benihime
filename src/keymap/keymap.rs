@@ -6,7 +6,7 @@ use crate::{buffer::Mode, command::command::CommandArg};
 
 #[derive(Debug, Clone)]
 pub struct Keymap {
-    pub bindings: HashMap<KeyEvent, (Vec<Mode>, String, Option<HashMap<String, CommandArg>>)>,
+    pub bindings: HashMap<KeyEvent, (Vec<Mode>, String, Option<Vec<CommandArg>>)>,
 }
 
 impl Keymap {
@@ -21,7 +21,7 @@ impl Keymap {
         modes: &[Mode],
         key: KeyEvent,
         command: &str,
-        args: Option<HashMap<String, CommandArg>>,
+        args: Option<Vec<CommandArg>>,
     ) {
         self.bindings
             .insert(key, (modes.to_vec(), command.to_string(), args));
@@ -31,7 +31,7 @@ impl Keymap {
         &self,
         mode: Mode,
         key: KeyEvent,
-    ) -> Option<(Vec<Mode>, String, Option<HashMap<String, CommandArg>>)> {
+    ) -> Option<(Vec<Mode>, String, Option<Vec<CommandArg>>)> {
         self.bindings
             .get(&key)
             .filter(|(modes, _, _)| modes.contains(&mode))

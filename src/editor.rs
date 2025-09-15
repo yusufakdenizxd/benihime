@@ -1,10 +1,7 @@
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use crossterm::event::KeyEvent;
 
-use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use thiserror::Error;
 
@@ -98,12 +95,5 @@ impl Editor {
         };
 
         self.command_registry.execute(&command_name, &mut ctx)
-    }
-
-    pub fn open_file(&self, path: &str) -> Result<()> {
-        let mut state = self.state.lock().unwrap();
-        let id = state.buffer_manager.open_file(PathBuf::from(path));
-        state.focused_buf_id = id;
-        Ok(())
     }
 }

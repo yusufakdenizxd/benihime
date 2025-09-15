@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+
 use crate::{buffer::Mode, command::command::CommandArg};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use maplit::hashmap;
 
 use super::keymap::Keymap;
 
@@ -9,18 +10,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal],
         KeyEvent::new(KeyCode::Char('i'), KeyModifiers::NONE),
         "set-mode",
-        Some(hashmap![
-            "mode".to_string()=>CommandArg::Mode(Mode::Insert),
-        ]),
+        Some(vec![CommandArg::Mode(Mode::Insert)]),
     );
 
     km.bind(
         &[Mode::Insert, Mode::Command, Mode::Visual],
         KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE),
         "set-mode",
-        Some(hashmap![
-            "mode".to_string()=>CommandArg::Mode(Mode::Normal),
-        ]),
+        Some(vec![CommandArg::Mode(Mode::Normal)]),
     );
 
     km.bind(
@@ -111,9 +108,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal, Mode::Visual],
         KeyEvent::new(KeyCode::Char(':'), KeyModifiers::NONE),
         "set-mode",
-        Some(hashmap![
-            "mode".to_string()=>CommandArg::Mode(Mode::Command),
-        ]),
+        Some(vec![CommandArg::Mode(Mode::Command)]),
     );
 
     km.bind(

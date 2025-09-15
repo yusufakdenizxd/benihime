@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use anyhow::anyhow;
+use std::{path::PathBuf, str::FromStr};
 
 #[derive(Debug, Clone)]
 pub struct Cursor {
@@ -18,6 +19,20 @@ pub enum Mode {
     Insert,
     Visual,
     Command,
+}
+
+impl FromStr for Mode {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "normal" => Ok(Mode::Normal),
+            "insert" => Ok(Mode::Insert),
+            "visual" => Ok(Mode::Visual),
+            "command" => Ok(Mode::Command),
+            _ => Err(anyhow!("Invalid mode: {}", s)),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

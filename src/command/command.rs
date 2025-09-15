@@ -1,5 +1,5 @@
 use anyhow::{Result, anyhow};
-use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 use crate::{buffer::Mode, editor::EditorState};
 
@@ -12,16 +12,49 @@ pub enum CommandArg {
     Bool(bool),
     Mode(Mode),
     Position { row: usize, col: usize },
+    Path(PathBuf),
+}
+
+impl CommandArg {
+    pub fn parse_arg(token: &str) -> CommandArg {
+        if token.contains('/') || token.contains('.') {
+            return CommandArg::Path(PathBuf::from(token));
+        }
+
+        if let Some((row_str, col_str)) = token.split_once(',') {
+            if let (Ok(row), Ok(col)) = (row_str.parse::<usize>(), col_str.parse::<usize>()) {
+                return CommandArg::Position { row, col };
+            }
+        }
+
+        if let Ok(mode) = token.parse::<Mode>() {
+            return CommandArg::Mode(mode);
+        }
+
+        if let Ok(i) = token.parse::<i64>() {
+            return CommandArg::Int(i);
+        }
+
+        if token.eq_ignore_ascii_case("true") {
+            return CommandArg::Bool(true);
+        }
+
+        if token.eq_ignore_ascii_case("false") {
+            return CommandArg::Bool(false);
+        }
+
+        CommandArg::Str(token.to_string())
+    }
 }
 
 pub struct CommandContext<'a> {
     pub state: &'a mut EditorState,
-    pub args: &'a Option<HashMap<String, CommandArg>>,
+    pub args: &'a Option<Vec<CommandArg>>,
     pub registry: &'a CommandRegistry,
 }
 
 impl<'a> CommandContext<'a> {
-    pub fn get_arg<T>(&self, name: &str) -> Result<T>
+    pub fn get_arg<T>(&self, index: usize) -> Result<T>
     where
         CommandArg: ArgAsOwned<T>,
     {
@@ -31,10 +64,10 @@ impl<'a> CommandContext<'a> {
             .ok_or_else(|| anyhow::anyhow!("No arguments provided"))?;
 
         let arg = args
-            .get(name)
-            .ok_or_else(|| anyhow!("Missing argument '{}'", name))?;
+            .get(index)
+            .ok_or_else(|| anyhow!("Missing argument '{}'", index))?;
         arg.as_type_owned()
-            .ok_or_else(|| anyhow!("Argument '{}' has wrong type", name))
+            .ok_or_else(|| anyhow!("Argument '{}' has wrong type", index))
     }
 }
 
@@ -46,6 +79,15 @@ impl ArgAsOwned<String> for CommandArg {
     fn as_type_owned(&self) -> Option<String> {
         match self {
             CommandArg::Str(s) => Some(s.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl ArgAsOwned<PathBuf> for CommandArg {
+    fn as_type_owned(&self) -> Option<PathBuf> {
+        match self {
+            CommandArg::Path(p) => Some(p.clone()),
             _ => None,
         }
     }
