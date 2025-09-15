@@ -85,6 +85,7 @@ pub fn run() -> Result<()> {
 
 pub fn render(state: &mut EditorState) -> Result<()> {
     let status_line = state.status_line();
+    let message = state.message.clone();
     let command_line = state.command_buffer.clone();
 
     let buf = state.focused_buf_mut();
@@ -111,11 +112,14 @@ pub fn render(state: &mut EditorState) -> Result<()> {
         out.queue(Print(visible))?;
     }
 
+    out.queue(MoveTo(0, term_h - 2))?;
+    out.queue(Print(status_line))?;
+
     out.queue(MoveTo(0, term_h - 1))?;
     if buf.mode == Mode::Command {
         out.queue(Print(format!(":{}", command_line)))?;
-    } else {
-        out.queue(Print(status_line))?;
+    } else if message.is_some() {
+        out.queue(Print(message.unwrap()))?;
     }
 
     if buf.mode == Mode::Command {

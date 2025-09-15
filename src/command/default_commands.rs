@@ -1,5 +1,7 @@
 use std::{cmp::min, path::PathBuf};
 
+use anyhow::Ok;
+
 use crate::{buffer::Mode, editor::HandleKeyError};
 
 use super::{
@@ -196,6 +198,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let state = &mut ctx.state;
         let id = state.buffer_manager.open_file(PathBuf::from(path));
         state.focused_buf_id = id;
+        Ok(())
+    });
+
+    registry.register("echo", |ctx: &mut CommandContext| {
+        let text: String = ctx.get_arg(0)?;
+        let state = &mut ctx.state;
+        state.set_message(text);
+
         Ok(())
     });
 }
