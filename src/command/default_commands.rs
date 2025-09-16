@@ -204,7 +204,24 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("echo", |ctx: &mut CommandContext| {
         let text: String = ctx.get_arg(0)?;
         let state = &mut ctx.state;
-        state.set_message(text);
+        state.message = Some(text);
+        state.error_message = None;
+
+        Ok(())
+    });
+
+    registry.register("error-message", |ctx: &mut CommandContext| {
+        let text: String = ctx.get_arg(0)?;
+        let state = &mut ctx.state;
+        state.message = None;
+        state.error_message = Some(text);
+
+        Ok(())
+    });
+
+    registry.register("clear-error-message", |ctx: &mut CommandContext| {
+        let state = &mut ctx.state;
+        state.error_message = None;
 
         Ok(())
     });

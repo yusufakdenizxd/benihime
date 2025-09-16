@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::editor::HandleKeyError;
 
-use super::command::{CommandContext, CommandFn};
+use super::command::{CommandArg, CommandContext, CommandFn};
 
 pub struct CommandRegistry {
     commands: HashMap<String, CommandFn>,
@@ -22,7 +22,32 @@ impl CommandRegistry {
 
     pub fn execute(&self, name: &str, ctx: &mut CommandContext) -> Result<(), HandleKeyError> {
         if let Some(cmd) = self.commands.get(name) {
-            cmd(ctx).map_err(HandleKeyError::ExecutionFailed)
+            match cmd(ctx) {
+                Ok(o) => {
+                    if name != "clear-error-message" && name != "error-message" {
+                        let _ = self.execute(
+                            "clear-error-message",
+                            &mut CommandContext {
+                                state: ctx.state,
+                                registry: ctx.registry,
+                                args: &None,
+                            },
+                        );
+                    }
+                    Ok(o)
+                }
+                Err(e) => {
+                    let _ = self.execute(
+                        "error-message",
+                        &mut CommandContext {
+                            state: ctx.state,
+                            registry: ctx.registry,
+                            args: &Some(vec![CommandArg::Str(e.to_string())]),
+                        },
+                    );
+                    return Err(HandleKeyError::ExecutionFailed(e));
+                }
+            }
         } else {
             Err(HandleKeyError::CommandNotFound(name.to_string()))
         }

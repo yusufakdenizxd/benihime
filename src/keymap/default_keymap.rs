@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::{buffer::Mode, command::command::CommandArg};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 

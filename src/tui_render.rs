@@ -3,7 +3,7 @@ use crossterm::{
     ExecutableCommand, QueueableCommand,
     cursor::{Hide, MoveTo, SetCursorStyle, Show},
     event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers, read},
-    style::Print,
+    style::{Print, ResetColor, Stylize},
     terminal::{
         Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
         enable_raw_mode, size,
@@ -13,8 +13,8 @@ use crossterm::{
 use std::cmp::min;
 use std::io::{Write, stdout};
 
+use crate::buffer::Mode;
 use crate::editor::{Editor, EditorState};
-use crate::{buffer::Mode, command::command::CommandContext};
 
 pub fn run() -> Result<()> {
     // Initialize editor + state
@@ -86,6 +86,7 @@ pub fn run() -> Result<()> {
 pub fn render(state: &mut EditorState) -> Result<()> {
     let status_line = state.status_line();
     let message = state.message.clone();
+    let err_message = state.error_message.clone();
     let command_line = state.command_buffer.clone();
 
     let buf = state.focused_buf_mut();
@@ -118,6 +119,9 @@ pub fn render(state: &mut EditorState) -> Result<()> {
     out.queue(MoveTo(0, term_h - 1))?;
     if buf.mode == Mode::Command {
         out.queue(Print(format!(":{}", command_line)))?;
+    } else if err_message.is_some() {
+        out.queue(Print(err_message.unwrap().on_red()))?;
+        out.queue(ResetColor)?;
     } else if message.is_some() {
         out.queue(Print(message.unwrap()))?;
     }

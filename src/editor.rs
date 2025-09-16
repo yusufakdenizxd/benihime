@@ -26,6 +26,7 @@ pub struct EditorState {
     pub buffer_manager: BufferManager,
     pub command_buffer: String,
     pub message: Option<String>,
+    pub error_message: Option<String>,
 }
 
 impl EditorState {
@@ -51,14 +52,6 @@ impl EditorState {
         };
         format!("{} {}", mode, buf.id)
     }
-
-    pub fn set_message<S: Into<String>>(&mut self, msg: S) {
-        self.message = Some(msg.into());
-    }
-
-    pub fn clear_message(&mut self) {
-        self.message = None;
-    }
 }
 
 pub struct Editor {
@@ -83,6 +76,7 @@ impl Editor {
             buffer_manager,
             command_buffer: String::new(),
             message: None,
+            error_message: None,
         };
 
         Self {
