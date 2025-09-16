@@ -97,7 +97,7 @@ pub fn render(state: &mut EditorState) -> Result<()> {
     let mut out = stdout();
     out.queue(Clear(ClearType::All))?;
 
-    let text_rows = term_h.saturating_sub(1) as usize;
+    let text_rows = term_h.saturating_sub(2) as usize;
     for row in 0..text_rows {
         let buf_row = buf.top + row;
         if buf_row >= buf.line_count() {
