@@ -115,4 +115,18 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "execute-command-buffer",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeyEvent::new(KeyCode::Char('J'), KeyModifiers::NONE),
+        "next-buffer",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeyEvent::new(KeyCode::Char('K'), KeyModifiers::NONE),
+        "previous-buffer",
+        None,
+    );
 }

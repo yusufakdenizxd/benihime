@@ -29,6 +29,10 @@ impl BufferManager {
         self.buffers.values().collect()
     }
 
+    pub fn get_buffer_ids(&self) -> Vec<&i32> {
+        self.buffers.keys().collect()
+    }
+
     pub fn get_buffers_mut(&mut self) -> Vec<&mut Buffer> {
         self.buffers.values_mut().collect()
     }

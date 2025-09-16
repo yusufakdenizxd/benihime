@@ -225,4 +225,39 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register("next-buffer", |ctx: &mut CommandContext| {
+        let state = &mut ctx.state;
+        let focused_id = state.focused_buf_id;
+        let mut ids = state.buffer_manager.get_buffer_ids();
+
+        ids.sort();
+        if ids.is_empty() {
+            return Ok(());
+        }
+
+        if let Some(id) = ids.iter().position(|&id| *id == focused_id) {
+            let next_index = (id + 1) % ids.len();
+            state.focused_buf_id = *ids[next_index];
+        }
+
+        Ok(())
+    });
+    registry.register("previous-buffer", |ctx: &mut CommandContext| {
+        let state = &mut ctx.state;
+        let focused_id = state.focused_buf_id;
+        let mut ids = state.buffer_manager.get_buffer_ids();
+
+        ids.sort();
+        if ids.is_empty() {
+            return Ok(());
+        }
+
+        if let Some(pos) = ids.iter().position(|&id| *id == focused_id) {
+            let prev_index = (pos + ids.len() - 1) % ids.len();
+            state.focused_buf_id = *ids[prev_index];
+        }
+
+        Ok(())
+    });
 }
