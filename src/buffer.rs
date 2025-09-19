@@ -114,4 +114,10 @@ impl Buffer {
             self.cursor.col = line.len();
         }
     }
+
+    pub fn insert_str(&mut self, s: &str) {
+        for ch in s.chars() {
+            self.insert_char(ch);
+        }
+    }
 }

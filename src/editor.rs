@@ -1,5 +1,5 @@
 use anyhow::Result;
-use crossterm::event::KeyEvent;
+use egui::{Key, Modifiers};
 
 use std::sync::{Arc, Mutex};
 
@@ -21,6 +21,16 @@ pub enum HandleKeyError {
     #[error("Command execution failed: {0}")]
     ExecutionFailed(#[from] anyhow::Error),
 }
+
+impl PartialEq for HandleKeyError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::KeyNotFound, Self::KeyNotFound) => true,
+            _ => false,
+        }
+    }
+}
+
 pub struct EditorState {
     pub focused_buf_id: i32,
     pub buffer_manager: BufferManager,
@@ -86,10 +96,15 @@ impl Editor {
         }
     }
 
-    pub fn handle_key(&self, state: &mut EditorState, key: KeyEvent) -> Result<(), HandleKeyError> {
+    pub fn handle_key(
+        &self,
+        state: &mut EditorState,
+        key: Key,
+        modifier: Modifiers,
+    ) -> Result<(), HandleKeyError> {
         let (_modes, command_name, args) = self
             .keymap
-            .lookup(state.focused_buf().mode, key)
+            .lookup(state.focused_buf().mode, key, modifier)
             .ok_or(HandleKeyError::KeyNotFound)?;
 
         let mut ctx = CommandContext {

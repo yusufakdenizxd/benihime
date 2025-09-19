@@ -1,131 +1,150 @@
+use egui::{Key, Modifiers};
+
 use crate::{buffer::Mode, command::command::CommandArg};
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use super::keymap::Keymap;
 
 pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('i'), KeyModifiers::NONE),
+        Key::I,
+        Modifiers::default(),
         "set-mode",
         Some(vec![CommandArg::Mode(Mode::Insert)]),
     );
 
     km.bind(
         &[Mode::Insert, Mode::Command, Mode::Visual],
-        KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE),
+        Key::Escape,
+        Modifiers::default(),
         "set-mode",
         Some(vec![CommandArg::Mode(Mode::Normal)]),
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('h'), KeyModifiers::NONE),
+        Key::H,
+        Modifiers::default(),
         "move-left",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE),
+        Key::J,
+        Modifiers::default(),
         "move-down",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('k'), KeyModifiers::NONE),
+        Key::K,
+        Modifiers::default(),
         "move-up",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('l'), KeyModifiers::NONE),
+        Key::L,
+        Modifiers::default(),
         "move-right",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('-'), KeyModifiers::NONE),
+        Key::Minus,
+        Modifiers::default(),
         "first-non-blank",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('0'), KeyModifiers::NONE),
+        Key::Num0,
+        Modifiers::default(),
         "beginning-of-line",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('='), KeyModifiers::NONE),
+        Key::Equals,
+        Modifiers::default(),
         "end-of-line",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('o'), KeyModifiers::NONE),
+        Key::O,
+        Modifiers::default(),
         "open-below",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('O'), KeyModifiers::NONE),
+        Key::O,
+        Modifiers::SHIFT,
         "open-above",
         None,
     );
 
     km.bind(
         &[Mode::Normal, Mode::Visual],
-        KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE),
+        Key::E,
+        Modifiers::default(),
         "word-end",
         None,
     );
 
     km.bind(
         &[Mode::Normal, Mode::Visual],
-        KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),
+        Key::B,
+        Modifiers::default(),
         "word-start",
         None,
     );
 
     km.bind(
         &[Mode::Normal, Mode::Visual],
-        KeyEvent::new(KeyCode::Char('w'), KeyModifiers::NONE),
+        Key::W,
+        Modifiers::default(),
         "word-forward",
         None,
     );
 
     km.bind(
         &[Mode::Normal, Mode::Visual],
-        KeyEvent::new(KeyCode::Char(':'), KeyModifiers::NONE),
+        Key::Colon,
+        Modifiers::default(),
         "set-mode",
         Some(vec![CommandArg::Mode(Mode::Command)]),
     );
 
     km.bind(
         &[Mode::Command],
-        KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+        Key::Enter,
+        Modifiers::default(),
         "execute-command-buffer",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('J'), KeyModifiers::NONE),
+        Key::J,
+        Modifiers::SHIFT,
         "next-buffer",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
-        KeyEvent::new(KeyCode::Char('K'), KeyModifiers::NONE),
+        Key::K,
+        Modifiers::SHIFT,
         "previous-buffer",
         None,
     );

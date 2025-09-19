@@ -5,7 +5,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.99"
-crossterm = "0.29.0"
+eframe = "0.32.3"
+egui = "0.32.3"
 env_logger = "0.11.8"
 log = "0.4.28"
 thiserror = "2.0.16"
