@@ -82,6 +82,11 @@ pub enum KeyCode {
 impl KeyCode {
     pub fn from_egui(key: Key) -> Self {
         match key {
+            Key::BrowserBack => KeyCode::Null,
+            Key::Cut => KeyCode::Char('x'),
+            Key::Copy => KeyCode::Char('c'),
+            Key::Paste => KeyCode::Char('v'),
+
             Key::ArrowLeft => KeyCode::Left,
             Key::ArrowRight => KeyCode::Right,
             Key::ArrowUp => KeyCode::Up,
@@ -190,9 +195,6 @@ impl KeyCode {
             Key::Num7 => KeyCode::Char('7'),
             Key::Num8 => KeyCode::Char('8'),
             Key::Num9 => KeyCode::Char('9'),
-
-            //Fallback
-            _ => KeyCode::Null,
         }
     }
 }
