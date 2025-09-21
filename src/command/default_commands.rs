@@ -260,4 +260,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+    registry.register("center-cursor", |ctx: &mut CommandContext| {
+        let screen_height = ctx.state.screen_height;
+        let buf = ctx.state.focused_buf_mut();
+        buf.center_cursor(screen_height);
+        Ok(())
+    });
 }

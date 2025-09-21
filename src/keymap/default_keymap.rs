@@ -185,4 +185,20 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "previous-buffer",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
+                code: KeyCode::Char('z'),
+                modifiers: KeyModifiers::NONE,
+            },
+            KeyChord {
+                code: KeyCode::Char('z'),
+                modifiers: KeyModifiers::NONE,
+            },
+        ]),
+        "center-cursor",
+        None,
+    );
 }

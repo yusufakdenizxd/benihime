@@ -43,7 +43,6 @@ impl eframe::App for EditorApp {
         let state = &mut self.editor.state.lock().unwrap();
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            let buf = state.focused_buf_mut();
             let font_size = 16.0;
 
             let font_id = FontId::monospace(font_size);
@@ -52,6 +51,9 @@ impl eframe::App for EditorApp {
             let char_height = ui.fonts(|f| f.row_height(&font_id));
 
             let screen_height = (ui.available_height() / char_height) as usize;
+
+            state.screen_height = screen_height;
+            let buf = state.focused_buf_mut();
             buf.update_scroll(screen_height, 8);
 
             let text_rect = ui

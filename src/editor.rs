@@ -35,6 +35,7 @@ impl PartialEq for HandleKeyError {
 pub struct EditorState {
     pub focused_buf_id: i32,
     pub buffer_manager: BufferManager,
+    pub screen_height: usize,
     pub command_buffer: String,
     pub message: Option<String>,
     pub error_message: Option<String>,
@@ -88,6 +89,7 @@ impl Editor {
             command_buffer: String::new(),
             message: None,
             error_message: None,
+            screen_height: 0,
         };
 
         Self {

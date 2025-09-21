@@ -155,4 +155,19 @@ impl Buffer {
             self.scroll_offset = row + scrolloff + 1 - screen_height;
         }
     }
+
+    pub fn center_cursor(&mut self, screen_height: usize) {
+        let cursor_row = self.cursor.row.min(self.lines.len().saturating_sub(1));
+
+        let half_screen = screen_height / 2;
+        if cursor_row >= half_screen {
+            self.scroll_offset = cursor_row - half_screen;
+        } else {
+            self.scroll_offset = 0;
+        }
+
+        if self.scroll_offset + screen_height > self.lines.len() {
+            self.scroll_offset = self.lines.len().saturating_sub(screen_height);
+        }
+    }
 }
