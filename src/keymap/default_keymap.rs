@@ -82,7 +82,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
             code: KeyCode::Char('0'),
             modifiers: KeyModifiers::NONE,
         }),
-        "end-of-line",
+        "beginning-of-line",
         None,
     );
 
