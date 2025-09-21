@@ -1,6 +1,3 @@
-use anyhow::Result;
-use egui::{Key, Modifiers};
-
 use std::sync::{Arc, Mutex};
 
 use thiserror::Error;
@@ -9,7 +6,11 @@ use crate::{
     buffer::{Buffer, Mode},
     buffer_manager::BufferManager,
     command::{self, command::CommandContext, command_registry::CommandRegistry},
-    keymap::{self, keymap::Keymap},
+    keymap::{
+        self,
+        key_chord::{KeyChord, KeyCode, KeyModifiers},
+        keymap::Keymap,
+    },
 };
 
 #[derive(Debug, Error)]
@@ -96,23 +97,41 @@ impl Editor {
         }
     }
 
-    pub fn handle_key(
-        &self,
-        state: &mut EditorState,
-        key: Key,
-        modifier: Modifiers,
-    ) -> Result<(), HandleKeyError> {
-        let (_modes, command_name, args) = self
-            .keymap
-            .lookup(state.focused_buf().mode, key, modifier)
-            .ok_or(HandleKeyError::KeyNotFound)?;
+    pub fn handle_key(&mut self, key: KeyCode, modifiers: KeyModifiers) {
+        let mut state = self.state.lock().unwrap();
+        let buf = state.focused_buf_mut();
 
-        let mut ctx = CommandContext {
-            state,
-            args: &args,
-            registry: &self.command_registry,
+        let chord = KeyChord {
+            code: key,
+            modifiers,
         };
+        match self.keymap.push_key(buf.mode, &chord) {
+            Some((_modes, command_name, args)) => {
+                let mut ctx = CommandContext {
+                    state: &mut state,
+                    args: &args,
+                    registry: &self.command_registry,
+                };
 
-        self.command_registry.execute(&command_name, &mut ctx)
+                let _ = self.command_registry.execute(&command_name, &mut ctx);
+            }
+            None => match buf.mode {
+                Mode::Insert => {
+                    if chord.code == KeyCode::Backspace {
+                        buf.delete_char_before_cursor();
+                    } else if let Some(c) = chord.as_char() {
+                        buf.insert_char(c);
+                    }
+                }
+                Mode::Command => {
+                    if chord.code == KeyCode::Backspace {
+                        state.command_buffer.pop();
+                    } else if let Some(c) = chord.as_char() {
+                        state.command_buffer.push(c);
+                    }
+                }
+                _ => {}
+            },
+        }
     }
 }

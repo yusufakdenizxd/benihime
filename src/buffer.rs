@@ -120,4 +120,22 @@ impl Buffer {
             self.insert_char(ch);
         }
     }
+
+    pub fn delete_char_before_cursor(&mut self) {
+        if self.cursor.col > 0 {
+            let row = self.cursor.row;
+            let col = self.cursor.col;
+            if let Some(line) = self.lines.get_mut(row) {
+                line.remove(col - 1);
+                self.cursor.col -= 1;
+            }
+        } else if self.cursor.row > 0 {
+            let row = self.cursor.row;
+            let col = self.lines[row - 1].len();
+            let current_line = self.lines.remove(row);
+            self.cursor.row -= 1;
+            self.cursor.col = col;
+            self.lines[self.cursor.row].push_str(&current_line);
+        }
+    }
 }

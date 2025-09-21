@@ -1,7 +1,9 @@
-use crate::editor::{Editor, HandleKeyError};
+use crate::buffer::Mode;
+use crate::editor::Editor;
+use crate::keymap::key_chord::{KeyCode, KeyModifiers};
 use eframe::egui;
 
-use egui::{Pos2, Rect};
+use egui::{Align, Layout, Pos2, Rect};
 
 use egui::Color32;
 
@@ -20,8 +22,6 @@ impl EditorApp {
 
 impl eframe::App for EditorApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let state = &mut self.editor.state.lock().unwrap();
-
         ctx.input(|i| {
             for event in &i.events {
                 if let egui::Event::Key {
@@ -32,22 +32,15 @@ impl eframe::App for EditorApp {
                 } = event
                 {
                     if *pressed {
-                        //TODO: Custom Key Parse and then Handle
-                        let executed = self.editor.handle_key(state, *key, *modifiers);
-                        if executed.is_err_and(|e| e == HandleKeyError::KeyNotFound) {
-                            let buf = state.focused_buf_mut();
-                            match buf.mode {
-                                crate::buffer::Mode::Insert => {
-                                    buf.insert_str(key.name());
-                                }
-                                crate::buffer::Mode::Command => {}
-                                _ => {}
-                            }
-                        }
+                        let key_code = KeyCode::from_egui(*key);
+                        let key_modifiers = KeyModifiers::from_egui(*modifiers);
+                        self.editor.handle_key(key_code, key_modifiers);
                     }
                 }
             }
         });
+
+        let state = &mut self.editor.state.lock().unwrap();
 
         egui::CentralPanel::default().show(ctx, |ui| {
             let buf = state.focused_buf();
@@ -110,14 +103,18 @@ impl eframe::App for EditorApp {
         egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(state.status_line());
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(format!(":{}", state.command_buffer));
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if state.focused_buf().mode == Mode::Command {
+                        ui.label(format!("{}:", state.command_buffer));
+                    } else if state.error_message.is_some() {
+                        ui.colored_label(egui::Color32::RED, state.error_message.clone().unwrap());
+                    } else if state.message.is_some() {
+                        ui.label(state.message.clone().unwrap());
+                    } else {
+                        ui.label("");
+                    }
                 });
             });
-
-            if let Some(msg) = &state.message {
-                ui.colored_label(egui::Color32::YELLOW, msg);
-            }
         });
     }
 }
