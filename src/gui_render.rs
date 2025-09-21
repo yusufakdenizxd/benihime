@@ -43,12 +43,16 @@ impl eframe::App for EditorApp {
         let state = &mut self.editor.state.lock().unwrap();
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            let buf = state.focused_buf();
+            let buf = state.focused_buf_mut();
             let font_size = 16.0;
+
             let font_id = FontId::monospace(font_size);
 
             let char_width = ui.fonts(|f| f.glyph_width(&font_id, 'W'));
             let char_height = ui.fonts(|f| f.row_height(&font_id));
+
+            let screen_height = (ui.available_height() / char_height) as usize;
+            buf.update_scroll(screen_height, 8);
 
             let text_rect = ui
                 .allocate_space(egui::vec2(
@@ -57,7 +61,10 @@ impl eframe::App for EditorApp {
                 ))
                 .1;
 
-            for (row, line) in buf.lines.iter().enumerate() {
+            let start = buf.scroll_offset;
+            let end = (start + screen_height).min(buf.lines.len());
+
+            for (row, line) in buf.lines[start..end].iter().enumerate() {
                 for (col, ch) in line.chars().enumerate() {
                     let pos = Pos2 {
                         x: text_rect.min.x + col as f32 * char_width,
@@ -77,19 +84,21 @@ impl eframe::App for EditorApp {
             let cursor_row = buf.cursor.row.min(buf.lines.len().saturating_sub(1));
             let cursor_col = buf.cursor.col.min(buf.lines[cursor_row].len());
 
+            let screen_row = cursor_row.saturating_sub(buf.scroll_offset);
+
             let cursor_pos = Pos2 {
                 x: text_rect.min.x + cursor_col as f32 * char_width,
-                y: text_rect.min.y + cursor_row as f32 * char_height,
+                y: text_rect.min.y + screen_row as f32 * char_height,
             };
             match buf.mode {
-                crate::buffer::Mode::Normal => {
+                Mode::Normal => {
                     ui.painter().rect_filled(
                         Rect::from_min_size(cursor_pos, egui::vec2(char_width, char_height)),
                         0.0,
                         Color32::WHITE,
                     );
                 }
-                crate::buffer::Mode::Insert => {
+                Mode::Insert => {
                     ui.painter().rect_filled(
                         Rect::from_min_size(cursor_pos, egui::vec2(2.0, char_height)),
                         0.0,

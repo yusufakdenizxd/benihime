@@ -41,6 +41,7 @@ pub struct Buffer {
     pub lines: Vec<String>,
     pub name: String,
     pub cursor: Cursor,
+    pub scroll_offset: usize,
     pub mode: Mode,
     pub top: usize,
     pub left: usize,
@@ -58,6 +59,7 @@ impl Buffer {
             top: 0,
             left: 0,
             file_path,
+            scroll_offset: 0,
         }
     }
 
@@ -71,6 +73,7 @@ impl Buffer {
             top: 0,
             left: 0,
             file_path,
+            scroll_offset: 0,
         }
     }
 
@@ -136,6 +139,20 @@ impl Buffer {
             self.cursor.row -= 1;
             self.cursor.col = col;
             self.lines[self.cursor.row].push_str(&current_line);
+        }
+    }
+
+    pub fn update_scroll(&mut self, screen_height: usize, scrolloff: usize) {
+        let row = self.cursor.row;
+
+        // If cursor is too high
+        if row < self.scroll_offset + scrolloff {
+            self.scroll_offset = row.saturating_sub(scrolloff);
+        }
+
+        // If cursor is too low
+        if row >= self.scroll_offset + screen_height - scrolloff {
+            self.scroll_offset = row + scrolloff + 1 - screen_height;
         }
     }
 }
