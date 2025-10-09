@@ -1,9 +1,12 @@
+use std::fmt::format;
+
 use crate::buffer::Mode;
 use crate::editor::Editor;
 use crate::keymap::key_chord::{KeyCode, KeyModifiers};
+use crate::mini_buffer;
 use eframe::egui;
 
-use egui::{Align, Layout, Pos2, Rect};
+use egui::{Align, Key, Layout, Pos2, Rect, RichText};
 
 use egui::Color32;
 
@@ -31,6 +34,14 @@ impl eframe::App for EditorApp {
                     ..
                 } = event
                 {
+                    let mut pressed = pressed;
+                    //EGUI doesnt give pressed true when it triggers cut copy or paste
+                    if modifiers.command_only()
+                        && (*key == Key::X || *key == Key::C || *key == Key::V)
+                    {
+                        pressed = &true;
+                    }
+
                     if *pressed {
                         let key_code = KeyCode::from_egui(*key);
                         let key_modifiers = KeyModifiers::from_egui(*modifiers);
@@ -127,6 +138,40 @@ impl eframe::App for EditorApp {
                 });
             });
         });
+
+        let buf = state.focused_buf_mut();
+        if buf.mode == Mode::Minibuffer {
+            let minibuffer = &state.minibuffer_manager.current.as_ref().unwrap();
+
+            let max_count = 10;
+            let offset = minibuffer.offset();
+            let index = minibuffer.index();
+            let len = minibuffer.len();
+
+            let end = (offset + max_count).min(len);
+
+            egui::TopBottomPanel::bottom("minibuffer").show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    ui.label(format!(
+                        "({}/{}) {} {}",
+                        index,
+                        len,
+                        minibuffer.prompt(),
+                        minibuffer.input(),
+                    ));
+                    for (i, c) in minibuffer.render_candidates()[offset..end]
+                        .iter()
+                        .enumerate()
+                    {
+                        if (index - offset) == i {
+                            ui.label(RichText::new(c).underline());
+                        } else {
+                            ui.label(c);
+                        }
+                    }
+                });
+            });
+        }
     }
 }
 

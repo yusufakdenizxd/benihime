@@ -17,13 +17,23 @@ pub fn register_default_keymap(km: &mut Keymap) {
     );
 
     km.bind(
-        &[Mode::Insert, Mode::Command],
+        &[Mode::Insert, Mode::Command, Mode::Minibuffer],
         KeySequence::single(KeyChord {
             code: KeyCode::Esc,
             modifiers: KeyModifiers::NONE,
         }),
         "set-mode",
         Some(vec![CommandArg::Mode(Mode::Normal)]),
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('x'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "set-mode",
+        Some(vec![CommandArg::Mode(Mode::Minibuffer)]),
     );
 
     km.bind(
@@ -199,6 +209,66 @@ pub fn register_default_keymap(km: &mut Keymap) {
             },
         ]),
         "center-cursor",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('j'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "minibuffer-next-completion",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('k'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "minibuffer-previous-completion",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Down,
+            modifiers: KeyModifiers::NONE,
+        }),
+        "minibuffer-next-completion",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Up,
+            modifiers: KeyModifiers::NONE,
+        }),
+        "minibuffer-previous-completion",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('p'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "find-file",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Enter,
+            modifiers: KeyModifiers::NONE,
+        }),
+        "minibuffer-accept",
         None,
     );
 }

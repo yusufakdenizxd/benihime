@@ -1,8 +1,16 @@
-use std::{cmp::min, path::PathBuf};
+use std::{
+    cmp::{Ordering, min},
+    fs,
+    path::PathBuf,
+};
 
 use anyhow::Ok;
 
-use crate::{buffer::Mode, editor::HandleKeyError};
+use crate::{
+    buffer::Mode,
+    editor::{EditorState, HandleKeyError},
+    mini_buffer::{MinibufferCallbackResult, PathMiniBuffer},
+};
 
 use super::{
     command::{CommandArg, CommandContext},
@@ -194,10 +202,88 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("open-file", |ctx: &mut CommandContext| {
-        let path: PathBuf = ctx.get_arg(0)?;
-        let state = &mut ctx.state;
-        let id = state.buffer_manager.open_file(PathBuf::from(path));
-        state.focused_buf_id = id;
+        let cwd = std::env::current_dir().unwrap();
+        let files: Vec<PathBuf> = fs::read_dir(&cwd)?
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .collect();
+
+        let minibuffer = PathMiniBuffer::new(
+            "Open File: ",
+            files,
+            |state: &mut EditorState, path: &PathBuf| {
+                if path.is_dir() {
+                    let new_items: Vec<PathBuf> = fs::read_dir(path)?
+                        .filter_map(|e| e.ok().map(|e| e.path()))
+                        .collect();
+                    return Ok(Some(new_items));
+                } else {
+                    let id = state.buffer_manager.open_file(&path.clone());
+                    state.focused_buf_id = id;
+                    println!("Opened file: {}", path.display());
+                }
+                Ok(None)
+            },
+        );
+
+        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.registry.execute(
+            "set-mode",
+            &mut CommandContext {
+                state: ctx.state,
+                args: &Some(vec![CommandArg::Mode(Mode::Minibuffer)]),
+                registry: ctx.registry,
+            },
+        )?;
+
+        Ok(())
+    });
+
+    registry.register("find-file", |ctx: &mut CommandContext| {
+        let cwd = std::env::current_dir().unwrap();
+        let files: Vec<PathBuf> = fs::read_dir(&cwd)?
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .collect();
+
+        let minibuffer = PathMiniBuffer::new(
+            "Find File: ",
+            files,
+            |state: &mut EditorState, path: &PathBuf| {
+                if path.is_dir() {
+                    let mut new_items: Vec<PathBuf> = fs::read_dir(path)?
+                        .filter_map(|e| e.ok().map(|e| e.path()))
+                        .collect();
+
+                    new_items.sort_by(|a, b| {
+                        if a.is_dir() && !b.is_dir() {
+                            return Ordering::Greater;
+                        }
+                        if !a.is_dir() && b.is_dir() {
+                            return Ordering::Less;
+                        }
+                        return Ordering::Equal;
+                    });
+
+                    return Ok(Some(new_items));
+                } else {
+                    let id = state.buffer_manager.open_file(&path.clone());
+                    state.focused_buf_id = id;
+                }
+                Ok(None)
+            },
+        );
+
+        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.registry.execute(
+            "set-mode",
+            &mut CommandContext {
+                state: ctx.state,
+                args: &Some(vec![CommandArg::Mode(Mode::Minibuffer)]),
+                registry: ctx.registry,
+            },
+        )?;
+
         Ok(())
     });
 
@@ -264,6 +350,48 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let screen_height = ctx.state.screen_height;
         let buf = ctx.state.focused_buf_mut();
         buf.center_cursor(screen_height);
+        Ok(())
+    });
+
+    registry.register("minibuffer-next-completion", |ctx: &mut CommandContext| {
+        if let Some(mini) = ctx.state.minibuffer_manager.current.as_mut() {
+            mini.move_focus(1);
+        }
+        Ok(())
+    });
+
+    registry.register(
+        "minibuffer-previous-completion",
+        |ctx: &mut CommandContext| {
+            if let Some(mini) = ctx.state.minibuffer_manager.current.as_mut() {
+                mini.move_focus(-1);
+            }
+            Ok(())
+        },
+    );
+
+    registry.register("minibuffer-accept", |ctx: &mut CommandContext| {
+        if let Some(mut mini) = ctx.state.minibuffer_manager.current.take() {
+            let result = mini.run_callback(ctx.state)?;
+            ctx.state.minibuffer_manager.current = Some(mini);
+            match result {
+                MinibufferCallbackResult::NewItems => {
+                    //Early return to be in minibuffer mode
+                    return Ok(());
+                }
+                MinibufferCallbackResult::Executed => {}
+            }
+        }
+
+        ctx.registry.execute(
+            "set-mode",
+            &mut CommandContext {
+                state: ctx.state,
+                args: &Some(vec![CommandArg::Mode(Mode::Normal)]),
+                registry: ctx.registry,
+            },
+        )?;
+
         Ok(())
     });
 }

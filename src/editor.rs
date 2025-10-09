@@ -11,6 +11,7 @@ use crate::{
         key_chord::{KeyChord, KeyCode, KeyModifiers},
         keymap::Keymap,
     },
+    mini_buffer::MiniBufferManager,
 };
 
 #[derive(Debug, Error)]
@@ -31,10 +32,10 @@ impl PartialEq for HandleKeyError {
         }
     }
 }
-
 pub struct EditorState {
     pub focused_buf_id: i32,
     pub buffer_manager: BufferManager,
+    pub minibuffer_manager: MiniBufferManager,
     pub screen_height: usize,
     pub command_buffer: String,
     pub message: Option<String>,
@@ -61,6 +62,7 @@ impl EditorState {
             Mode::Insert => "INSERT",
             Mode::Visual => "VISUAL",
             Mode::Command => "COMMAND",
+            Mode::Minibuffer => "MINIBUFFER",
         };
         format!("{} {}", mode, buf.id)
     }
@@ -90,6 +92,7 @@ impl Editor {
             message: None,
             error_message: None,
             screen_height: 0,
+            minibuffer_manager: MiniBufferManager::new(),
         };
 
         Self {
@@ -130,6 +133,16 @@ impl Editor {
                         state.command_buffer.pop();
                     } else if let Some(c) = chord.as_char() {
                         state.command_buffer.push(c);
+                    }
+                }
+
+                Mode::Minibuffer => {
+                    if let Some(mini) = state.minibuffer_manager.current.as_mut() {
+                        if chord.code == KeyCode::Backspace {
+                            mini.input_mut().pop();
+                        } else if let Some(c) = chord.as_char() {
+                            mini.input_mut().push(c);
+                        }
                     }
                 }
                 _ => {}

@@ -58,18 +58,18 @@ impl BufferManager {
         &mut self,
         name: &str,
         text: &str,
-        file_path: Option<PathBuf>,
+        file_path: Option<&PathBuf>,
     ) -> i32 {
         let id = self.next_id;
         self.next_id += 1;
 
-        let buf = Buffer::from(id, name, text, file_path);
+        let buf = Buffer::from(id, name, text, file_path.cloned());
         self.buffers.insert(id, buf);
 
         id
     }
 
-    pub fn open_file(&mut self, path: PathBuf) -> i32 {
+    pub fn open_file(&mut self, path: &PathBuf) -> i32 {
         let contents = fs::read_to_string(&path).unwrap_or_default();
         let id = self.create_buffer_from("name", &contents, Some(path));
         id

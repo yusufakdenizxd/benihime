@@ -19,6 +19,7 @@ pub enum Mode {
     Insert,
     Visual,
     Command,
+    Minibuffer,
 }
 
 impl FromStr for Mode {
