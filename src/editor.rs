@@ -108,7 +108,7 @@ impl Editor {
             modifiers,
         };
         match self.keymap.push_key(buf.mode, &chord) {
-            Some((_modes, command_name, args)) => {
+            Some((command_name, args)) => {
                 let mut ctx = CommandContext {
                     state: &mut state,
                     args: &args,

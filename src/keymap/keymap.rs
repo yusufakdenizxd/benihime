@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{buffer::Mode, command::command::CommandArg};
 
-use super::key_chord::{KeyChord, KeyCode, KeyModifiers};
+use super::key_chord::KeyChord;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeySequence {
@@ -27,7 +27,7 @@ impl KeySequence {
 
 #[derive(Debug, Clone)]
 pub struct Keymap {
-    pub bindings: HashMap<KeySequence, (Vec<Mode>, String, Option<Vec<CommandArg>>)>,
+    pub bindings: HashMap<(KeySequence, Mode), (String, Option<Vec<CommandArg>>)>,
     pub buffer: KeySequence,
 }
 
@@ -45,30 +45,29 @@ impl Keymap {
         command: &str,
         args: Option<Vec<CommandArg>>,
     ) {
-        self.bindings
-            .insert(seq, (modes.to_vec(), command.to_string(), args));
+        for mode in modes.iter() {
+            self.bindings
+                .insert((seq.clone(), *mode), (command.to_string(), args.clone()));
+        }
     }
 
     pub fn push_key(
         &mut self,
         mode: Mode,
         chord: &KeyChord,
-    ) -> Option<(Vec<Mode>, String, Option<Vec<CommandArg>>)> {
+    ) -> Option<(String, Option<Vec<CommandArg>>)> {
         self.buffer.chords.push(chord.clone());
 
         let current_seq = KeySequence::new(self.buffer.chords.clone());
-        if let Some(binding) = self.bindings.get(&current_seq) {
-            if binding.0.contains(&mode) {
-                self.buffer.chords.clear();
-                return Some(binding.clone());
-            }
+
+        if let Some(binding) = self.bindings.get(&(current_seq, mode)) {
             self.buffer.chords.clear();
-            return None;
+            return Some(binding.clone());
         }
 
         let is_prefix = self.bindings.keys().any(|seq| {
-            if !seq.chords.iter().any(|_| true) {}
-            seq.chords.starts_with(&self.buffer.chords)
+            if !seq.0.chords.iter().any(|_| true) {}
+            seq.0.chords.starts_with(&self.buffer.chords)
         });
 
         if is_prefix {
