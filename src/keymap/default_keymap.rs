@@ -263,6 +263,22 @@ pub fn register_default_keymap(km: &mut Keymap) {
     );
 
     km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
+                code: KeyCode::Char('x'),
+                modifiers: KeyModifiers::CTRL,
+            },
+            KeyChord {
+                code: KeyCode::Char('f'),
+                modifiers: KeyModifiers::CTRL,
+            },
+        ]),
+        "open-file",
+        None,
+    );
+
+    km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
             code: KeyCode::Enter,
