@@ -203,18 +203,39 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("open-file", |ctx: &mut CommandContext| {
         let cwd = std::env::current_dir().unwrap();
-        let files: Vec<PathBuf> = fs::read_dir(&cwd)?
+        let mut files: Vec<PathBuf> = fs::read_dir(&cwd)?
             .filter_map(|e| e.ok().map(|e| e.path()))
             .collect();
+
+        files.sort_by(|a, b| {
+            if a.is_dir() && !b.is_dir() {
+                return Ordering::Less;
+            }
+            if !a.is_dir() && b.is_dir() {
+                return Ordering::Greater;
+            }
+            return Ordering::Equal;
+        });
 
         let minibuffer = PathMiniBuffer::new(
             "Open File: ",
             files,
             |state: &mut EditorState, path: &PathBuf| {
                 if path.is_dir() {
-                    let new_items: Vec<PathBuf> = fs::read_dir(path)?
+                    let mut new_items: Vec<PathBuf> = fs::read_dir(path)?
                         .filter_map(|e| e.ok().map(|e| e.path()))
                         .collect();
+
+                    new_items.sort_by(|a, b| {
+                        if a.is_dir() && !b.is_dir() {
+                            return Ordering::Less;
+                        }
+                        if !a.is_dir() && b.is_dir() {
+                            return Ordering::Greater;
+                        }
+                        return Ordering::Equal;
+                    });
+
                     return Ok(Some(new_items));
                 } else {
                     let id = state.buffer_manager.open_file(&path.clone());
@@ -241,9 +262,19 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("find-file", |ctx: &mut CommandContext| {
         let cwd = std::env::current_dir().unwrap();
-        let files: Vec<PathBuf> = fs::read_dir(&cwd)?
+        let mut files: Vec<PathBuf> = fs::read_dir(&cwd)?
             .filter_map(|e| e.ok().map(|e| e.path()))
             .collect();
+
+        files.sort_by(|a, b| {
+            if a.is_dir() && !b.is_dir() {
+                return Ordering::Less;
+            }
+            if !a.is_dir() && b.is_dir() {
+                return Ordering::Greater;
+            }
+            return Ordering::Equal;
+        });
 
         let minibuffer = PathMiniBuffer::new(
             "Find File: ",
@@ -256,10 +287,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
                     new_items.sort_by(|a, b| {
                         if a.is_dir() && !b.is_dir() {
-                            return Ordering::Greater;
+                            return Ordering::Less;
                         }
                         if !a.is_dir() && b.is_dir() {
-                            return Ordering::Less;
+                            return Ordering::Greater;
                         }
                         return Ordering::Equal;
                     });
