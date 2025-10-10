@@ -1,5 +1,5 @@
 use anyhow::{Result, anyhow};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::{buffer::Mode, editor::EditorState};
 

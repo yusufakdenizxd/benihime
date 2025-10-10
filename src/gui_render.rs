@@ -1,9 +1,6 @@
-use std::fmt::format;
-
 use crate::buffer::Mode;
 use crate::editor::Editor;
 use crate::keymap::key_chord::{KeyCode, KeyModifiers};
-use crate::mini_buffer;
 use eframe::egui;
 
 use egui::{Align, Key, Layout, Pos2, Rect, RichText};

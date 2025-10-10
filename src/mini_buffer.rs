@@ -1,6 +1,5 @@
 use anyhow::{Ok, Result};
-use eframe::WebGlContextOption;
-use std::{cmp::max, path::PathBuf};
+use std::path::PathBuf;
 
 use crate::editor::EditorState;
 

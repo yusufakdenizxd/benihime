@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Ok;
-use ignore::{Walk, WalkBuilder};
+use ignore::Walk;
 
 use crate::{
     buffer::Mode,
