@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::Ok;
+use ignore::{Walk, WalkBuilder};
 
 use crate::{
     buffer::Mode,
@@ -262,44 +263,20 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("find-file", |ctx: &mut CommandContext| {
         let cwd = std::env::current_dir().unwrap();
-        let mut files: Vec<PathBuf> = fs::read_dir(&cwd)?
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .collect();
 
-        files.sort_by(|a, b| {
-            if a.is_dir() && !b.is_dir() {
-                return Ordering::Less;
-            }
-            if !a.is_dir() && b.is_dir() {
-                return Ordering::Greater;
-            }
-            return Ordering::Equal;
-        });
+        let files: Vec<PathBuf> = Walk::new(cwd)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_type().unwrap().is_file())
+            .map(|x| x.path().to_owned())
+            .collect();
 
         let minibuffer = PathMiniBuffer::new(
             "Find File: ",
             files,
             |state: &mut EditorState, path: &PathBuf| {
-                if path.is_dir() {
-                    let mut new_items: Vec<PathBuf> = fs::read_dir(path)?
-                        .filter_map(|e| e.ok().map(|e| e.path()))
-                        .collect();
-
-                    new_items.sort_by(|a, b| {
-                        if a.is_dir() && !b.is_dir() {
-                            return Ordering::Less;
-                        }
-                        if !a.is_dir() && b.is_dir() {
-                            return Ordering::Greater;
-                        }
-                        return Ordering::Equal;
-                    });
-
-                    return Ok(Some(new_items));
-                } else {
-                    let id = state.buffer_manager.open_file(&path.clone());
-                    state.focused_buf_id = id;
-                }
+                let id = state.buffer_manager.open_file(&path.clone());
+                state.focused_buf_id = id;
                 Ok(None)
             },
         );
