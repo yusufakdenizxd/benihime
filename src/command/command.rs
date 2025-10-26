@@ -1,9 +1,7 @@
 use anyhow::{Result, anyhow};
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use crate::{buffer::Mode, editor::EditorState};
-
-use super::command_registry::CommandRegistry;
 
 #[derive(Debug, Clone)]
 pub enum CommandArg {
@@ -50,7 +48,6 @@ impl CommandArg {
 pub struct CommandContext<'a> {
     pub state: &'a mut EditorState,
     pub args: &'a Option<Vec<CommandArg>>,
-    pub registry: &'a CommandRegistry,
 }
 
 impl<'a> CommandContext<'a> {

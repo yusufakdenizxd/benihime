@@ -41,19 +41,41 @@ pub trait MiniBufferTrait {
     fn len(&self) -> usize;
 }
 
-pub struct PathMiniBuffer {
-    pub state: MiniBufferState<PathBuf>,
+pub struct MiniBuffer<T> {
+    pub state: MiniBufferState<T>,
 }
 
-impl PathMiniBuffer {
+impl<T> MiniBuffer<T> {
     pub fn new(
         prompt: &str,
-        items: Vec<PathBuf>,
-        callback: impl Fn(&mut EditorState, &PathBuf) -> Result<Option<Vec<PathBuf>>> + Send + 'static,
+        items: Vec<T>,
+        callback: impl Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send + 'static,
     ) -> Self {
         Self {
             state: MiniBufferState::new(prompt.to_string(), items, callback),
         }
+    }
+}
+
+pub trait MiniBufferDisplay {
+    fn as_display_string(&self) -> String;
+}
+
+impl MiniBufferDisplay for PathBuf {
+    fn as_display_string(&self) -> String {
+        self.display().to_string()
+    }
+}
+
+impl MiniBufferDisplay for String {
+    fn as_display_string(&self) -> String {
+        self.clone()
+    }
+}
+
+impl MiniBufferDisplay for &str {
+    fn as_display_string(&self) -> String {
+        self.to_string()
     }
 }
 
@@ -62,12 +84,15 @@ pub enum MinibufferCallbackResult {
     Executed,
 }
 
-impl MiniBufferTrait for PathMiniBuffer {
+impl<T> MiniBufferTrait for MiniBuffer<T>
+where
+    T: Clone + Send + MiniBufferDisplay + 'static,
+{
     fn render_candidates(&self) -> Vec<String> {
         self.state
             .items
             .iter()
-            .map(|p| p.display().to_string())
+            .map(|item| item.as_display_string())
             .collect()
     }
 

@@ -6,7 +6,7 @@ use crate::editor::HandleKeyError;
 use super::command::{CommandArg, CommandContext, CommandFn};
 
 pub struct CommandRegistry {
-    commands: HashMap<String, CommandFn>,
+    pub commands: HashMap<String, CommandFn>,
 }
 
 impl CommandRegistry {
@@ -29,7 +29,6 @@ impl CommandRegistry {
                             "clear-error-message",
                             &mut CommandContext {
                                 state: ctx.state,
-                                registry: ctx.registry,
                                 args: &None,
                             },
                         );
@@ -41,7 +40,6 @@ impl CommandRegistry {
                         "error-message",
                         &mut CommandContext {
                             state: ctx.state,
-                            registry: ctx.registry,
                             args: &Some(vec![CommandArg::Str(e.to_string())]),
                         },
                     );

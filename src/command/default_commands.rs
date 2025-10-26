@@ -10,7 +10,7 @@ use ignore::Walk;
 use crate::{
     buffer::Mode,
     editor::{EditorState, HandleKeyError},
-    mini_buffer::{MinibufferCallbackResult, PathMiniBuffer},
+    mini_buffer::{MiniBuffer, MinibufferCallbackResult},
 };
 
 use super::{
@@ -86,14 +86,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let buf = ctx.state.focused_buf_mut();
         buf.lines.insert(buf.cursor.row, String::new());
         buf.cursor.col = 0;
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Insert)]),
-                registry: ctx.registry,
-            },
-        )?;
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
         Ok(())
     });
 
@@ -105,14 +99,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         buf.cursor.row += 1;
         buf.cursor.col = 0;
 
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Insert)]),
-                registry: ctx.registry,
-            },
-        )?;
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
 
         Ok(())
     });
@@ -169,14 +157,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("execute-command-buffer", |ctx: &mut CommandContext| {
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Normal)]),
-                registry: ctx.registry,
-            },
-        )?;
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
 
         let line = ctx.state.command_buffer.clone();
         ctx.state.command_buffer.clear();
@@ -192,13 +174,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         let args: Vec<CommandArg> = parts.map(|tok| CommandArg::parse_arg(tok)).collect();
 
-        let mut command_ctx = CommandContext {
-            state: ctx.state,
-            args: &Some(args),
-            registry: ctx.registry,
-        };
-
-        ctx.registry.execute(command_name, &mut command_ctx)?;
+        ctx.state.exec(command_name, Some(args))?;
         Ok(())
     });
 
@@ -218,7 +194,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             return Ordering::Equal;
         });
 
-        let minibuffer = PathMiniBuffer::new(
+        let minibuffer: MiniBuffer<PathBuf> = MiniBuffer::new(
             "Open File: ",
             files,
             |state: &mut EditorState, path: &PathBuf| {
@@ -249,14 +225,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Minibuffer)]),
-                registry: ctx.registry,
-            },
-        )?;
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
@@ -271,7 +241,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .map(|x| x.path().to_owned())
             .collect();
 
-        let minibuffer = PathMiniBuffer::new(
+        let minibuffer: MiniBuffer<PathBuf> = MiniBuffer::new(
             "Find File: ",
             files,
             |state: &mut EditorState, path: &PathBuf| {
@@ -283,14 +253,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Minibuffer)]),
-                registry: ctx.registry,
-            },
-        )?;
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
@@ -391,14 +355,28 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             }
         }
 
-        ctx.registry.execute(
-            "set-mode",
-            &mut CommandContext {
-                state: ctx.state,
-                args: &Some(vec![CommandArg::Mode(Mode::Normal)]),
-                registry: ctx.registry,
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
+
+        Ok(())
+    });
+
+    registry.register("find-command", |ctx: &mut CommandContext| {
+        let commands: Vec<String> = ctx.state.registry.commands.keys().cloned().collect();
+
+        let minibuffer: MiniBuffer<String> = MiniBuffer::new(
+            "Find Command: ",
+            commands,
+            |state: &mut EditorState, command_name: &String| {
+                let _ = state.exec(&command_name, None);
+                Ok(None)
             },
-        )?;
+        );
+
+        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });

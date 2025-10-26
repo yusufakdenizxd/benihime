@@ -5,7 +5,11 @@ use thiserror::Error;
 use crate::{
     buffer::{Buffer, Mode},
     buffer_manager::BufferManager,
-    command::{self, command::CommandContext, command_registry::CommandRegistry},
+    command::{
+        self,
+        command::{CommandArg, CommandContext},
+        command_registry::CommandRegistry,
+    },
     keymap::{
         self,
         key_chord::{KeyChord, KeyCode, KeyModifiers},
@@ -40,6 +44,7 @@ pub struct EditorState {
     pub command_buffer: String,
     pub message: Option<String>,
     pub error_message: Option<String>,
+    pub registry: Arc<CommandRegistry>,
 }
 
 impl EditorState {
@@ -66,11 +71,25 @@ impl EditorState {
         };
         format!("{} {}", mode, buf.id)
     }
+
+    pub fn exec(
+        &mut self,
+        name: &str,
+        args: Option<Vec<CommandArg>>,
+    ) -> Result<(), HandleKeyError> {
+        let registry = Arc::clone(&self.registry);
+        registry.execute(
+            name,
+            &mut CommandContext {
+                state: self,
+                args: &args,
+            },
+        )
+    }
 }
 
 pub struct Editor {
     pub state: Arc<Mutex<EditorState>>,
-    pub command_registry: CommandRegistry,
     pub keymap: Keymap,
 }
 
@@ -93,12 +112,12 @@ impl Editor {
             error_message: None,
             screen_height: 0,
             minibuffer_manager: MiniBufferManager::new(),
+            registry: Arc::new(command_registry),
         };
 
         Self {
             state: Arc::new(Mutex::new(state)),
             keymap,
-            command_registry,
         }
     }
 
@@ -112,13 +131,7 @@ impl Editor {
         };
         match self.keymap.push_key(buf.mode, &chord) {
             Some((command_name, args)) => {
-                let mut ctx = CommandContext {
-                    state: &mut state,
-                    args: &args,
-                    registry: &self.command_registry,
-                };
-
-                let _ = self.command_registry.execute(&command_name, &mut ctx);
+                state.exec(&command_name, args);
             }
             None => match buf.mode {
                 Mode::Insert => {
