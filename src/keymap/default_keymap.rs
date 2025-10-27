@@ -287,4 +287,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "minibuffer-accept",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('x'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "find-command",
+        None,
+    );
 }
