@@ -71,7 +71,11 @@ impl BufferManager {
 
     pub fn open_file(&mut self, path: &PathBuf) -> i32 {
         let contents = fs::read_to_string(&path).unwrap_or_default();
-        let id = self.create_buffer_from("name", &contents, Some(path));
-        id
+
+        self.create_buffer_from(
+            path.file_name().unwrap().to_str().unwrap(),
+            &contents,
+            Some(path),
+        )
     }
 }
