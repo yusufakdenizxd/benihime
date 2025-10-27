@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::path::PathBuf;
 
@@ -6,14 +6,14 @@ use crate::buffer::Buffer;
 
 pub struct BufferManager {
     next_id: i32,
-    buffers: HashMap<i32, Buffer>,
+    buffers: BTreeMap<i32, Buffer>,
 }
 
 impl BufferManager {
     pub fn new() -> Self {
         Self {
             next_id: 1,
-            buffers: HashMap::new(),
+            buffers: BTreeMap::new(),
         }
     }
 
@@ -27,6 +27,10 @@ impl BufferManager {
 
     pub fn get_buffers(&self) -> Vec<&Buffer> {
         self.buffers.values().collect()
+    }
+
+    pub fn iter_buffers(&self) -> impl Iterator<Item = (&i32, &Buffer)> {
+        self.buffers.iter()
     }
 
     pub fn get_buffer_ids(&self) -> Vec<&i32> {

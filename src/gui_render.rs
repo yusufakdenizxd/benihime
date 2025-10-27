@@ -119,6 +119,29 @@ impl eframe::App for EditorApp {
             }
         });
 
+        egui::TopBottomPanel::top("bufferline").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                for (id, name, active) in state.buffer_line() {
+                    let render = format!("{}{}", id, name);
+                    let text = if active {
+                        RichText::new(render)
+                            .color(Color32::BLACK)
+                            .background_color(Color32::LIGHT_BLUE)
+                            .strong()
+                    } else {
+                        RichText::new(render).color(Color32::GRAY)
+                    };
+
+                    if ui
+                        .add(egui::Label::new(text).sense(egui::Sense::click()))
+                        .clicked()
+                    {
+                        state.focused_buf_id = id;
+                    }
+                }
+            });
+        });
+
         egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(state.status_line());
@@ -161,7 +184,7 @@ impl eframe::App for EditorApp {
                         .enumerate()
                     {
                         if (index - offset) == i {
-                            ui.label(RichText::new(c).underline());
+                            ui.label(RichText::new(c).underline().strong());
                         } else {
                             ui.label(c);
                         }
