@@ -343,6 +343,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     );
 
     registry.register("minibuffer-accept", |ctx: &mut CommandContext| {
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
+
         if let Some(mut mini) = ctx.state.minibuffer_manager.current.take() {
             let result = mini.run_callback(ctx.state)?;
             ctx.state.minibuffer_manager.current = Some(mini);
@@ -354,9 +357,6 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
                 MinibufferCallbackResult::Executed => {}
             }
         }
-
-        ctx.state
-            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
 
         Ok(())
     });
