@@ -7,12 +7,13 @@ pub struct MiniBufferState<T> {
     pub input: String,
     pub prompt: String,
     pub items: Vec<T>,
+    pub base_items: Vec<T>,
     pub index: usize,
     pub offset: usize,
     pub callback: Box<dyn Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send>,
 }
 
-impl<T> MiniBufferState<T> {
+impl<T: Clone> MiniBufferState<T> {
     pub fn new(
         prompt: String,
         items: Vec<T>,
@@ -21,7 +22,8 @@ impl<T> MiniBufferState<T> {
         Self {
             input: String::new(),
             prompt,
-            items,
+            items: items.clone(),
+            base_items: items,
             index: 0,
             callback: Box::new(callback),
             offset: 0,
@@ -39,13 +41,14 @@ pub trait MiniBufferTrait {
     fn index(&self) -> usize;
     fn offset(&self) -> usize;
     fn len(&self) -> usize;
+    fn filter_items(&mut self);
 }
 
 pub struct MiniBuffer<T> {
     pub state: MiniBufferState<T>,
 }
 
-impl<T> MiniBuffer<T> {
+impl<T: Clone> MiniBuffer<T> {
     pub fn new(
         prompt: &str,
         items: Vec<T>,
@@ -161,6 +164,24 @@ where
 
     fn len(&self) -> usize {
         self.state.items.len()
+    }
+
+    fn filter_items(&mut self) {
+        if self.input().is_empty() {
+            self.state.items = self.state.base_items.clone();
+        } else {
+            let query = self.state.input.to_lowercase();
+            self.state.items = self
+                .state
+                .base_items
+                .iter()
+                .filter(|item| item.as_display_string().to_lowercase().contains(&query))
+                .cloned()
+                .collect();
+        }
+
+        self.state.index = 0;
+        self.state.offset = 0;
     }
 }
 

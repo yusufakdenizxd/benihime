@@ -156,6 +156,7 @@ impl Editor {
                         } else if let Some(c) = chord.as_char() {
                             mini.input_mut().push(c);
                         }
+                        mini.filter_items();
                     }
                 }
                 _ => {}
