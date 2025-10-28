@@ -82,6 +82,29 @@ impl EditorState {
             .collect()
     }
 
+    pub fn kill_active_buffer(&mut self) {
+        let len = self.buffer_manager.buffers_len();
+        if len <= 0 {
+            return;
+        }
+        let buf_id_to_kill = self.focused_buf_id;
+
+        //Last Buffer
+        if len == 1 {
+            self.buffer_manager.create_empty_buffer("[No Name]");
+        }
+        self.buffer_manager.kill_buffer(buf_id_to_kill);
+
+        let binding = self.buffer_manager.get_buffer_ids();
+        let new_focus_id = binding
+            .iter()
+            .filter(|id| ***id != buf_id_to_kill)
+            .max()
+            .unwrap();
+
+        self.focused_buf_id = **new_focus_id;
+    }
+
     pub fn exec(
         &mut self,
         name: &str,

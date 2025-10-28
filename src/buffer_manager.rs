@@ -17,6 +17,10 @@ impl BufferManager {
         }
     }
 
+    pub fn buffers_len(&self) -> usize {
+        self.buffers.len()
+    }
+
     pub fn get_buffer(&self, id: i32) -> Option<&Buffer> {
         self.buffers.get(&id)
     }
@@ -81,5 +85,9 @@ impl BufferManager {
             &contents,
             Some(path),
         )
+    }
+
+    pub fn kill_buffer(&mut self, id: i32) {
+        self.buffers.remove(&id);
     }
 }

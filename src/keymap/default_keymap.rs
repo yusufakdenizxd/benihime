@@ -297,4 +297,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "find-command",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('q'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "kill-this-buffer",
+        None,
+    );
 }

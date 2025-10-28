@@ -380,4 +380,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register("kill-this-buffer", |ctx: &mut CommandContext| {
+        let state = &mut ctx.state;
+        state.kill_active_buffer();
+        Ok(())
+    });
 }
