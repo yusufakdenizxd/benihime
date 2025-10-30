@@ -22,6 +22,7 @@ impl EditorApp {
 
 impl eframe::App for EditorApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let buffer_line_height = 10.0;
         ctx.input(|i| {
             for event in &i.events {
                 if let egui::Event::Key {
@@ -51,6 +52,7 @@ impl eframe::App for EditorApp {
         let state = &mut self.editor.state.lock().unwrap();
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            ui.add_space(buffer_line_height + 5.0);
             let font_size = 16.0;
             let font_id = FontId::monospace(font_size);
 
@@ -179,6 +181,7 @@ impl eframe::App for EditorApp {
                     {
                         state.focused_buf_id = id;
                     }
+                    ui.set_height(buffer_line_height);
                 }
             });
         });
