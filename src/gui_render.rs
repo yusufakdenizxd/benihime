@@ -91,7 +91,6 @@ impl eframe::App for EditorApp {
                                         state.focused_buf_id = id;
                                     }
                                 });
-                                ui.add_space(2.0); // Space between tabs
                             }
                         });
                     });
