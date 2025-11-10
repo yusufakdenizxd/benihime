@@ -32,6 +32,10 @@ impl PartialEq for HandleKeyError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::KeyNotFound, Self::KeyNotFound) => true,
+            (Self::CommandNotFound(s1), Self::CommandNotFound(s2)) => s1 == s2,
+            (Self::ExecutionFailed(e1), Self::ExecutionFailed(e2)) => {
+                e1.to_string() == e2.to_string()
+            }
             _ => false,
         }
     }
