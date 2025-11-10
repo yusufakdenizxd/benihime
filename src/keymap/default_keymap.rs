@@ -337,4 +337,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "exit-visual-mode",
         None,
     );
+
+    km.bind(
+        &[Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('o'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "visual_select_other_end",
+        None,
+    );
 }

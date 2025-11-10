@@ -1,5 +1,5 @@
 use std::{
-    cmp::{min, Ordering},
+    cmp::{Ordering, min},
     fs,
     path::PathBuf,
 };
@@ -402,6 +402,16 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let buf = ctx.state.focused_buf_mut();
         buf.selection = None;
         buf.mode = Mode::Normal;
+        Ok(())
+    });
+
+    registry.register("visual_select_other_end", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        if buf.mode == Mode::Visual {
+            if let Some(selection) = &mut buf.selection {
+                std::mem::swap(&mut selection.start, &mut buf.cursor);
+            }
+        }
         Ok(())
     });
 }
