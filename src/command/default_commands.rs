@@ -414,4 +414,22 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         }
         Ok(())
     });
+
+    registry.register("delete-selection", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        if buf.mode == Mode::Visual {
+            buf.delete_selection();
+            buf.mode = Mode::Normal;
+        }
+        Ok(())
+    });
+
+    registry.register("change-selection", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        if buf.mode == Mode::Visual {
+            buf.delete_selection();
+            buf.mode = Mode::Insert;
+        }
+        Ok(())
+    });
 }

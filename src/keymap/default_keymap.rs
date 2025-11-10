@@ -347,4 +347,24 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "visual_select_other_end",
         None,
     );
+
+    km.bind(
+        &[Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('d'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "delete-selection",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('c'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "change-selection",
+        None,
+    );
 }

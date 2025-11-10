@@ -177,6 +177,38 @@ impl Buffer {
         }
     }
 
+    pub fn delete_selection(&mut self) -> Option<Cursor> {
+        if let Some(selection) = self.selection.take() {
+            let (start, end) = selection.normalized(&self.cursor);
+
+            if start.row == end.row {
+                // Single line
+                let end_col = (end.col + 1).min(self.lines[start.row].len());
+                if start.col < end_col {
+                    self.lines[start.row].drain(start.col..end_col);
+                }
+            } else {
+                // Multi-line
+                let end_line_len = self.lines[end.row].len();
+                let end_col = (end.col + 1).min(end_line_len);
+
+                let remaining_end = self.lines[end.row][end_col..].to_string();
+
+                self.lines[start.row].truncate(start.col);
+                self.lines[start.row].push_str(&remaining_end);
+
+                // Drain lines between start and end
+                self.lines.drain(start.row + 1..=end.row);
+            }
+
+            self.cursor = start.clone();
+            self.selection = None;
+            Some(start)
+        } else {
+            None
+        }
+    }
+
     pub fn center_cursor(&mut self, screen_height: usize) {
         let cursor_row = self.cursor.row.min(self.lines.len().saturating_sub(1));
 
