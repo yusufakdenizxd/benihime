@@ -377,4 +377,20 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "delete-char-under-cursor",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
+                code: KeyCode::Char('d'),
+                modifiers: KeyModifiers::NONE,
+            },
+            KeyChord {
+                code: KeyCode::Char('d'),
+                modifiers: KeyModifiers::NONE,
+            },
+        ]),
+        "delete-line",
+        None,
+    );
 }
