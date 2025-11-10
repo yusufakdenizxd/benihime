@@ -127,7 +127,7 @@ impl eframe::App for EditorApp {
                                 0
                             };
                             let end_col = if current_row_abs == end_cursor.row {
-                                end_cursor.col
+                                end_cursor.col + 1
                             } else {
                                 line.len()
                             };
@@ -148,8 +148,11 @@ impl eframe::App for EditorApp {
                                     },
                                 );
 
-                                ui.painter()
-                                    .rect_filled(highlight_rect, 0.0, Color32::from_gray(80));
+                                ui.painter().rect_filled(
+                                    highlight_rect,
+                                    0.0,
+                                    Color32::from_gray(80),
+                                );
                             }
                         }
                     }
