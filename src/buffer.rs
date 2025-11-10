@@ -13,6 +13,38 @@ impl Cursor {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Selection {
+    pub start: Cursor,
+    pub end: Cursor,
+}
+
+impl Selection {
+    pub fn normalized(&self) -> (Cursor, Cursor) {
+        if self.start.row < self.end.row
+            || self.start.row == self.end.row && self.start.col <= self.end.col
+        {
+            return (self.start.clone(), self.end.clone());
+        } else {
+            (self.end.clone(), self.start.clone())
+        }
+    }
+
+    pub fn contains(&self, cursor: Cursor) -> bool {
+        let (s, e) = self.normalized();
+
+        if cursor.row < s.row || cursor.row > e.row {
+            false
+        } else if cursor.row == s.row && cursor.col < s.col {
+            false
+        } else if cursor.row == e.row && cursor.col >= e.col {
+            false
+        } else {
+            true
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
     Normal,
@@ -47,6 +79,7 @@ pub struct Buffer {
     pub top: usize,
     pub left: usize,
     pub file_path: Option<PathBuf>,
+    pub selection: Option<Selection>,
 }
 
 impl Buffer {
@@ -61,6 +94,7 @@ impl Buffer {
             left: 0,
             file_path,
             scroll_offset: 0,
+            selection: None,
         }
     }
 
@@ -75,6 +109,7 @@ impl Buffer {
             left: 0,
             file_path,
             scroll_offset: 0,
+            selection: None,
         }
     }
 

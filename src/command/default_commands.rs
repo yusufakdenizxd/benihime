@@ -8,7 +8,7 @@ use anyhow::Ok;
 use ignore::Walk;
 
 use crate::{
-    buffer::Mode,
+    buffer::{Mode, Selection},
     editor::{EditorState, HandleKeyError},
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
 };
@@ -384,6 +384,25 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("kill-this-buffer", |ctx: &mut CommandContext| {
         let state = &mut ctx.state;
         state.kill_active_buffer();
+        Ok(())
+    });
+
+    registry.register("enter-visual-mode", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        if buf.mode != Mode::Visual {
+            buf.selection = Some(Selection {
+                start: buf.cursor.clone(),
+                end: buf.cursor.clone(),
+            });
+            buf.mode = Mode::Visual;
+        }
+        Ok(())
+    });
+
+    registry.register("exit-visual-mode", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        buf.selection = None;
+        buf.mode = Mode::Normal;
         Ok(())
     });
 }
