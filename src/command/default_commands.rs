@@ -1,5 +1,5 @@
 use std::{
-    cmp::{Ordering, min},
+    cmp::{min, Ordering},
     fs,
     path::PathBuf,
 };
@@ -392,7 +392,6 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         if buf.mode != Mode::Visual {
             buf.selection = Some(Selection {
                 start: buf.cursor.clone(),
-                end: buf.cursor.clone(),
             });
             buf.mode = Mode::Visual;
         }

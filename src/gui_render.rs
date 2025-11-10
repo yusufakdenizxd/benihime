@@ -114,6 +114,47 @@ impl eframe::App for EditorApp {
                     line_number_color,
                 );
 
+                if buf.mode == Mode::Visual {
+                    if let Some(selection) = &buf.selection {
+                        let (start_cursor, end_cursor) = selection.normalized(&buf.cursor);
+                        let current_row_abs = start + row;
+
+                        if current_row_abs >= start_cursor.row && current_row_abs <= end_cursor.row
+                        {
+                            let start_col = if current_row_abs == start_cursor.row {
+                                start_cursor.col
+                            } else {
+                                0
+                            };
+                            let end_col = if current_row_abs == end_cursor.row {
+                                end_cursor.col
+                            } else {
+                                line.len()
+                            };
+
+                            if start_col < end_col {
+                                let x_start = text_rect.min.x
+                                    + (gutter_width as f32 + gutter_padding) * char_width
+                                    + start_col as f32 * char_width;
+                                let x_end = text_rect.min.x
+                                    + (gutter_width as f32 + gutter_padding) * char_width
+                                    + end_col as f32 * char_width;
+
+                                let highlight_rect = Rect::from_min_max(
+                                    Pos2 { x: x_start, y },
+                                    Pos2 {
+                                        x: x_end,
+                                        y: y + char_height,
+                                    },
+                                );
+
+                                ui.painter()
+                                    .rect_filled(highlight_rect, 0.0, Color32::from_gray(80));
+                            }
+                        }
+                    }
+                }
+
                 for (col, ch) in line.chars().enumerate() {
                     let pos = Pos2 {
                         x: text_rect.min.x
@@ -154,6 +195,13 @@ impl eframe::App for EditorApp {
                 Mode::Insert => {
                     ui.painter().rect_filled(
                         Rect::from_min_size(cursor_pos, egui::vec2(2.0, char_height)),
+                        0.0,
+                        Color32::LIGHT_BLUE,
+                    );
+                }
+                Mode::Visual => {
+                    ui.painter().rect_filled(
+                        Rect::from_min_size(cursor_pos, egui::vec2(char_width, char_height)),
                         0.0,
                         Color32::LIGHT_BLUE,
                     );

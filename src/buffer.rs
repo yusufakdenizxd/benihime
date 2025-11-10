@@ -16,31 +16,16 @@ impl Cursor {
 #[derive(Debug, Clone)]
 pub struct Selection {
     pub start: Cursor,
-    pub end: Cursor,
 }
 
 impl Selection {
-    pub fn normalized(&self) -> (Cursor, Cursor) {
-        if self.start.row < self.end.row
-            || self.start.row == self.end.row && self.start.col <= self.end.col
+    pub fn normalized(&self, end: &Cursor) -> (Cursor, Cursor) {
+        if self.start.row < end.row
+            || self.start.row == end.row && self.start.col <= end.col
         {
-            return (self.start.clone(), self.end.clone());
+            return (self.start.clone(), end.clone());
         } else {
-            (self.end.clone(), self.start.clone())
-        }
-    }
-
-    pub fn contains(&self, cursor: Cursor) -> bool {
-        let (s, e) = self.normalized();
-
-        if cursor.row < s.row || cursor.row > e.row {
-            false
-        } else if cursor.row == s.row && cursor.col < s.col {
-            false
-        } else if cursor.row == e.row && cursor.col >= e.col {
-            false
-        } else {
-            true
+            (end.clone(), self.start.clone())
         }
     }
 }
