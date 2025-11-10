@@ -196,8 +196,12 @@ impl eframe::App for EditorApp {
                     Color32::GRAY
                 };
 
-                let line_number_text = format!("{:>width$}", line_number, width = gutter_width);
-                //TODO: Relative Number
+                let line_number_text = if buf.cursor.row == start + row {
+                    format!("{:>width$}", line_number, width = gutter_width)
+                } else {
+                    let relative_line_number = (start + row).abs_diff(buf.cursor.row);
+                    format!("{:>width$}", relative_line_number, width = gutter_width)
+                };
                 ui.painter().text(
                     Pos2 {
                         x: text_rect.min.x,
