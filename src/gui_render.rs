@@ -51,8 +51,104 @@ impl eframe::App for EditorApp {
 
         let state = &mut self.editor.state.lock().unwrap();
 
+        egui::TopBottomPanel::top("bufferline")
+            .show_separator_line(false)
+            .show(ctx, |ui| {
+                egui::Frame::NONE
+                    .inner_margin(egui::Margin {
+                        top: 4,
+                        ..Default::default()
+                    })
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            for (id, name, active) in state.buffer_line() {
+                                let frame = egui::Frame::group(ui.style())
+                                    .corner_radius(egui::CornerRadius {
+                                        nw: 4,
+                                        ne: 4,
+                                        sw: 0,
+                                        se: 0,
+                                    })
+                                    .inner_margin(egui::Margin::symmetric(8, 4));
+
+                                let tab_color = if active {
+                                    ui.visuals().selection.bg_fill
+                                } else {
+                                    ui.visuals().widgets.inactive.bg_fill
+                                };
+
+                                let text_color = if active {
+                                    ui.visuals().strong_text_color()
+                                } else {
+                                    ui.visuals().text_color()
+                                };
+
+                                frame.fill(tab_color).show(ui, |ui| {
+                                    let text = RichText::new(name).color(text_color);
+                                    let label =
+                                        ui.add(egui::Label::new(text).sense(egui::Sense::click()));
+                                    if label.clicked() {
+                                        state.focused_buf_id = id;
+                                    }
+                                });
+                                ui.add_space(2.0); // Space between tabs
+                            }
+                        });
+                    });
+            });
+
+        egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(state.status_line());
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if state.focused_buf().mode == Mode::Command {
+                        ui.label(format!("{}:", state.command_buffer));
+                    } else if state.error_message.is_some() {
+                        ui.colored_label(egui::Color32::RED, state.error_message.clone().unwrap());
+                    } else if state.message.is_some() {
+                        ui.label(state.message.clone().unwrap());
+                    } else {
+                        ui.label("");
+                    }
+                });
+            });
+        });
+
+        let buf = state.focused_buf_mut();
+        if buf.mode == Mode::Minibuffer {
+            let minibuffer = &state.minibuffer_manager.current.as_ref().unwrap();
+
+            let max_count = 10;
+            let offset = minibuffer.offset();
+            let index = minibuffer.index();
+            let len = minibuffer.len();
+
+            let end = (offset + max_count).min(len);
+
+            egui::TopBottomPanel::bottom("minibuffer").show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    ui.label(format!(
+                        "({}/{}) {} {}",
+                        index,
+                        len,
+                        minibuffer.prompt(),
+                        minibuffer.input(),
+                    ));
+                    for (i, c) in minibuffer.render_candidates()[offset..end]
+                        .iter()
+                        .enumerate()
+                    {
+                        if (index - offset) == i {
+                            ui.label(RichText::new(c).underline().strong());
+                        } else {
+                            ui.label(c);
+                        }
+                    }
+                });
+            });
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add_space(buffer_line_height + 5.0);
             let font_size = 16.0;
             let font_id = FontId::monospace(font_size);
 
@@ -212,81 +308,6 @@ impl eframe::App for EditorApp {
                 _ => {}
             }
         });
-
-        egui::TopBottomPanel::top("bufferline").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                for (id, name, active) in state.buffer_line() {
-                    let render = format!("{}{}", id, name);
-                    let text = if active {
-                        RichText::new(render)
-                            .color(Color32::BLACK)
-                            .background_color(Color32::LIGHT_BLUE)
-                            .strong()
-                    } else {
-                        RichText::new(render).color(Color32::GRAY)
-                    };
-
-                    if ui
-                        .add(egui::Label::new(text).sense(egui::Sense::click()))
-                        .clicked()
-                    {
-                        state.focused_buf_id = id;
-                    }
-                    ui.set_height(buffer_line_height);
-                }
-            });
-        });
-
-        egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.label(state.status_line());
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    if state.focused_buf().mode == Mode::Command {
-                        ui.label(format!("{}:", state.command_buffer));
-                    } else if state.error_message.is_some() {
-                        ui.colored_label(egui::Color32::RED, state.error_message.clone().unwrap());
-                    } else if state.message.is_some() {
-                        ui.label(state.message.clone().unwrap());
-                    } else {
-                        ui.label("");
-                    }
-                });
-            });
-        });
-
-        let buf = state.focused_buf_mut();
-        if buf.mode == Mode::Minibuffer {
-            let minibuffer = &state.minibuffer_manager.current.as_ref().unwrap();
-
-            let max_count = 10;
-            let offset = minibuffer.offset();
-            let index = minibuffer.index();
-            let len = minibuffer.len();
-
-            let end = (offset + max_count).min(len);
-
-            egui::TopBottomPanel::bottom("minibuffer").show(ctx, |ui| {
-                ui.vertical(|ui| {
-                    ui.label(format!(
-                        "({}/{}) {} {}",
-                        index,
-                        len,
-                        minibuffer.prompt(),
-                        minibuffer.input(),
-                    ));
-                    for (i, c) in minibuffer.render_candidates()[offset..end]
-                        .iter()
-                        .enumerate()
-                    {
-                        if (index - offset) == i {
-                            ui.label(RichText::new(c).underline().strong());
-                        } else {
-                            ui.label(c);
-                        }
-                    }
-                });
-            });
-        }
     }
 }
 
