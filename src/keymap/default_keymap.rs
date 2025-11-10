@@ -367,4 +367,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "change-selection",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('x'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "delete-char-under-cursor",
+        None,
+    );
 }

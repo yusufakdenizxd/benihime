@@ -432,4 +432,16 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         }
         Ok(())
     });
+
+    registry.register("delete-char-under-cursor", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        if buf.cursor.row < buf.line_count() {
+            let line = &mut buf.lines[buf.cursor.row];
+            if buf.cursor.col < line.len() {
+                line.remove(buf.cursor.col);
+            }
+        }
+
+        Ok(())
+    });
 }
