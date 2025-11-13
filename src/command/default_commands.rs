@@ -143,16 +143,32 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("word-backward", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let line = &buf.lines[buf.cursor.row];
+
+        if line.is_empty() || buf.cursor.col == 0 {
+            return Ok(());
+        }
+
+        let bytes = line.as_bytes();
         let mut i = buf.cursor.col;
-        if i > 0 {
+
+        i -= 1;
+
+        // Skip whitespace backwards
+        while i > 0 && bytes[i].is_ascii_whitespace() {
             i -= 1;
         }
-        while i > 0 && line.as_bytes()[i].is_ascii_whitespace() {
-            i -= 1;
+
+        // Move to the start of this group
+        if is_word_char(bytes[i]) {
+            while i > 0 && is_word_char(bytes[i - 1]) {
+                i -= 1;
+            }
+        } else {
+            while i > 0 && !is_word_char(bytes[i - 1]) && !bytes[i - 1].is_ascii_whitespace() {
+                i -= 1;
+            }
         }
-        while i > 0 && !line.as_bytes()[i - 1].is_ascii_whitespace() {
-            i -= 1;
-        }
+
         buf.cursor.col = i;
         Ok(())
     });
