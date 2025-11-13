@@ -140,7 +140,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
-    registry.register("word-start", |ctx: &mut CommandContext| {
+    registry.register("word-backward", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let line = &buf.lines[buf.cursor.row];
         let mut i = buf.cursor.col;

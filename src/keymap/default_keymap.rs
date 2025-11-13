@@ -142,7 +142,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
             code: KeyCode::Char('b'),
             modifiers: KeyModifiers::NONE,
         }),
-        "word-start",
+        "word-backward",
         None,
     );
 
