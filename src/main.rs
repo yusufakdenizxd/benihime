@@ -5,6 +5,7 @@ mod editor;
 mod gui_render;
 mod keymap;
 mod mini_buffer;
+mod motion;
 
 fn main() {
     let _ = gui_render::run();
