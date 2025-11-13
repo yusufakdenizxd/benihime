@@ -109,17 +109,34 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("word-forward", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let line = &buf.lines[buf.cursor.row];
-        let mut i = buf.cursor.col;
-        if i < line.len() {
+
+        if line.is_empty() {
+            return Ok(());
+        }
+
+        let bytes = line.as_bytes();
+        let mut i = buf.cursor.col.min(line.len() - 1);
+
+        let current_is_word = is_word_char(bytes[i]);
+        let current_is_space = bytes[i].is_ascii_whitespace();
+
+        // Skip current word/punctuation group
+        if current_is_word {
+            while i < bytes.len() && is_word_char(bytes[i]) {
+                i += 1;
+            }
+        } else if !current_is_space {
+            while i < bytes.len() && !is_word_char(bytes[i]) && !bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+        }
+
+        // Skip whitespace
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
             i += 1;
         }
-        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        while i < line.len() && !line.as_bytes()[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        buf.cursor.col = min(i, line.len());
+
+        buf.cursor.col = i.min(line.len() - 1);
         Ok(())
     });
 
