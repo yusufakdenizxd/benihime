@@ -8,7 +8,7 @@ use anyhow::Ok;
 use ignore::Walk;
 
 use crate::{
-    buffer::{Mode, Selection},
+    buffer::{Buffer, Mode, Selection},
     editor::{EditorState, HandleKeyError},
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
 };
@@ -452,4 +452,24 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         }
         Ok(())
     });
+
+    registry.register("find-buffer", |ctx: &mut CommandContext| {
+        let buffers = ctx.state.buffer_manager.get_buffers_cloned();
+
+        let minibuffer: MiniBuffer<Buffer> = MiniBuffer::new(
+            "Find Buffer: ",
+            buffers,
+            |state: &mut EditorState, command_name: &Buffer| {
+                state.focused_buf_id = command_name.id;
+                Ok(None)
+            },
+        );
+
+        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
+
+        Ok(())
+    })
 }

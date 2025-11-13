@@ -393,4 +393,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "delete-line",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('b'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "find-buffer",
+        None,
+    );
 }

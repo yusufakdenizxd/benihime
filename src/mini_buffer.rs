@@ -1,7 +1,7 @@
 use anyhow::{Ok, Result};
 use std::path::PathBuf;
 
-use crate::editor::EditorState;
+use crate::{buffer::Buffer, editor::EditorState};
 
 pub struct MiniBufferState<T> {
     pub input: String,
@@ -73,6 +73,12 @@ impl MiniBufferDisplay for PathBuf {
 impl MiniBufferDisplay for String {
     fn as_display_string(&self) -> String {
         self.clone()
+    }
+}
+
+impl MiniBufferDisplay for Buffer {
+    fn as_display_string(&self) -> String {
+        self.name.to_string()
     }
 }
 

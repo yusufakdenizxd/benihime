@@ -33,6 +33,10 @@ impl BufferManager {
         self.buffers.values().collect()
     }
 
+    pub fn get_buffers_cloned(&self) -> Vec<Buffer> {
+        self.buffers.values().cloned().collect()
+    }
+
     pub fn iter_buffers(&self) -> impl Iterator<Item = (&i32, &Buffer)> {
         self.buffers.iter()
     }
