@@ -348,9 +348,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         if let Some(mut mini) = ctx.state.minibuffer_manager.current.take() {
             let result = mini.run_callback(ctx.state)?;
-            ctx.state.minibuffer_manager.current = Some(mini);
             match result {
                 MinibufferCallbackResult::NewItems => {
+                    ctx.state.minibuffer_manager.current = Some(mini);
                     //Early return to be in minibuffer mode
                     return Ok(());
                 }
