@@ -43,7 +43,7 @@ impl CommandRegistry {
                             args: &Some(vec![CommandArg::Str(e.to_string())]),
                         },
                     );
-                    return Err(HandleKeyError::ExecutionFailed(e));
+                    Err(HandleKeyError::ExecutionFailed(e))
                 }
             }
         } else {

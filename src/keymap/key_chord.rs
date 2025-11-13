@@ -43,12 +43,12 @@ impl KeyModifiers {
     };
 
     pub fn from_egui(modifier: Modifiers) -> Self {
-        return KeyModifiers {
+        KeyModifiers {
             shift: modifier.shift,
             control: modifier.ctrl,
             alt: modifier.alt,
             super_key: modifier.command || modifier.mac_cmd,
-        };
+        }
     }
 }
 

@@ -197,12 +197,4 @@ impl MiniBufferManager {
     pub fn activate(&mut self, minibuffer: Box<dyn MiniBufferTrait + Send>) {
         self.current = Some(minibuffer);
     }
-
-    pub fn deactivate(&mut self) {
-        self.current = None;
-    }
-
-    pub fn active(&self) -> bool {
-        self.current.is_some()
-    }
 }

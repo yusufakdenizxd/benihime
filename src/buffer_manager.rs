@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -78,7 +78,7 @@ impl BufferManager {
     }
 
     pub fn open_file(&mut self, path: &PathBuf) -> i32 {
-        let contents = fs::read_to_string(&path).unwrap_or_default();
+        let contents = fs::read_to_string(path).unwrap_or_default();
 
         self.create_buffer_from(
             path.file_name().unwrap().to_str().unwrap(),

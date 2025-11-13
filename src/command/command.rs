@@ -1,5 +1,5 @@
 use anyhow::{Result, anyhow};
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 
 use crate::{buffer::Mode, editor::EditorState};
 
@@ -50,7 +50,7 @@ pub struct CommandContext<'a> {
     pub args: &'a Option<Vec<CommandArg>>,
 }
 
-impl<'a> CommandContext<'a> {
+impl CommandContext<'_> {
     pub fn get_arg<T>(&self, index: usize) -> Result<T>
     where
         CommandArg: ArgAsOwned<T>,

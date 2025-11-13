@@ -88,7 +88,7 @@ impl EditorState {
 
     pub fn kill_active_buffer(&mut self) {
         let len = self.buffer_manager.buffers_len();
-        if len <= 0 {
+        if len == 0 {
             return;
         }
         let buf_id_to_kill = self.focused_buf_id;
@@ -168,7 +168,7 @@ impl Editor {
         };
         match self.keymap.push_key(buf.mode, &chord) {
             Some((command_name, args)) => {
-                state.exec(&command_name, args);
+                let _ = state.exec(&command_name, args);
             }
             None => match buf.mode {
                 Mode::Insert => {

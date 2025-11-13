@@ -20,10 +20,8 @@ pub struct Selection {
 
 impl Selection {
     pub fn normalized(&self, end: &Cursor) -> (Cursor, Cursor) {
-        if self.start.row < end.row
-            || self.start.row == end.row && self.start.col <= end.col
-        {
-            return (self.start.clone(), end.clone());
+        if self.start.row < end.row || self.start.row == end.row && self.start.col <= end.col {
+            (self.start.clone(), end.clone())
         } else {
             (end.clone(), self.start.clone())
         }

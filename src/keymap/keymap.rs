@@ -65,10 +65,10 @@ impl Keymap {
             return Some(binding.clone());
         }
 
-        let is_prefix = self.bindings.keys().any(|seq| {
-            if !seq.0.chords.iter().any(|_| true) {}
-            seq.0.chords.starts_with(&self.buffer.chords)
-        });
+        let is_prefix = self
+            .bindings
+            .keys()
+            .any(|seq| seq.0.chords.starts_with(&self.buffer.chords));
 
         if is_prefix {
         } else {

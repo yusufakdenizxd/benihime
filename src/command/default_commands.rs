@@ -191,7 +191,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             if !a.is_dir() && b.is_dir() {
                 return Ordering::Greater;
             }
-            return Ordering::Equal;
+            Ordering::Equal
         });
 
         let minibuffer: MiniBuffer<PathBuf> = MiniBuffer::new(
@@ -210,7 +210,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
                         if !a.is_dir() && b.is_dir() {
                             return Ordering::Greater;
                         }
-                        return Ordering::Equal;
+                        Ordering::Equal
                     });
 
                     return Ok(Some(new_items));

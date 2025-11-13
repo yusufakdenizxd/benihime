@@ -22,7 +22,6 @@ impl EditorApp {
 
 impl eframe::App for EditorApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let buffer_line_height = 10.0;
         ctx.input(|i| {
             for event in &i.events {
                 if let egui::Event::Key {
