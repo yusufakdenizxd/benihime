@@ -11,6 +11,7 @@ use crate::{
     buffer::{Buffer, Mode, Selection},
     editor::{EditorState, HandleKeyError},
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
+    motion::is_word_char,
 };
 
 use super::{
@@ -142,17 +143,64 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("word-end", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let line = &buf.lines[buf.cursor.row];
-        let mut i = buf.cursor.col;
-        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
-            i += 1;
+
+        if line.is_empty() {
+            return Ok(());
         }
-        while i < line.len() {
-            if i + 1 >= line.len() || line.as_bytes()[i + 1].is_ascii_whitespace() {
-                break;
+
+        let bytes = line.as_bytes();
+        let mut i = buf.cursor.col.min(line.len() - 1);
+
+        let current_is_word = is_word_char(bytes[i]);
+        let current_is_space = bytes[i].is_ascii_whitespace();
+
+        // If on a word char, move to end of current word first
+        if current_is_word {
+            while i + 1 < bytes.len() && is_word_char(bytes[i + 1]) {
+                i += 1;
             }
+            if i > buf.cursor.col {
+                buf.cursor.col = i;
+                return Ok(());
+            }
+        }
+
+        // If on punctuation, move to end of current punctuation group first
+        if !current_is_word && !current_is_space {
+            while i + 1 < bytes.len()
+                && !is_word_char(bytes[i + 1])
+                && !bytes[i + 1].is_ascii_whitespace()
+            {
+                i += 1;
+            }
+            if i > buf.cursor.col {
+                buf.cursor.col = i;
+                return Ok(());
+            }
+        }
+
+        i += 1;
+
+        // Skip whitespace
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
             i += 1;
         }
-        buf.cursor.col = min(i, line.len());
+
+        if i >= bytes.len() {
+            buf.cursor.col = line.len() - 1;
+            return Ok(());
+        }
+
+        // Move to end of the word/punct group we landed on
+        let is_word_group = is_word_char(bytes[i]);
+        while i + 1 < bytes.len()
+            && is_word_char(bytes[i + 1]) == is_word_group
+            && !bytes[i + 1].is_ascii_whitespace()
+        {
+            i += 1;
+        }
+
+        buf.cursor.col = i;
         Ok(())
     });
 
