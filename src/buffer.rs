@@ -2,10 +2,22 @@ use anyhow::anyhow;
 use ropey::Rope;
 use std::{path::PathBuf, str::FromStr};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
 pub struct Cursor {
     pub row: usize,
     pub col: usize,
+}
+
+impl Ord for Cursor {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.col == other.col && self.col == other.col {
+            return Ordering::Equal;
+        }
+        if self.row > other.row || (self.row == other.row && self.col > other.col) {
+            return Ordering::Greater;
+        }
+        return Ordering::Less;
+    }
 }
 
 impl Cursor {
