@@ -7,6 +7,7 @@ mod editor;
 mod keymap;
 mod mini_buffer;
 mod motion;
+mod position;
 mod render;
 
 fn main() {
