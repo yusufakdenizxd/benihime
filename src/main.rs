@@ -6,7 +6,7 @@ mod command;
 mod editor;
 mod keymap;
 mod mini_buffer;
-mod motion;
+mod movement;
 mod position;
 mod render;
 
