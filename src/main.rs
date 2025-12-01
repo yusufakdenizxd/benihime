@@ -2,6 +2,7 @@ use render::gui_render;
 
 mod buffer;
 mod buffer_manager;
+mod chars;
 mod command;
 mod editor;
 mod keymap;
