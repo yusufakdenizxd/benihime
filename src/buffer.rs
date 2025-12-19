@@ -224,7 +224,10 @@ impl Buffer {
     }
 
     pub fn center_cursor(&mut self, screen_height: usize) {
-        let cursor_row = self.cursor.row.min(self.lines.len_lines().saturating_sub(1));
+        let cursor_row = self
+            .cursor
+            .row
+            .min(self.lines.len_lines().saturating_sub(1));
 
         let half_screen = screen_height / 2;
         if cursor_row >= half_screen {

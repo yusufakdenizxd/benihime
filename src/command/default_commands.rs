@@ -1,5 +1,5 @@
 use std::{
-    cmp::{min, Ordering},
+    cmp::{Ordering, min},
     fs,
     path::PathBuf,
 };
