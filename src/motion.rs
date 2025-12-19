@@ -1,7 +1,7 @@
-pub fn is_word_char(b: u8) -> bool {
-    b.is_ascii_alphanumeric() || b == b'_' || b == b'@' || b >= 192
+pub fn is_word_char(c: char) -> bool {
+    c.is_alphanumeric() || c == '_' || c == '@'
 }
 
-pub fn is_punctuation(b: u8) -> bool {
-    !b.is_ascii_whitespace() && !is_word_char(b)
+pub fn is_punctuation(c: char) -> bool {
+    !c.is_whitespace() && !is_word_char(c)
 }

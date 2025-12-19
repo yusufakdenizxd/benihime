@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use ropey::Rope;
 use std::{path::PathBuf, str::FromStr};
 
 #[derive(Debug, Clone)]
@@ -54,7 +55,7 @@ impl FromStr for Mode {
 #[derive(Debug, Clone)]
 pub struct Buffer {
     pub id: i32,
-    pub lines: Vec<String>,
+    pub lines: Rope,
     pub name: String,
     pub cursor: Cursor,
     pub scroll_offset: usize,
@@ -70,7 +71,7 @@ impl Buffer {
         Self {
             id,
             name: name.to_string(),
-            lines: vec![String::new()],
+            lines: Rope::new(),
             cursor: Cursor::new(),
             mode: Mode::Normal,
             top: 0,
@@ -85,7 +86,7 @@ impl Buffer {
         Self {
             id,
             name: name.to_string(),
-            lines: text.split('\n').map(|s| s.to_string()).collect(),
+            lines: Rope::from_str(text),
             cursor: Cursor::new(),
             mode: Mode::Normal,
             top: 0,
@@ -97,10 +98,29 @@ impl Buffer {
     }
 
     pub fn line_count(&self) -> usize {
-        self.lines.len()
+        self.lines.len_lines()
     }
+
     pub fn line_len(&self, row: usize) -> usize {
-        self.lines.get(row).map(|l| l.len()).unwrap_or(0)
+        if row >= self.lines.len_lines() {
+            return 0;
+        }
+        let line = self.lines.line(row);
+        let len_chars = line.len_chars();
+        if len_chars == 0 {
+            return 0;
+        }
+
+        let last_char = line.char(len_chars - 1);
+        if last_char == '\n' {
+            if len_chars > 1 && line.char(len_chars - 2) == '\r' {
+                len_chars - 2
+            } else {
+                len_chars - 1
+            }
+        } else {
+            len_chars
+        }
     }
 
     pub fn ensure_cursor_on_screen(&mut self, width: u16, height: u16) {
@@ -120,56 +140,65 @@ impl Buffer {
         }
     }
     pub fn insert_char(&mut self, c: char) {
-        let row = self.cursor.row;
-        let col = self.cursor.col;
-
-        if row >= self.lines.len() {
-            self.lines.push(String::new());
-        }
-
-        let line = &mut self.lines[row];
-        if col <= line.len() {
-            line.insert(col, c);
-            self.cursor.col += 1;
-        } else {
-            line.push(c);
-            self.cursor.col = line.len();
-        }
+        let mut s = String::new();
+        s.push(c);
+        self.insert_str(&s);
     }
 
     pub fn insert_str(&mut self, s: &str) {
-        for ch in s.chars() {
-            self.insert_char(ch);
+        let row = self.cursor.row;
+        let col = self.cursor.col;
+
+        if row >= self.lines.len_lines() {
+            return;
+        }
+
+        let line_len = self.line_len(row);
+        let insert_col = col.min(line_len);
+        let char_idx = self.lines.line_to_char(row) + insert_col;
+
+        self.lines.insert(char_idx, s);
+
+        let new_lines = s.chars().filter(|&c| c == '\n').count();
+        self.cursor.row += new_lines;
+
+        if new_lines > 0 {
+            self.cursor.col = s.chars().rev().take_while(|&c| c != '\n').count();
+        } else {
+            self.cursor.col = insert_col + s.chars().count();
         }
     }
 
     pub fn delete_char_before_cursor(&mut self) {
-        if self.cursor.col > 0 {
-            let row = self.cursor.row;
-            let col = self.cursor.col;
-            if let Some(line) = self.lines.get_mut(row) {
-                line.remove(col - 1);
-                self.cursor.col -= 1;
+        let row = self.cursor.row;
+        let col = self.cursor.col;
+
+        if row == 0 && col == 0 {
+            return;
+        }
+
+        if col > 0 {
+            let char_idx = self.lines.line_to_char(row) + col - 1;
+            self.lines.remove(char_idx..char_idx + 1);
+            self.cursor.col -= 1;
+        } else {
+            let prev_line_len = self.line_len(row - 1);
+            let char_idx = self.lines.line_to_char(row);
+            if char_idx > 0 {
+                self.lines.remove(char_idx - 1..char_idx);
+                self.cursor.row -= 1;
+                self.cursor.col = prev_line_len;
             }
-        } else if self.cursor.row > 0 {
-            let row = self.cursor.row;
-            let col = self.lines[row - 1].len();
-            let current_line = self.lines.remove(row);
-            self.cursor.row -= 1;
-            self.cursor.col = col;
-            self.lines[self.cursor.row].push_str(&current_line);
         }
     }
 
     pub fn update_scroll(&mut self, screen_height: usize, scrolloff: usize) {
         let row = self.cursor.row;
 
-        // If cursor is too high
         if row < self.scroll_offset + scrolloff {
             self.scroll_offset = row.saturating_sub(scrolloff);
         }
 
-        // If cursor is too low
         if row >= self.scroll_offset + screen_height - scrolloff {
             self.scroll_offset = row + scrolloff + 1 - screen_height;
         }
@@ -179,24 +208,11 @@ impl Buffer {
         if let Some(selection) = self.selection.take() {
             let (start, end) = selection.normalized(&self.cursor);
 
-            if start.row == end.row {
-                // Single line
-                let end_col = (end.col + 1).min(self.lines[start.row].len());
-                if start.col < end_col {
-                    self.lines[start.row].drain(start.col..end_col);
-                }
-            } else {
-                // Multi-line
-                let end_line_len = self.lines[end.row].len();
-                let end_col = (end.col + 1).min(end_line_len);
+            let start_char = self.lines.line_to_char(start.row) + start.col;
+            let end_char = self.lines.line_to_char(end.row) + end.col;
 
-                let remaining_end = self.lines[end.row][end_col..].to_string();
-
-                self.lines[start.row].truncate(start.col);
-                self.lines[start.row].push_str(&remaining_end);
-
-                // Drain lines between start and end
-                self.lines.drain(start.row + 1..=end.row);
+            if start_char <= end_char {
+                self.lines.remove(start_char..end_char);
             }
 
             self.cursor = start.clone();
@@ -208,7 +224,7 @@ impl Buffer {
     }
 
     pub fn center_cursor(&mut self, screen_height: usize) {
-        let cursor_row = self.cursor.row.min(self.lines.len().saturating_sub(1));
+        let cursor_row = self.cursor.row.min(self.lines.len_lines().saturating_sub(1));
 
         let half_screen = screen_height / 2;
         if cursor_row >= half_screen {
@@ -217,8 +233,8 @@ impl Buffer {
             self.scroll_offset = 0;
         }
 
-        if self.scroll_offset + screen_height > self.lines.len() {
-            self.scroll_offset = self.lines.len().saturating_sub(screen_height);
+        if self.scroll_offset + screen_height > self.lines.len_lines() {
+            self.scroll_offset = self.lines.len_lines().saturating_sub(screen_height);
         }
     }
 }

@@ -1,5 +1,5 @@
 use std::{
-    cmp::{Ordering, min},
+    cmp::{min, Ordering},
     fs,
     path::PathBuf,
 };
@@ -72,20 +72,24 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("first-non-blank", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.cursor.col = buf.line_len(buf.cursor.row);
-
-        let line = &buf.lines[buf.cursor.row];
+        let line = buf.lines.line(buf.cursor.row);
         let mut i = 0;
-        while i < line.len() && line.as_bytes()[i].is_ascii_whitespace() {
-            i += 1;
+        for (idx, char) in line.chars().enumerate() {
+            if !char.is_whitespace() {
+                i = idx;
+                break;
+            }
+            i = idx + 1;
         }
-        buf.cursor.col = min(i, line.len());
+        buf.cursor.col = i;
+
         Ok(())
     });
 
     registry.register("open-above", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.lines.insert(buf.cursor.row, String::new());
+        let char_idx = buf.lines.line_to_char(buf.cursor.row);
+        buf.lines.insert(char_idx, "\n");
         buf.cursor.col = 0;
         ctx.state
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
@@ -94,9 +98,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("open-below", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let i = buf.lines[buf.cursor.row].len();
-        let rest = buf.lines[buf.cursor.row].split_off(i);
-        buf.lines.insert(buf.cursor.row + 1, rest);
+        let char_idx = buf.lines.line_to_char(buf.cursor.row + 1);
+        buf.lines.insert(char_idx, "\n");
         buf.cursor.row += 1;
         buf.cursor.col = 0;
 
@@ -108,63 +111,63 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("word-forward", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let line = &buf.lines[buf.cursor.row];
+        let line = buf.lines.line(buf.cursor.row);
 
-        if line.is_empty() {
+        if line.len_chars() == 0 {
             return Ok(());
         }
 
-        let bytes = line.as_bytes();
-        let mut i = buf.cursor.col.min(line.len() - 1);
+        let mut i = buf.cursor.col.min(line.len_chars() - 1);
+        let chars: Vec<char> = line.chars().collect();
 
-        let current_is_word = is_word_char(bytes[i]);
-        let current_is_space = bytes[i].is_ascii_whitespace();
+        let current_is_word = is_word_char(chars[i]);
+        let current_is_space = chars[i].is_ascii_whitespace();
 
         // Skip current word/punctuation group
         if current_is_word {
-            while i < bytes.len() && is_word_char(bytes[i]) {
+            while i < chars.len() && is_word_char(chars[i]) {
                 i += 1;
             }
         } else if !current_is_space {
-            while i < bytes.len() && !is_word_char(bytes[i]) && !bytes[i].is_ascii_whitespace() {
+            while i < chars.len() && !is_word_char(chars[i]) && !chars[i].is_ascii_whitespace() {
                 i += 1;
             }
         }
 
         // Skip whitespace
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+        while i < chars.len() && chars[i].is_ascii_whitespace() {
             i += 1;
         }
 
-        buf.cursor.col = i.min(line.len() - 1);
+        buf.cursor.col = i.min(line.len_chars() - 1);
         Ok(())
     });
 
     registry.register("word-backward", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let line = &buf.lines[buf.cursor.row];
+        let line = buf.lines.line(buf.cursor.row);
 
-        if line.is_empty() || buf.cursor.col == 0 {
+        if line.len_chars() == 0 || buf.cursor.col == 0 {
             return Ok(());
         }
 
-        let bytes = line.as_bytes();
+        let chars: Vec<char> = line.chars().collect();
         let mut i = buf.cursor.col;
 
         i -= 1;
 
         // Skip whitespace backwards
-        while i > 0 && bytes[i].is_ascii_whitespace() {
+        while i > 0 && chars[i].is_ascii_whitespace() {
             i -= 1;
         }
 
         // Move to the start of this group
-        if is_word_char(bytes[i]) {
-            while i > 0 && is_word_char(bytes[i - 1]) {
+        if is_word_char(chars[i]) {
+            while i > 0 && is_word_char(chars[i - 1]) {
                 i -= 1;
             }
         } else {
-            while i > 0 && !is_word_char(bytes[i - 1]) && !bytes[i - 1].is_ascii_whitespace() {
+            while i > 0 && !is_word_char(chars[i - 1]) && !chars[i - 1].is_ascii_whitespace() {
                 i -= 1;
             }
         }
@@ -175,21 +178,21 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("word-end", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let line = &buf.lines[buf.cursor.row];
+        let line = buf.lines.line(buf.cursor.row);
+        let line_len = buf.line_len(buf.cursor.row);
 
-        if line.is_empty() {
+        if line_len == 0 {
             return Ok(());
         }
 
-        let bytes = line.as_bytes();
-        let mut i = buf.cursor.col.min(line.len() - 1);
+        let chars: Vec<char> = line.chars().collect();
+        let mut i = buf.cursor.col.min(line_len - 1);
 
-        let current_is_word = is_word_char(bytes[i]);
-        let current_is_space = bytes[i].is_ascii_whitespace();
+        let current_is_word = is_word_char(chars[i]);
+        let current_is_space = chars[i].is_ascii_whitespace();
 
-        // If on a word char, move to end of current word first
         if current_is_word {
-            while i + 1 < bytes.len() && is_word_char(bytes[i + 1]) {
+            while i + 1 < line_len && is_word_char(chars[i + 1]) {
                 i += 1;
             }
             if i > buf.cursor.col {
@@ -198,11 +201,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             }
         }
 
-        // If on punctuation, move to end of current punctuation group first
         if !current_is_word && !current_is_space {
-            while i + 1 < bytes.len()
-                && !is_word_char(bytes[i + 1])
-                && !bytes[i + 1].is_ascii_whitespace()
+            while i + 1 < line_len
+                && !is_word_char(chars[i + 1])
+                && !chars[i + 1].is_ascii_whitespace()
             {
                 i += 1;
             }
@@ -214,21 +216,19 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         i += 1;
 
-        // Skip whitespace
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+        while i < line_len && chars[i].is_ascii_whitespace() {
             i += 1;
         }
 
-        if i >= bytes.len() {
-            buf.cursor.col = line.len() - 1;
+        if i >= line_len {
+            buf.cursor.col = line_len.saturating_sub(1);
             return Ok(());
         }
 
-        // Move to end of the word/punct group we landed on
-        let is_word_group = is_word_char(bytes[i]);
-        while i + 1 < bytes.len()
-            && is_word_char(bytes[i + 1]) == is_word_group
-            && !bytes[i + 1].is_ascii_whitespace()
+        let is_word_group = is_word_char(chars[i]);
+        while i + 1 < line_len
+            && is_word_char(chars[i + 1]) == is_word_group
+            && !chars[i + 1].is_ascii_whitespace()
         {
             i += 1;
         }
@@ -517,9 +517,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("delete-char-under-cursor", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         if buf.cursor.row < buf.line_count() {
-            let line = &mut buf.lines[buf.cursor.row];
-            if buf.cursor.col < line.len() {
-                line.remove(buf.cursor.col);
+            if buf.cursor.col < buf.line_len(buf.cursor.row) {
+                let char_idx = buf.lines.line_to_char(buf.cursor.row) + buf.cursor.col;
+                buf.lines.remove(char_idx..char_idx + 1);
             }
         }
 
@@ -529,7 +529,13 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("delete-line", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         if buf.cursor.row < buf.line_count() {
-            buf.lines.remove(buf.cursor.row);
+            let start = buf.lines.line_to_char(buf.cursor.row);
+            let end = if buf.cursor.row + 1 < buf.line_count() {
+                buf.lines.line_to_char(buf.cursor.row + 1)
+            } else {
+                buf.lines.len_chars()
+            };
+            buf.lines.remove(start..end);
         }
         Ok(())
     });
