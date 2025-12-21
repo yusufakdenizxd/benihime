@@ -371,36 +371,30 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('x'),
-            modifiers: KeyModifiers::NONE,
+            code: KeyCode::Char('b'),
+            modifiers: KeyModifiers::SUPER,
         }),
-        "delete-char-under-cursor",
-        None,
-    );
-
-    km.bind(
-        &[Mode::Normal],
-        KeySequence::new(vec![
-            KeyChord {
-                code: KeyCode::Char('d'),
-                modifiers: KeyModifiers::NONE,
-            },
-            KeyChord {
-                code: KeyCode::Char('d'),
-                modifiers: KeyModifiers::NONE,
-            },
-        ]),
-        "delete-line",
+        "find-buffer",
         None,
     );
 
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('b'),
-            modifiers: KeyModifiers::SUPER,
+            code: KeyCode::Char('d'),
+            modifiers: KeyModifiers::NONE,
         }),
-        "find-buffer",
+        "delete-range",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('c'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "change-range",
         None,
     );
 }

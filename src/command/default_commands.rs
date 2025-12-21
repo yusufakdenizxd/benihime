@@ -404,32 +404,6 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
-    registry.register("delete-char-under-cursor", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
-        if buf.cursor.row < buf.line_count() {
-            if buf.cursor.col < buf.line_len(buf.cursor.row) {
-                let char_idx = buf.lines.line_to_char(buf.cursor.row) + buf.cursor.col;
-                buf.lines.remove(char_idx..char_idx + 1);
-            }
-        }
-
-        Ok(())
-    });
-
-    registry.register("delete-line", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
-        if buf.cursor.row < buf.line_count() {
-            let start = buf.lines.line_to_char(buf.cursor.row);
-            let end = if buf.cursor.row + 1 < buf.line_count() {
-                buf.lines.line_to_char(buf.cursor.row + 1)
-            } else {
-                buf.lines.len_chars()
-            };
-            buf.lines.remove(start..end);
-        }
-        Ok(())
-    });
-
     registry.register("find-buffer", |ctx: &mut CommandContext| {
         let buffers = ctx.state.buffer_manager.get_buffers_cloned();
 
@@ -448,5 +422,51 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
-    })
+    });
+
+    registry.register_operator("delete-range", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        let row = buf.cursor.row;
+        let line_start = buf.lines.line_to_char(row);
+        let line_end = buf.lines.line_to_char(row + 1);
+        let line_len = line_end - line_start;
+
+        if let Some(range) = buf.range.take() {
+            let start = range.anchor.min(range.head);
+            let end = range.anchor.max(range.head);
+            let del_start = line_start + start.min(line_len);
+            let del_end = line_start + end.min(line_len);
+            buf.lines.remove(del_start..del_end);
+            buf.cursor.col = start;
+        } else {
+            if line_len > 0 {
+                let col = buf.cursor.col.min(line_len.saturating_sub(1));
+                let del_start = line_start + col;
+                let del_end = del_start + 1;
+                buf.lines.remove(del_start..del_end);
+            }
+        }
+
+        Ok(())
+    });
+
+    registry.register_operator("change-range", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        let row = buf.cursor.row;
+        let line_start = buf.lines.line_to_char(row);
+        let line_end = buf.lines.line_to_char(row + 1);
+        let line_len = line_end - line_start;
+
+        if let Some(range) = buf.range.take() {
+            let start = range.anchor.min(range.head);
+            let end = range.anchor.max(range.head);
+            let del_start = line_start + start.min(line_len);
+            let del_end = line_start + end.min(line_len);
+            buf.lines.remove(del_start..del_end);
+            buf.cursor.col = start;
+            buf.mode = Mode::Insert;
+        }
+
+        Ok(())
+    });
 }
