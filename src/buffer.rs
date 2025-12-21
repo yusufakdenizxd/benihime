@@ -1,15 +1,33 @@
 use anyhow::anyhow;
 use ropey::Rope;
-use std::{path::PathBuf, str::FromStr};
+use std::{cmp::Ordering, path::PathBuf, str::FromStr};
 
-#[derive(Debug, Clone)]
+use crate::movement::selection::Range;
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
 pub struct Cursor {
     pub row: usize,
     pub col: usize,
 }
 
+impl Ord for Cursor {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.col == other.col && self.col == other.col {
+            return Ordering::Equal;
+        }
+        if self.row > other.row || (self.row == other.row && self.col > other.col) {
+            return Ordering::Greater;
+        }
+        return Ordering::Less;
+    }
+}
+
 impl Cursor {
     fn new() -> Cursor {
+        Cursor { row: 0, col: 0 }
+    }
+
+    pub fn start() -> Cursor {
         Cursor { row: 0, col: 0 }
     }
 }
@@ -64,6 +82,7 @@ pub struct Buffer {
     pub left: usize,
     pub file_path: Option<PathBuf>,
     pub selection: Option<Selection>,
+    pub range: Option<Range>,
 }
 
 impl Buffer {
@@ -79,6 +98,7 @@ impl Buffer {
             file_path,
             scroll_offset: 0,
             selection: None,
+            range: None,
         }
     }
 
@@ -94,6 +114,7 @@ impl Buffer {
             file_path,
             scroll_offset: 0,
             selection: None,
+            range: None,
         }
     }
 
