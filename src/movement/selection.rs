@@ -4,16 +4,16 @@ use super::movement::Direction;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Range {
-    pub anchor: Cursor,
-    pub head: Cursor,
+    pub anchor: usize,
+    pub head: usize,
 }
 
 impl Range {
-    pub fn new(anchor: Cursor, head: Cursor) -> Self {
+    pub fn new(anchor: usize, head: usize) -> Self {
         Self { anchor, head }
     }
 
-    pub fn point(head: Cursor) -> Self {
+    pub fn point(head: usize) -> Self {
         Self::new(head, head)
     }
 
@@ -23,12 +23,12 @@ impl Range {
     }
 
     /// Start of the range.
-    pub fn from(&self) -> Cursor {
+    pub fn from(&self) -> usize {
         std::cmp::min(self.anchor, self.head)
     }
 
     /// End of the range.
-    pub fn to(&self) -> Cursor {
+    pub fn to(&self) -> usize {
         std::cmp::max(self.anchor, self.head)
     }
 
@@ -67,7 +67,7 @@ impl Range {
         self.from() <= other.from() && self.to() >= other.to()
     }
 
-    pub fn contains(&self, pos: Cursor) -> bool {
+    pub fn contains(&self, pos: usize) -> bool {
         self.from() <= pos && pos < self.to()
     }
 
