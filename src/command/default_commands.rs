@@ -248,7 +248,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
-    registry.register("clear-error-message", |ctx: &mut CommandContext| {
+    registry.register_system("clear-error-message", |ctx: &mut CommandContext| {
         let state = &mut ctx.state;
         state.error_message = None;
 
