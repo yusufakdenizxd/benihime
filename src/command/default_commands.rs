@@ -109,19 +109,19 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
-    registry.register("word-forward", |ctx: &mut CommandContext| {
+    registry.register_motion("word-forward", |ctx: &mut CommandContext| {
         movement_commands::move_next_word_start(ctx);
 
         Ok(())
     });
 
-    registry.register("word-backward", |ctx: &mut CommandContext| {
+    registry.register_motion("word-backward", |ctx: &mut CommandContext| {
         movement_commands::move_prev_word_start(ctx);
 
         Ok(())
     });
 
-    registry.register("word-end", |ctx: &mut CommandContext| {
+    registry.register_motion("word-end", |ctx: &mut CommandContext| {
         movement_commands::move_next_word_end(ctx);
 
         Ok(())
