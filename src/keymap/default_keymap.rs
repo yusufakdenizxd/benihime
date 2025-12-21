@@ -387,4 +387,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "delete-range",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('c'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "change-range",
+        None,
+    );
 }

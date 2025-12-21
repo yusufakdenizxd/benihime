@@ -449,4 +449,24 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register_operator("change-range", |ctx: &mut CommandContext| {
+        let buf = ctx.state.focused_buf_mut();
+        let row = buf.cursor.row;
+        let line_start = buf.lines.line_to_char(row);
+        let line_end = buf.lines.line_to_char(row + 1);
+        let line_len = line_end - line_start;
+
+        if let Some(range) = buf.range.take() {
+            let start = range.anchor.min(range.head);
+            let end = range.anchor.max(range.head);
+            let del_start = line_start + start.min(line_len);
+            let del_end = line_start + end.min(line_len);
+            buf.lines.remove(del_start..del_end);
+            buf.cursor.col = start;
+            buf.mode = Mode::Insert;
+        }
+
+        Ok(())
+    });
 }
