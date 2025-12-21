@@ -125,5 +125,12 @@ impl ArgAsOwned<(usize, usize)> for CommandArg {
         }
     }
 }
+pub enum Cmd {
+    Plain(CommandFn),
+    Motion(CommandFn),
+    Operator(CommandFn),
+    Navigation(CommandFn),
+    System(CommandFn),
+}
 
 pub type CommandFn = fn(&mut CommandContext) -> anyhow::Result<()>;
