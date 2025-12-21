@@ -1,7 +1,7 @@
 use std::sync::MutexGuard;
 
 use eframe::egui;
-use egui::{Color32, Context, Rect};
+use egui::{Color32, Context, LayerId, Rect};
 
 use egui::Pos2;
 
@@ -118,6 +118,40 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                             ui.painter()
                                 .rect_filled(highlight_rect, 0.0, Color32::from_gray(80));
                         }
+                    }
+                }
+            }
+
+            // Highlight last motion range
+            if let Some(range) = &buf.range {
+                let row = buf.cursor.row; // single-line range assumed at cursor row
+                if row >= start && row < end {
+                    let y = text_rect.min.y + (row - start) as f32 * char_height;
+
+                    let start_col = range.anchor.min(range.head);
+                    let end_col = range.anchor.max(range.head);
+
+                    if start_col < end_col {
+                        let x_start = text_rect.min.x
+                            + (gutter_width as f32 + gutter_padding) * char_width
+                            + start_col as f32 * char_width;
+                        let x_end = text_rect.min.x
+                            + (gutter_width as f32 + gutter_padding) * char_width
+                            + end_col as f32 * char_width;
+
+                        let highlight_rect = Rect::from_min_max(
+                            Pos2 { x: x_start, y },
+                            Pos2 {
+                                x: x_end,
+                                y: y + char_height,
+                            },
+                        );
+
+                        ui.painter().rect_filled(
+                            highlight_rect,
+                            0.0,
+                            Color32::from_rgba_unmultiplied(100, 100, 100, 50),
+                        );
                     }
                 }
             }
