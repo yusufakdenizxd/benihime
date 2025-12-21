@@ -1,5 +1,3 @@
-use crate::buffer::Cursor;
-
 use super::movement::Direction;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
