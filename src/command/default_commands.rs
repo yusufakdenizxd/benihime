@@ -7,7 +7,7 @@ use std::{
 use anyhow::Ok;
 use ignore::Walk;
 
-use crate::movement::{movement_commands, selection::Range};
+use crate::movement::movement_commands;
 use crate::{
     buffer::{Buffer, Mode, Selection},
     editor::{EditorState, HandleKeyError},
