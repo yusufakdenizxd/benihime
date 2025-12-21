@@ -7,11 +7,11 @@ use std::{
 use anyhow::Ok;
 use ignore::Walk;
 
+use crate::movement::{movement_commands, selection::Range};
 use crate::{
     buffer::{Buffer, Mode, Selection},
     editor::{EditorState, HandleKeyError},
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
-    motion::is_word_char,
 };
 
 use super::{
@@ -110,130 +110,20 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("word-forward", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
-        let line = buf.lines.line(buf.cursor.row);
+        movement_commands::move_next_word_start(ctx);
 
-        if line.len_chars() == 0 {
-            return Ok(());
-        }
-
-        let mut i = buf.cursor.col.min(line.len_chars() - 1);
-        let chars: Vec<char> = line.chars().collect();
-
-        let current_is_word = is_word_char(chars[i]);
-        let current_is_space = chars[i].is_ascii_whitespace();
-
-        // Skip current word/punctuation group
-        if current_is_word {
-            while i < chars.len() && is_word_char(chars[i]) {
-                i += 1;
-            }
-        } else if !current_is_space {
-            while i < chars.len() && !is_word_char(chars[i]) && !chars[i].is_ascii_whitespace() {
-                i += 1;
-            }
-        }
-
-        // Skip whitespace
-        while i < chars.len() && chars[i].is_ascii_whitespace() {
-            i += 1;
-        }
-
-        buf.cursor.col = i.min(line.len_chars() - 1);
         Ok(())
     });
 
     registry.register("word-backward", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
-        let line = buf.lines.line(buf.cursor.row);
+        movement_commands::move_prev_word_start(ctx);
 
-        if line.len_chars() == 0 || buf.cursor.col == 0 {
-            return Ok(());
-        }
-
-        let chars: Vec<char> = line.chars().collect();
-        let mut i = buf.cursor.col;
-
-        i -= 1;
-
-        // Skip whitespace backwards
-        while i > 0 && chars[i].is_ascii_whitespace() {
-            i -= 1;
-        }
-
-        // Move to the start of this group
-        if is_word_char(chars[i]) {
-            while i > 0 && is_word_char(chars[i - 1]) {
-                i -= 1;
-            }
-        } else {
-            while i > 0 && !is_word_char(chars[i - 1]) && !chars[i - 1].is_ascii_whitespace() {
-                i -= 1;
-            }
-        }
-
-        buf.cursor.col = i;
         Ok(())
     });
 
     registry.register("word-end", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
-        let line = buf.lines.line(buf.cursor.row);
-        let line_len = buf.line_len(buf.cursor.row);
+        movement_commands::move_next_word_end(ctx);
 
-        if line_len == 0 {
-            return Ok(());
-        }
-
-        let chars: Vec<char> = line.chars().collect();
-        let mut i = buf.cursor.col.min(line_len - 1);
-
-        let current_is_word = is_word_char(chars[i]);
-        let current_is_space = chars[i].is_ascii_whitespace();
-
-        if current_is_word {
-            while i + 1 < line_len && is_word_char(chars[i + 1]) {
-                i += 1;
-            }
-            if i > buf.cursor.col {
-                buf.cursor.col = i;
-                return Ok(());
-            }
-        }
-
-        if !current_is_word && !current_is_space {
-            while i + 1 < line_len
-                && !is_word_char(chars[i + 1])
-                && !chars[i + 1].is_ascii_whitespace()
-            {
-                i += 1;
-            }
-            if i > buf.cursor.col {
-                buf.cursor.col = i;
-                return Ok(());
-            }
-        }
-
-        i += 1;
-
-        while i < line_len && chars[i].is_ascii_whitespace() {
-            i += 1;
-        }
-
-        if i >= line_len {
-            buf.cursor.col = line_len.saturating_sub(1);
-            return Ok(());
-        }
-
-        let is_word_group = is_word_char(chars[i]);
-        while i + 1 < line_len
-            && is_word_char(chars[i + 1]) == is_word_group
-            && !chars[i + 1].is_ascii_whitespace()
-        {
-            i += 1;
-        }
-
-        buf.cursor.col = i;
         Ok(())
     });
 
