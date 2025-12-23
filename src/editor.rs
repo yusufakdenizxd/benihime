@@ -174,6 +174,8 @@ impl Editor {
                 Mode::Insert => {
                     if chord.code == KeyCode::Backspace {
                         buf.delete_char_before_cursor();
+                    } else if chord.code == KeyCode::Enter {
+                        buf.insert_char('\n');
                     } else if let Some(c) = chord.as_char() {
                         buf.insert_char(c);
                     }
