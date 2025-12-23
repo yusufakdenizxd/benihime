@@ -19,10 +19,13 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
         let char_height = ui.fonts(|f| f.row_height(&font_id));
 
         let screen_height = (ui.available_height() / char_height) as usize;
+        let screen_width = (ui.available_width() / char_width) as usize;
 
         state.screen_height = screen_height;
+        state.screen_width = screen_width;
+
         let buf = state.focused_buf_mut();
-        buf.update_scroll(screen_height, 8);
+        buf.update_scroll(screen_height, 8, screen_width, 8);
 
         let gutter_width = ((buf.line_count() as f32).log10().ceil() as usize).max(2) + 2;
         let gutter_padding = 1.0;
@@ -58,7 +61,6 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
         for (row_idx, line) in buf.lines.lines_at(start).take(end - start).enumerate() {
             let row = start + row_idx;
             let y = text_rect.min.y + row_idx as f32 * char_height;
-            let line_number = row + 1;
 
             let line_number_color = if buf.cursor.row == row {
                 Color32::LIGHT_BLUE
@@ -67,11 +69,15 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
             };
 
             let line_number_text = if buf.cursor.row == row {
-                format!("{:>width$}", line_number, width = gutter_width)
+                format!("{:>width$}", row + 1, width = gutter_width)
             } else {
-                let relative_line_number = row.abs_diff(buf.cursor.row);
-                format!("{:>width$}", relative_line_number, width = gutter_width)
+                format!(
+                    "{:>width$}",
+                    row.abs_diff(buf.cursor.row),
+                    width = gutter_width
+                )
             };
+
             ui.painter().text(
                 Pos2 {
                     x: text_rect.min.x,
@@ -88,69 +94,73 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                     let (start_cursor, end_cursor) = selection.normalized(&buf.cursor);
 
                     if row >= start_cursor.row && row <= end_cursor.row {
-                        let start_col = if row == start_cursor.row {
+                        let mut start_col = if row == start_cursor.row {
                             start_cursor.col
                         } else {
                             0
                         };
-                        let end_col = if row == end_cursor.row {
+
+                        let mut end_col = if row == end_cursor.row {
                             end_cursor.col + 1
                         } else {
                             buf.line_len(row)
                         };
 
+                        start_col = start_col.saturating_sub(buf.scroll_left);
+                        end_col = end_col.saturating_sub(buf.scroll_left);
+
                         if start_col < end_col {
                             let x_start = text_rect.min.x
                                 + (gutter_width as f32 + gutter_padding) * char_width
                                 + start_col as f32 * char_width;
+
                             let x_end = text_rect.min.x
                                 + (gutter_width as f32 + gutter_padding) * char_width
                                 + end_col as f32 * char_width;
 
-                            let highlight_rect = Rect::from_min_max(
-                                Pos2 { x: x_start, y },
-                                Pos2 {
-                                    x: x_end,
-                                    y: y + char_height,
-                                },
+                            ui.painter().rect_filled(
+                                Rect::from_min_max(
+                                    Pos2 { x: x_start, y },
+                                    Pos2 {
+                                        x: x_end,
+                                        y: y + char_height,
+                                    },
+                                ),
+                                0.0,
+                                Color32::from_gray(80),
                             );
-
-                            ui.painter()
-                                .rect_filled(highlight_rect, 0.0, Color32::from_gray(80));
                         }
                     }
                 }
             }
 
-            // Highlight last motion range
             if let Some(range) = &buf.range {
-                let row = buf.cursor.row; // single-line range assumed at cursor row
-                if row >= start && row < end {
-                    let y = text_rect.min.y + (row - start) as f32 * char_height;
+                if row == buf.cursor.row {
+                    let mut start_col = range.anchor.min(range.head);
+                    let mut end_col = range.anchor.max(range.head);
 
-                    let start_col = range.anchor.min(range.head);
-                    let end_col = range.anchor.max(range.head);
+                    start_col = start_col.saturating_sub(buf.scroll_left);
+                    end_col = end_col.saturating_sub(buf.scroll_left);
 
                     if start_col < end_col {
                         let x_start = text_rect.min.x
                             + (gutter_width as f32 + gutter_padding) * char_width
                             + start_col as f32 * char_width;
+
                         let x_end = text_rect.min.x
                             + (gutter_width as f32 + gutter_padding) * char_width
                             + end_col as f32 * char_width;
 
-                        let highlight_rect = Rect::from_min_max(
-                            Pos2 { x: x_start, y },
-                            Pos2 {
-                                x: x_end,
-                                y: y + char_height,
-                            },
-                        );
-
                         ui.painter().rect_filled(
-                            highlight_rect,
+                            Rect::from_min_max(
+                                Pos2 { x: x_start, y },
+                                Pos2 {
+                                    x: x_end,
+                                    y: y + char_height,
+                                },
+                            ),
                             0.0,
-                            Color32::from_rgba_unmultiplied(100, 100, 100, 50),
+                            Color32::from_rgba_unmultiplied(100, 100, 100, 40),
                         );
                     }
                 }
@@ -160,10 +170,20 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                 if ch == '\n' || ch == '\r' {
                     continue;
                 }
+
+                if col < buf.scroll_left {
+                    continue;
+                }
+                if col >= buf.scroll_left + screen_width {
+                    break;
+                }
+
+                let visible_col = col - buf.scroll_left;
+
                 let pos = Pos2 {
                     x: text_rect.min.x
                         + (gutter_width as f32 + gutter_padding) * char_width
-                        + col as f32 * char_width,
+                        + visible_col as f32 * char_width,
                     y,
                 };
 
@@ -184,7 +204,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
         let cursor_pos = Pos2 {
             x: text_rect.min.x
                 + (gutter_width as f32 + gutter_padding) * char_width
-                + cursor_col as f32 * char_width,
+                + cursor_col.saturating_sub(buf.scroll_left) as f32 * char_width,
             y: text_rect.min.y + screen_row as f32 * char_height,
         };
 

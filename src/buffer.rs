@@ -77,6 +77,7 @@ pub struct Buffer {
     pub name: String,
     pub cursor: Cursor,
     pub scroll_offset: usize,
+    pub scroll_left: usize,
     pub mode: Mode,
     pub top: usize,
     pub left: usize,
@@ -97,6 +98,7 @@ impl Buffer {
             left: 0,
             file_path,
             scroll_offset: 0,
+            scroll_left: 0,
             selection: None,
             range: None,
         }
@@ -113,6 +115,7 @@ impl Buffer {
             left: 0,
             file_path,
             scroll_offset: 0,
+            scroll_left: 0,
             selection: None,
             range: None,
         }
@@ -213,15 +216,28 @@ impl Buffer {
         }
     }
 
-    pub fn update_scroll(&mut self, screen_height: usize, scrolloff: usize) {
+    pub fn update_scroll(
+        &mut self,
+        screen_height: usize,
+        vertical_scrolloff: usize,
+        screen_width: usize,
+        horizontal_scrolloff: usize,
+    ) {
         let row = self.cursor.row;
+        let col = self.cursor.col;
 
-        if row < self.scroll_offset + scrolloff {
-            self.scroll_offset = row.saturating_sub(scrolloff);
+        if row < self.scroll_offset + vertical_scrolloff {
+            self.scroll_offset = row.saturating_sub(vertical_scrolloff);
         }
 
-        if row >= self.scroll_offset + screen_height - scrolloff {
-            self.scroll_offset = row + scrolloff + 1 - screen_height;
+        if row >= self.scroll_offset + screen_height - vertical_scrolloff {
+            self.scroll_offset = row + vertical_scrolloff + 1 - screen_height;
+        }
+
+        if col < self.scroll_left + horizontal_scrolloff {
+            self.scroll_left = col.saturating_sub(horizontal_scrolloff);
+        } else if col >= self.scroll_left + screen_width - horizontal_scrolloff {
+            self.scroll_left = col.saturating_sub(screen_width - horizontal_scrolloff);
         }
     }
 
