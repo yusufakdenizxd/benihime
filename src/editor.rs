@@ -45,6 +45,7 @@ pub struct EditorState {
     pub buffer_manager: BufferManager,
     pub minibuffer_manager: MiniBufferManager,
     pub screen_height: usize,
+    pub screen_width: usize,
     pub command_buffer: String,
     pub message: Option<String>,
     pub error_message: Option<String>,
@@ -148,6 +149,7 @@ impl Editor {
             message: None,
             error_message: None,
             screen_height: 0,
+            screen_width: 0,
             minibuffer_manager: MiniBufferManager::new(),
             registry: Arc::new(command_registry),
         };
