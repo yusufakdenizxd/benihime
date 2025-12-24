@@ -62,6 +62,18 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
             let row = start + row_idx;
             let y = text_rect.min.y + row_idx as f32 * char_height;
 
+            if row == buf.cursor.row {
+                let x_start = text_rect.min.x + (gutter_width as f32 + gutter_padding) * char_width;
+
+                let width = screen_width as f32 * char_width;
+
+                ui.painter().rect_filled(
+                    Rect::from_min_size(Pos2 { x: x_start, y }, egui::vec2(width, char_height)),
+                    0.0,
+                    Color32::from_rgba_unmultiplied(60, 60, 60, 80),
+                );
+            }
+
             let line_number_color = if buf.cursor.row == row {
                 Color32::LIGHT_BLUE
             } else {
