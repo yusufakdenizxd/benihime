@@ -15,3 +15,9 @@ impl Color {
         Self { r, g, b, a }
     }
 }
+
+impl From<Color> for egui::Color32 {
+    fn from(c: Color) -> Self {
+        egui::Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a)
+    }
+}
