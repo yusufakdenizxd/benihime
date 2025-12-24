@@ -10,6 +10,7 @@ mod mini_buffer;
 mod movement;
 mod position;
 mod render;
+mod themes;
 
 fn main() {
     let _ = gui_render::run();
