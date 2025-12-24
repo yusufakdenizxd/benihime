@@ -8,16 +8,10 @@ pub enum CharCategory {
 }
 
 pub fn char_is_line_ending(ch: char) -> bool {
-    match ch {
-        '\u{000A}' => true,
-        '\u{000B}' => true,
-        '\u{000C}' => true,
-        '\u{000D}' => true,
-        '\u{0085}' => true,
-        '\u{2028}' => true,
-        '\u{2029}' => true,
-        _ => false,
-    }
+    matches!(
+        ch,
+        '\u{000A}' | '\u{000B}' | '\u{000C}' | '\u{000D}' | '\u{0085}' | '\u{2028}' | '\u{2029}'
+    )
 }
 
 pub fn char_is_word(ch: char) -> bool {

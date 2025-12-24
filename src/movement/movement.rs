@@ -106,7 +106,7 @@ fn range_to_target(chars: &mut Chars<'_>, target: WordMotionTarget, origin: Rang
     }
 
     let head_start = head;
-    while let Some(next_ch) = chars.next() {
+    for next_ch in chars.by_ref() {
         if prev_ch.is_none() || reached_target(target, prev_ch.unwrap(), next_ch) {
             if head == head_start {
                 anchor = head;
@@ -249,5 +249,5 @@ pub fn word_move(slice: RopeSlice, range: Range, count: usize, target: WordMotio
     for _ in 0..count {
         range = range_to_target(&mut slice.chars_at(range.head), target, range);
     }
-    return range;
+    range
 }

@@ -143,7 +143,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .next()
             .ok_or_else(|| HandleKeyError::ExecutionFailed(anyhow::anyhow!("Empty command")))?;
 
-        let args: Vec<CommandArg> = parts.map(|tok| CommandArg::parse_arg(tok)).collect();
+        let args: Vec<CommandArg> = parts.map(CommandArg::parse_arg).collect();
 
         ctx.state.exec(command_name, Some(args))?;
         Ok(())
@@ -206,7 +206,6 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let cwd = std::env::current_dir().unwrap();
 
         let files: Vec<PathBuf> = Walk::new(cwd)
-            .into_iter()
             .filter_map(Result::ok)
             .filter(|e| e.file_type().unwrap().is_file())
             .map(|x| x.path().to_owned())
@@ -339,7 +338,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "Find Command: ",
             commands,
             |state: &mut EditorState, command_name: &String| {
-                let _ = state.exec(&command_name, None);
+                let _ = state.exec(command_name, None);
                 Ok(None)
             },
         );
@@ -361,9 +360,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("enter-visual-mode", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         if buf.mode != Mode::Visual {
-            buf.selection = Some(Selection {
-                start: buf.cursor.clone(),
-            });
+            buf.selection = Some(Selection { start: buf.cursor });
             buf.mode = Mode::Visual;
         }
         Ok(())
@@ -438,13 +435,11 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             let del_end = line_start + end.min(line_len);
             buf.lines.remove(del_start..del_end);
             buf.cursor.col = start;
-        } else {
-            if line_len > 0 {
-                let col = buf.cursor.col.min(line_len.saturating_sub(1));
-                let del_start = line_start + col;
-                let del_end = del_start + 1;
-                buf.lines.remove(del_start..del_end);
-            }
+        } else if line_len > 0 {
+            let col = buf.cursor.col.min(line_len.saturating_sub(1));
+            let del_start = line_start + col;
+            let del_end = del_start + 1;
+            buf.lines.remove(del_start..del_end);
         }
 
         Ok(())

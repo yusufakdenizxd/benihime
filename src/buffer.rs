@@ -10,18 +10,6 @@ pub struct Cursor {
     pub col: usize,
 }
 
-impl Ord for Cursor {
-    fn cmp(&self, other: &Self) -> Ordering {
-        if self.col == other.col && self.col == other.col {
-            return Ordering::Equal;
-        }
-        if self.row > other.row || (self.row == other.row && self.col > other.col) {
-            return Ordering::Greater;
-        }
-        return Ordering::Less;
-    }
-}
-
 impl Cursor {
     fn new() -> Cursor {
         Cursor { row: 0, col: 0 }
@@ -40,9 +28,9 @@ pub struct Selection {
 impl Selection {
     pub fn normalized(&self, end: &Cursor) -> (Cursor, Cursor) {
         if self.start.row < end.row || self.start.row == end.row && self.start.col <= end.col {
-            (self.start.clone(), end.clone())
+            (self.start, *end)
         } else {
-            (end.clone(), self.start.clone())
+            (*end, self.start)
         }
     }
 }
@@ -79,8 +67,6 @@ pub struct Buffer {
     pub scroll_offset: usize,
     pub scroll_left: usize,
     pub mode: Mode,
-    pub top: usize,
-    pub left: usize,
     pub file_path: Option<PathBuf>,
     pub selection: Option<Selection>,
     pub range: Option<Range>,
@@ -94,8 +80,6 @@ impl Buffer {
             lines: Rope::new(),
             cursor: Cursor::new(),
             mode: Mode::Normal,
-            top: 0,
-            left: 0,
             file_path,
             scroll_offset: 0,
             scroll_left: 0,
@@ -111,8 +95,6 @@ impl Buffer {
             lines: Rope::from_str(text),
             cursor: Cursor::new(),
             mode: Mode::Normal,
-            top: 0,
-            left: 0,
             file_path,
             scroll_offset: 0,
             scroll_left: 0,
@@ -147,22 +129,6 @@ impl Buffer {
         }
     }
 
-    pub fn ensure_cursor_on_screen(&mut self, width: u16, height: u16) {
-        let h = height as usize - 1;
-        if self.cursor.row < self.top {
-            self.top = self.cursor.row;
-        }
-        if self.cursor.row >= self.top + h {
-            self.top = self.cursor.row + 1 - h;
-        }
-
-        if self.cursor.col < self.left {
-            self.left = self.cursor.col;
-        }
-        if self.cursor.col >= self.left + width as usize {
-            self.left = self.cursor.col + 1 - width as usize;
-        }
-    }
     pub fn insert_char(&mut self, c: char) {
         let mut s = String::new();
         s.push(c);
@@ -252,7 +218,7 @@ impl Buffer {
                 self.lines.remove(start_char..end_char);
             }
 
-            self.cursor = start.clone();
+            self.cursor = start;
             self.selection = None;
             Some(start)
         } else {

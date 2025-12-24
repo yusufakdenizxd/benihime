@@ -1,7 +1,7 @@
 use std::sync::MutexGuard;
 
 use eframe::egui;
-use egui::{Color32, Context, LayerId, Rect};
+use egui::{Color32, Context, Rect};
 
 use egui::Pos2;
 
