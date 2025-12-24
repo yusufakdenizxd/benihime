@@ -3,7 +3,7 @@ use crate::editor::Editor;
 use crate::keymap::key_chord::{KeyCode, KeyModifiers};
 use eframe::egui;
 
-use egui::Key;
+use egui::{Key, ViewportBuilder};
 
 use super::buffer::render_buffer;
 use super::bufferline::render_bufferline;
@@ -74,9 +74,13 @@ impl eframe::App for EditorApp {
 }
 
 pub fn run() -> eframe::Result<()> {
+    let options = eframe::NativeOptions {
+        viewport: ViewportBuilder::with_decorations(ViewportBuilder::default(), false),
+        ..Default::default()
+    };
     eframe::run_native(
         "Benihime Editor",
-        eframe::NativeOptions::default(),
+        options,
         Box::new(|_cc| Ok(Box::new(EditorApp::new()))),
     )
 }
