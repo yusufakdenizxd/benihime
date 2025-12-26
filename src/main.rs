@@ -6,6 +6,7 @@ mod chars;
 mod command;
 mod editor;
 mod keymap;
+mod macros;
 mod mini_buffer;
 mod movement;
 mod position;
