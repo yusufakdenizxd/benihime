@@ -51,23 +51,11 @@ impl eframe::App for EditorApp {
 
         let state = &mut self.editor.state.lock().unwrap();
 
-        render_bufferline(ctx, state.buffer_line());
+        render_bufferline(ctx, state);
 
-        render_statusline(
-            ctx,
-            state.status_line(),
-            state.focused_buf().mode,
-            &state.command_buffer,
-            &state.message,
-            &state.error_message,
-        );
+        render_statusline(ctx, state);
 
-        let buf = state.focused_buf_mut();
-        if buf.mode == Mode::Minibuffer {
-            let minibuffer = &state.minibuffer_manager.current.as_ref().unwrap();
-
-            render_minibuffer(ctx, minibuffer);
-        }
+        render_minibuffer(ctx, state);
 
         render_buffer(ctx, state);
     }
