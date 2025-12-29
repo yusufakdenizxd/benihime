@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use thiserror::Error;
 
@@ -16,7 +19,7 @@ use crate::{
         keymap::Keymap,
     },
     mini_buffer::MiniBufferManager,
-    theme::theme::Theme,
+    theme::{theme::Theme, theme_loader::ThemeLoader},
 };
 
 #[derive(Debug, Error)]
@@ -52,6 +55,7 @@ pub struct EditorState {
     pub error_message: Option<String>,
     pub registry: Arc<CommandRegistry>,
     pub theme: Theme,
+    pub theme_loader: Arc<ThemeLoader>,
 }
 
 impl EditorState {
@@ -141,6 +145,10 @@ impl Editor {
         let mut command_registry = CommandRegistry::new();
         command::default_commands::register_default_commands(&mut command_registry);
 
+        //TODO: get path from build or users dir
+        let theme_dir = PathBuf::from("~/dev/benihime/themes/");
+        let theme_loader = ThemeLoader::new(theme_dir);
+
         let mut keymap = Keymap::new();
         keymap::default_keymap::register_default_keymap(&mut keymap);
 
@@ -155,6 +163,7 @@ impl Editor {
             minibuffer_manager: MiniBufferManager::new(),
             registry: Arc::new(command_registry),
             theme: Theme::default(),
+            theme_loader: Arc::new(theme_loader),
         };
 
         Self {
