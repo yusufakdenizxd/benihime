@@ -16,7 +16,7 @@ use crate::{
         keymap::Keymap,
     },
     mini_buffer::MiniBufferManager,
-    themes::base_color::BaseColors,
+    theme::Theme,
 };
 
 #[derive(Debug, Error)]
@@ -51,7 +51,7 @@ pub struct EditorState {
     pub message: Option<String>,
     pub error_message: Option<String>,
     pub registry: Arc<CommandRegistry>,
-    pub theme: BaseColors,
+    pub theme: Theme,
 }
 
 impl EditorState {
@@ -154,7 +154,7 @@ impl Editor {
             screen_width: 0,
             minibuffer_manager: MiniBufferManager::new(),
             registry: Arc::new(command_registry),
-            theme: BaseColors::default(),
+            theme: Theme::default(),
         };
 
         Self {
