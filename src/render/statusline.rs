@@ -1,25 +1,18 @@
 use egui::{Align, Context, Layout};
 
-use crate::buffer::Mode;
+use crate::{buffer::Mode, editor::EditorState};
 
-pub fn render_statusline(
-    ctx: &Context,
-    statusline: String,
-    mode: Mode,
-    command_buffer: &String,
-    message: &Option<String>,
-    error_message: &Option<String>,
-) {
+pub fn render_statusline(ctx: &Context, state: &EditorState) {
     egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            ui.label(statusline);
+            ui.label(state.status_line());
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if mode == Mode::Command {
-                    ui.label(format!("{}:", command_buffer));
-                } else if error_message.is_some() {
-                    ui.colored_label(egui::Color32::RED, error_message.clone().unwrap());
-                } else if message.is_some() {
-                    ui.label(message.clone().unwrap());
+                if state.focused_buf().mode == Mode::Command {
+                    ui.label(format!("{}:", state.command_buffer));
+                } else if state.error_message.is_some() {
+                    ui.colored_label(egui::Color32::RED, state.error_message.clone().unwrap());
+                } else if state.message.is_some() {
+                    ui.label(state.message.clone().unwrap());
                 } else {
                     ui.label("");
                 }

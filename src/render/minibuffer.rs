@@ -1,8 +1,14 @@
 use egui::{Context, RichText};
 
-use crate::mini_buffer::MiniBufferTrait;
+use crate::{buffer::Mode, editor::EditorState, mini_buffer::MiniBufferTrait};
 
-pub fn render_minibuffer(ctx: &Context, minibuffer: &&Box<dyn MiniBufferTrait + Send>) {
+pub fn render_minibuffer(ctx: &Context, state: &EditorState) {
+    let buf = state.focused_buf();
+    if buf.mode != Mode::Minibuffer {
+        return;
+    }
+    let minibuffer = &state.minibuffer_manager.current.as_ref().unwrap();
+
     let max_count = 10;
     let offset = minibuffer.offset();
     let index = minibuffer.index();

@@ -1,6 +1,8 @@
 use egui::{Color32, Context};
 
-pub fn render_bufferline(ctx: &Context, buffer_line: Vec<(i32, String, bool)>) {
+use crate::editor::EditorState;
+
+pub fn render_bufferline(ctx: &Context, state: &EditorState) {
     egui::TopBottomPanel::top("bufferline")
         .frame(egui::Frame {
             inner_margin: egui::Margin::ZERO,
@@ -10,6 +12,7 @@ pub fn render_bufferline(ctx: &Context, buffer_line: Vec<(i32, String, bool)>) {
         .show_separator_line(false)
         .exact_height(30.0)
         .show(ctx, |ui| {
+            let buffer_line = state.buffer_line();
             let text_color = ui.visuals().text_color();
             let strong_text = ui.visuals().strong_text_color();
 
