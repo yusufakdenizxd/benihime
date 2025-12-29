@@ -116,6 +116,10 @@ impl EditorState {
         self.focused_buf_id = **new_focus_id;
     }
 
+    pub fn set_theme(&mut self, theme: Theme) {
+        self.theme = theme;
+    }
+
     pub fn exec(
         &mut self,
         name: &str,
@@ -146,7 +150,7 @@ impl Editor {
         command::default_commands::register_default_commands(&mut command_registry);
 
         //TODO: get path from build or users dir
-        let theme_dir = PathBuf::from("~/dev/benihime/themes/");
+        let theme_dir = PathBuf::from("/Users/akdeniz/dev/benihime/themes/");
         let theme_loader = ThemeLoader::new(theme_dir);
 
         let mut keymap = Keymap::new();
@@ -162,7 +166,7 @@ impl Editor {
             screen_width: 0,
             minibuffer_manager: MiniBufferManager::new(),
             registry: Arc::new(command_registry),
-            theme: Theme::default(),
+            theme: theme_loader.default(),
             theme_loader: Arc::new(theme_loader),
         };
 

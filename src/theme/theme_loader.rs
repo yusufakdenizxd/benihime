@@ -55,4 +55,8 @@ impl ThemeLoader {
 
         Err(anyhow!("File not found for: {:?}", path.display()))
     }
+
+    pub fn default(&self) -> Theme {
+        self.load("default").expect("Failed to get default theme")
+    }
 }
