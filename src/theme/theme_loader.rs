@@ -48,11 +48,11 @@ impl ThemeLoader {
 
     fn path(&self, name: &str) -> Result<PathBuf> {
         let filename = format!("{}.toml", name);
-        let path = self.dir.with_file_name(filename);
+        let path = self.dir.join(filename);
         if path.is_file() {
             return Ok(path);
         }
 
-        Err(anyhow!("File not found for: {}", name))
+        Err(anyhow!("File not found for: {:?}", path.display()))
     }
 }
