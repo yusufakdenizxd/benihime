@@ -223,7 +223,7 @@ impl ColorPalette {
 
 pub struct Theme {
     pub name: String,
-    colors: ColorPalette,
+    pub colors: ColorPalette,
     pub groups: HashMap<String, HighlightGroup>,
 }
 
@@ -260,7 +260,6 @@ fn build_theme_values(
         })
         .unwrap_or_default();
 
-    let _ = values.remove("inherits");
     styles.reserve(values.len());
 
     for (name, style_value) in values {
@@ -285,7 +284,7 @@ impl Theme {
             .find_map(|s| self.groups.get(s).copied())
     }
 
-    fn from_toml(value: Value) -> (Self, Vec<String>) {
+    pub fn from_toml(value: Value) -> (Self, Vec<String>) {
         if let Value::Table(table) = value {
             Theme::from_keys(table)
         } else {
