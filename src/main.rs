@@ -11,7 +11,7 @@ mod mini_buffer;
 mod movement;
 mod position;
 mod render;
-mod themes;
+mod theme;
 
 fn main() {
     let _ = gui_render::run();
