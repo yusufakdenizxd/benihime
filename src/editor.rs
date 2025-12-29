@@ -16,7 +16,7 @@ use crate::{
         keymap::Keymap,
     },
     mini_buffer::MiniBufferManager,
-    theme::Theme,
+    theme::theme::Theme,
 };
 
 #[derive(Debug, Error)]
