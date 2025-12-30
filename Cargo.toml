@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
   "benihime-core"
-]
+, "benihime-renderer"]
 
 default-members = [
   "benihime-core"

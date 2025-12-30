@@ -473,6 +473,7 @@ name = "benihime-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "benihime-renderer",
  "bitflags 2.10.0",
  "eframe",
  "egui",
@@ -483,6 +484,13 @@ dependencies = [
  "thiserror 2.0.17",
  "toml",
  "unicode-general-category",
+]
+
+[[package]]
+name = "benihime-renderer"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.10.0",
 ]
 
 [[package]]
