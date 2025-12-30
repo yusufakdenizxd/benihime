@@ -1,4 +1,7 @@
-use std::str::FromStr;
+use std::{
+    cmp::{max, min},
+    str::FromStr,
+};
 
 use bitflags::bitflags;
 
@@ -118,5 +121,114 @@ impl HighlightGroup {
         self.modifier.insert(other.modifier);
 
         self
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Rect {
+    pub x: u16,
+    pub y: u16,
+    pub width: u16,
+    pub height: u16,
+}
+
+impl Rect {
+    pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
+        Rect {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
+    pub fn area(self) -> usize {
+        (self.width * self.height) as usize
+    }
+
+    pub fn left(self) -> u16 {
+        self.x
+    }
+
+    pub fn right(self) -> u16 {
+        self.x + self.width
+    }
+
+    pub fn top(self) -> u16 {
+        self.y
+    }
+
+    pub fn bottom(self) -> u16 {
+        self.y + self.height
+    }
+
+    pub fn intersects(self, other: Rect) -> bool {
+        self.x < other.x + other.width
+            && self.x + self.width > other.x
+            && self.y < other.y + other.height
+            && self.y + self.height > other.y
+    }
+
+    pub fn intersection(self, other: Rect) -> Rect {
+        let x1 = max(self.x, other.x);
+        let y1 = max(self.y, other.y);
+        let x2 = min(self.right(), other.right());
+        let y2 = min(self.bottom(), other.bottom());
+
+        Rect {
+            x: x1,
+            y: y1,
+            width: x2 - x1,
+            height: y2 - y1,
+        }
+    }
+
+    pub fn union(self, other: Rect) -> Rect {
+        let x1 = min(self.x, other.x);
+        let y1 = min(self.y, other.y);
+        let x2 = max(self.right(), other.right());
+        let y2 = max(self.bottom(), other.bottom());
+
+        Rect {
+            x: x1,
+            y: y1,
+            width: x2 - x1,
+            height: y2 - y1,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rect_size_preservation() {
+        for width in 0..256u16 {
+            for height in 0..256u16 {
+                let rect = Rect::new(0, 0, width, height);
+                rect.area();
+                assert_eq!(rect.width, width);
+                assert_eq!(rect.height, height);
+            }
+        }
+
+        let rect = Rect::new(0, 0, 300, 100);
+        assert_eq!(rect.width, 300);
+        assert_eq!(rect.height, 100);
+    }
+
+    #[test]
+    fn test_rect_union() {
+        let rect1 = Rect::new(0, 0, 5, 5);
+        let rect2 = Rect::new(5, 0, 2, 2);
+        assert_eq!(rect1.union(rect2), Rect::new(0, 0, 7, 5));
+    }
+
+    #[test]
+    fn test_rect_intersect() {
+        let rect1 = Rect::new(0, 0, 5, 5);
+        let rect2 = Rect::new(5, 0, 2, 2);
+        assert_eq!(rect1.intersection(rect2), Rect::new(5, 0, 0, 2));
     }
 }
