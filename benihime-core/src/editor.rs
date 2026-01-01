@@ -3,7 +3,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use egui::ViewportBuilder;
+use benihime_renderer::{
+    composer::Composer,
+    frame_render::{CursorRender, Frame, LineRender, Viewport},
+    graphics::{CursorKind, FontId, HighlightGroup},
+};
 use thiserror::Error;
 
 use crate::{
@@ -128,15 +132,50 @@ impl Editor {
         }
     }
 
-    pub fn run(&mut self) -> eframe::Result<()> {
-        let options = eframe::NativeOptions {
-            viewport: ViewportBuilder::with_decorations(ViewportBuilder::default(), false),
-            ..Default::default()
+    fn build_frame(&self) -> Frame {
+        let state = self.state.lock().unwrap();
+        let buf = state.focused_buf();
+
+        let viewport = Viewport {
+            width: state.screen_width,
+            height: state.screen_height,
+            scroll_row: buf.scroll_offset,
+            scroll_col: buf.scroll_left,
         };
-        eframe::run_native(
-            "Benihime Editor",
-            options,
-            Box::new(|_cc| Ok(Box::new(self))),
-        )
+
+        let lines = buf
+            .lines
+            .lines()
+            .map(|line| LineRender {
+                text: line.to_string(),
+                highlight: None,
+            })
+            .collect();
+
+        let cursor = CursorRender {
+            row: buf.cursor.row,
+            col: buf.cursor.col,
+            kind: CursorKind::Block,
+        };
+
+        Frame {
+            lines,
+            cursor,
+            viewport,
+        }
+    }
+
+    pub fn run(&mut self) {
+        let composer = Composer::new(FontId(1), 8, 16);
+
+        loop {
+            let frame = self.build_frame();
+
+            let display_list = composer.compose(&frame);
+
+            println!("{:#?}", display_list);
+
+            std::thread::sleep(std::time::Duration::from_millis(16));
+        }
     }
 }

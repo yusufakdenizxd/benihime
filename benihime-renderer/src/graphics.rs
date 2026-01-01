@@ -124,6 +124,15 @@ impl HighlightGroup {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct FontId(pub u32);
+
+#[derive(Copy, Clone, Debug)]
+pub struct Point {
+    pub x: u16,
+    pub y: u16,
+}
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rect {
     pub x: u16,
