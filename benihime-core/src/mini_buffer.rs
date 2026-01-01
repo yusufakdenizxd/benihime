@@ -1,7 +1,7 @@
 use anyhow::{Ok, Result};
 use std::path::PathBuf;
 
-use crate::{buffer::Buffer, editor::EditorState};
+use crate::{buffer::Buffer, editor_state::EditorState};
 
 pub struct MiniBufferState<T> {
     pub input: String,

@@ -8,7 +8,7 @@ use egui::Pos2;
 use egui::FontId;
 
 use crate::buffer::Mode;
-use crate::editor::EditorState;
+use crate::editor_state::EditorState;
 
 pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
     egui::CentralPanel::default().show(ctx, |ui| {

@@ -1,27 +1,15 @@
-use crate::buffer::Mode;
 use crate::editor::Editor;
 use crate::keymap::key_chord::{KeyCode, KeyModifiers};
 use eframe::egui;
 
-use egui::{Key, ViewportBuilder};
+use egui::Key;
 
 use super::buffer::render_buffer;
 use super::bufferline::render_bufferline;
 use super::minibuffer::render_minibuffer;
 use super::statusline::render_statusline;
 
-pub struct EditorApp {
-    pub editor: Editor,
-}
-
-impl EditorApp {
-    pub fn new() -> Self {
-        let editor = Editor::new();
-        Self { editor }
-    }
-}
-
-impl eframe::App for EditorApp {
+impl eframe::App for &mut Editor {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.input(|i| {
             for event in &i.events {
@@ -43,13 +31,13 @@ impl eframe::App for EditorApp {
                     if *pressed {
                         let key_code = KeyCode::from_egui(*key);
                         let key_modifiers = KeyModifiers::from_egui(*modifiers);
-                        self.editor.handle_key(key_code, key_modifiers);
+                        self.handle_key(key_code, key_modifiers);
                     }
                 }
             }
         });
 
-        let state = &mut self.editor.state.lock().unwrap();
+        let state = &mut self.state.lock().unwrap();
 
         render_bufferline(ctx, state);
 
@@ -59,16 +47,4 @@ impl eframe::App for EditorApp {
 
         render_buffer(ctx, state);
     }
-}
-
-pub fn run() -> eframe::Result<()> {
-    let options = eframe::NativeOptions {
-        viewport: ViewportBuilder::with_decorations(ViewportBuilder::default(), false),
-        ..Default::default()
-    };
-    eframe::run_native(
-        "Benihime Editor",
-        options,
-        Box::new(|_cc| Ok(Box::new(EditorApp::new()))),
-    )
 }

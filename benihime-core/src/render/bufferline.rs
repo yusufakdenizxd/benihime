@@ -1,6 +1,6 @@
 use egui::{Color32, Context};
 
-use crate::editor::EditorState;
+use crate::editor_state::EditorState;
 
 pub fn render_bufferline(ctx: &Context, state: &EditorState) {
     egui::TopBottomPanel::top("bufferline")

@@ -1,10 +1,11 @@
-use render::gui_render;
+use editor::Editor;
 
 mod buffer;
 mod buffer_manager;
 mod chars;
 mod command;
 mod editor;
+mod editor_state;
 mod keymap;
 mod macros;
 mod mini_buffer;
@@ -14,5 +15,6 @@ mod render;
 mod theme;
 
 fn main() {
-    let _ = gui_render::run();
+    let mut editor = Editor::new();
+    let _ = editor.run();
 }

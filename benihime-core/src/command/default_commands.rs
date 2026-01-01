@@ -7,12 +7,12 @@ use std::{
 use anyhow::Ok;
 use ignore::Walk;
 
-use crate::movement::movement_commands;
 use crate::{
     buffer::{Buffer, Mode, Selection},
-    editor::{EditorState, HandleKeyError},
+    editor::HandleKeyError,
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
 };
+use crate::{editor_state::EditorState, movement::movement_commands};
 
 use super::{
     command::{CommandArg, CommandContext},

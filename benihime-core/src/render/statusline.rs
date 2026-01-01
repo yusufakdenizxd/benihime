@@ -1,6 +1,6 @@
 use egui::{Align, Context, Layout};
 
-use crate::{buffer::Mode, editor::EditorState};
+use crate::{buffer::Mode, editor_state::EditorState};
 
 pub fn render_statusline(ctx: &Context, state: &EditorState) {
     egui::TopBottomPanel::bottom("statusline").show(ctx, |ui| {

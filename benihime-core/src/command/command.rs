@@ -1,7 +1,7 @@
 use anyhow::{Result, anyhow};
 use std::path::PathBuf;
 
-use crate::{buffer::Mode, editor::EditorState};
+use crate::{buffer::Mode, editor_state::EditorState};
 
 #[derive(Debug, Clone)]
 pub enum CommandArg {
