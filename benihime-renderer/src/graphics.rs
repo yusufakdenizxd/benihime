@@ -19,6 +19,50 @@ impl Default for CursorKind {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Margin {
+    pub horizontal: u16,
+    pub vertical: u16,
+}
+
+impl Margin {
+    pub fn none() -> Self {
+        Self {
+            horizontal: 0,
+            vertical: 0,
+        }
+    }
+
+    pub const fn all(value: u16) -> Self {
+        Self {
+            horizontal: value,
+            vertical: value,
+        }
+    }
+
+    pub const fn horizontal(value: u16) -> Self {
+        Self {
+            horizontal: value,
+            vertical: 0,
+        }
+    }
+
+    pub const fn vertical(value: u16) -> Self {
+        Self {
+            horizontal: 0,
+            vertical: value,
+        }
+    }
+
+    pub const fn width(&self) -> u16 {
+        self.horizontal * 2
+    }
+
+    pub const fn height(&self) -> u16 {
+        self.vertical * 2
+    }
+}
+
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Color {
     pub r: u8,
