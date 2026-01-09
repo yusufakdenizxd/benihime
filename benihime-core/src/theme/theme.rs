@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use benihime_renderer::graphics::{Color, HighlightGroup, Modifier};
+use benihime_renderer::graphics::{Color, Style, Modifier};
 use toml::{Value, map::Map};
 
 use crate::hashmap;
@@ -86,7 +86,7 @@ impl ColorPalette {
             .ok_or(format!("Invalid modifier: {}", value))
     }
 
-    pub fn parse_style(&self, style: &mut HighlightGroup, value: Value) -> Result<(), String> {
+    pub fn parse_style(&self, style: &mut Style, value: Value) -> Result<(), String> {
         if let Value::Table(entries) = value {
             for (name, value) in entries {
                 match name.as_str() {
@@ -112,7 +112,7 @@ impl ColorPalette {
 pub struct Theme {
     pub name: String,
     pub colors: ColorPalette,
-    pub groups: HashMap<String, HighlightGroup>,
+    pub styles: HashMap<String, Style>,
 }
 
 impl From<Value> for Theme {
@@ -127,14 +127,14 @@ impl Default for Theme {
         Theme {
             name: "Default".into(),
             colors: ColorPalette::default(),
-            groups: HashMap::new(),
+            styles: HashMap::new(),
         }
     }
 }
 
 fn build_theme_values(
     mut values: Map<String, Value>,
-) -> (HashMap<String, HighlightGroup>, ColorPalette, Vec<String>) {
+) -> (HashMap<String, Style>, ColorPalette, Vec<String>) {
     let mut styles = HashMap::new();
     let mut warnings = Vec::new();
 
@@ -151,7 +151,7 @@ fn build_theme_values(
     styles.reserve(values.len());
 
     for (name, style_value) in values {
-        let mut style = HighlightGroup::default();
+        let mut style = Style::default();
         if let Err(err) = palette.parse_style(&mut style, style_value) {
             warnings.push(format!("Failed to parse style for key {name:?}. {err}"));
         }
@@ -163,13 +163,13 @@ fn build_theme_values(
 }
 
 impl Theme {
-    pub fn get(&self, scope: &str) -> HighlightGroup {
+    pub fn get(&self, scope: &str) -> Style {
         self.try_get(scope).unwrap_or_default()
     }
 
-    pub fn try_get(&self, scope: &str) -> Option<HighlightGroup> {
+    pub fn try_get(&self, scope: &str) -> Option<Style> {
         std::iter::successors(Some(scope), |s| Some(s.rsplit_once('.')?.0))
-            .find_map(|s| self.groups.get(s).copied())
+            .find_map(|s| self.styles.get(s).copied())
     }
 
     pub fn from_toml(value: Value) -> (Self, Vec<String>) {
@@ -181,11 +181,11 @@ impl Theme {
     }
 
     fn from_keys(toml_keys: Map<String, Value>) -> (Self, Vec<String>) {
-        let (groups, palette, load_errors) = build_theme_values(toml_keys);
+        let (styles, palette, load_errors) = build_theme_values(toml_keys);
 
         let theme = Self {
             colors: palette,
-            groups,
+            styles,
             ..Default::default()
         };
         (theme, load_errors)

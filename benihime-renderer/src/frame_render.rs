@@ -2,7 +2,7 @@ use crate::graphics::{Color, CursorKind};
 
 pub struct LineRender {
     pub text: String,
-    pub highlight: Option<Color>,
+    pub style: Option<Color>,
 }
 
 pub struct CursorRender {

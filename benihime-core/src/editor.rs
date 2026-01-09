@@ -141,7 +141,7 @@ impl Editor {
             .lines()
             .map(|line| LineRender {
                 text: line.to_string(),
-                highlight: None,
+                style: None,
             })
             .collect();
 

@@ -25,7 +25,7 @@ impl Composer {
 
         for (row_idx, line) in frame.lines.iter().enumerate() {
             let y = (row_idx as u16) * self.line_height;
-            if let Some(bg) = line.highlight {
+            if let Some(bg) = line.style {
                 list.commands.push(DrawCommand::Rect {
                     rect: Rect::new(0, y, 1000, self.line_height),
                     color: bg,

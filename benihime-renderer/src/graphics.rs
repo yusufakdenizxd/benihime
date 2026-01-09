@@ -117,48 +117,56 @@ impl FromStr for Modifier {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct HighlightGroup {
+pub struct Style {
     pub fg: Option<Color>,
     pub bg: Option<Color>,
+
+    pub font_size: Option<usize>,
 
     pub modifier: Modifier,
 }
 
-impl Default for HighlightGroup {
+impl Default for Style {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl HighlightGroup {
+impl Style {
     pub const fn new() -> Self {
-        HighlightGroup {
+        Style {
             fg: None,
             bg: None,
+            font_size: None,
             modifier: Modifier::empty(),
         }
     }
-    pub const fn fg(mut self, color: Color) -> HighlightGroup {
+    pub const fn fg(mut self, color: Color) -> Style {
         self.fg = Some(color);
         self
     }
 
-    pub const fn bg(mut self, color: Color) -> HighlightGroup {
+    pub const fn bg(mut self, color: Color) -> Style {
         self.bg = Some(color);
         self
     }
 
-    pub fn add_modifier(mut self, modifier: Modifier) -> HighlightGroup {
+    pub const fn font_size(mut self, font_size: usize) -> Style {
+        self.font_size = Some(font_size);
+        self
+    }
+
+    pub fn add_modifier(mut self, modifier: Modifier) -> Style {
         self.modifier.insert(modifier);
         self
     }
 
-    pub fn remove_modifier(mut self, modifier: Modifier) -> HighlightGroup {
+    pub fn remove_modifier(mut self, modifier: Modifier) -> Style {
         self.modifier.remove(modifier);
         self
     }
 
-    pub fn patch(mut self, other: HighlightGroup) -> HighlightGroup {
+    pub fn patch(mut self, other: Style) -> Style {
         self.fg = other.fg.or(self.fg);
         self.bg = other.bg.or(self.bg);
 
