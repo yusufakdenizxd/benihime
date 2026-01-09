@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{buffer::Mode, command::command::CommandArg};
+use benihime_renderer::key::KeyChord;
 
-use super::key_chord::KeyChord;
+use crate::{buffer::Mode, command::command::CommandArg};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeySequence {

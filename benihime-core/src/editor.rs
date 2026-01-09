@@ -6,7 +6,8 @@ use std::{
 use benihime_renderer::{
     composer::Composer,
     frame_render::{CursorRender, Frame, LineRender, Viewport},
-    graphics::{CursorKind, FontId, HighlightGroup},
+    graphics::{CursorKind, FontId},
+    key::{KeyChord, KeyCode},
 };
 use thiserror::Error;
 
@@ -15,11 +16,7 @@ use crate::{
     buffer_manager::BufferManager,
     command::{self, command_registry::CommandRegistry},
     editor_state::EditorState,
-    keymap::{
-        self,
-        key_chord::{KeyChord, KeyCode, KeyModifiers},
-        keymap::Keymap,
-    },
+    keymap::{self, keymap::Keymap},
     mini_buffer::MiniBufferManager,
     theme::theme_loader::ThemeLoader,
 };
@@ -87,14 +84,10 @@ impl Editor {
         }
     }
 
-    pub fn handle_key(&mut self, key: KeyCode, modifiers: KeyModifiers) {
+    pub fn handle_key(&mut self, chord: KeyChord) {
         let mut state = self.state.lock().unwrap();
         let buf = state.focused_buf_mut();
 
-        let chord = KeyChord {
-            code: key,
-            modifiers,
-        };
         match self.keymap.push_key(buf.mode, &chord) {
             Some((command_name, args)) => {
                 let _ = state.exec(&command_name, args);
