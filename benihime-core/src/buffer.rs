@@ -188,13 +188,6 @@ impl Buffer {
         let insert_col = col.min(line_len);
         let char_idx = self.lines.line_to_char(row) + insert_col;
 
-        if self.undo_recording {
-            self.undo_tree.record(Edit::Insert {
-                at: char_idx,
-                text: s.to_string(),
-            });
-        }
-
         self.insert(char_idx, s);
 
         let mut newlines = 0;
