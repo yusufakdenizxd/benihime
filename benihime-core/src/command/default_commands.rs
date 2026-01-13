@@ -53,6 +53,15 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         }
 
         let buf = ctx.state.focused_buf_mut();
+
+        if buf.mode == Mode::Insert && mode != Mode::Insert {
+            buf.undo_tree.end_group();
+        }
+
+        if buf.mode != Mode::Insert && mode == Mode::Insert {
+            buf.undo_tree.begin_group();
+        }
+
         buf.mode = mode;
 
         Ok(())
