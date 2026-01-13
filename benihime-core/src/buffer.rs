@@ -4,6 +4,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use crate::{
     movement::selection::Range,
+    undotree::{Edit, UndoTree},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
@@ -72,6 +73,7 @@ pub struct Buffer {
     pub file_path: Option<PathBuf>,
     pub selection: Option<Selection>,
     pub range: Option<Range>,
+    undo_tree: UndoTree,
 }
 
 impl Buffer {
@@ -87,6 +89,7 @@ impl Buffer {
             scroll_left: 0,
             selection: None,
             range: None,
+            undo_tree: UndoTree::new(),
         }
     }
 
@@ -102,6 +105,7 @@ impl Buffer {
             scroll_left: 0,
             selection: None,
             range: None,
+            undo_tree: UndoTree::new(),
         }
     }
 

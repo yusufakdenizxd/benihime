@@ -13,6 +13,7 @@ mod movement;
 mod position;
 mod render;
 mod theme;
+mod undotree;
 
 fn main() {
     let mut editor = Editor::new();
