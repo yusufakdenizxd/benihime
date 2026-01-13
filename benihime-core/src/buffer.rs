@@ -325,4 +325,41 @@ impl Buffer {
         self.lines.remove(range);
     }
 
+    pub fn undo(&mut self) {
+        if let Some(edit) = self.undo_tree.undo() {
+            self.undo_recording = false;
+            self.apply_inverse_edit(&edit);
+            self.undo_recording = true;
+        }
+    }
+
+    pub fn redo(&mut self) {
+        if let Some(edit) = self.undo_tree.redo() {
+            self.undo_recording = false;
+            self.apply_edit(&edit);
+            self.undo_recording = true;
+        }
+    }
+
+    fn apply_edit(&mut self, edit: &Edit) {
+        match edit {
+            Edit::Insert { at, text } => {
+                self.lines.insert(*at, text);
+            }
+            Edit::Delete { at, text } => {
+                self.lines.remove(*at..(*at + text.len()));
+            }
+        }
+    }
+
+    fn apply_inverse_edit(&mut self, edit: &Edit) {
+        match edit {
+            Edit::Insert { at, text } => {
+                self.lines.remove(*at..(*at + text.len()));
+            }
+            Edit::Delete { at, text } => {
+                self.lines.insert(*at, text);
+            }
+        }
+    }
 }
