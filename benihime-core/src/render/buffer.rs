@@ -58,7 +58,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
         let start = buf.scroll_offset;
         let end = (start + screen_height).min(buf.line_count());
 
-        for (row_idx, line) in buf.lines.lines_at(start).take(end - start).enumerate() {
+        for (row_idx, line) in buf.lines_at(start).take(end - start).enumerate() {
             let row = start + row_idx;
             let y = text_rect.min.y + row_idx as f32 * char_height;
 

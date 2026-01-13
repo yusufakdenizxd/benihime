@@ -13,8 +13,8 @@ where
 
     let buf = state.focused_buf_mut();
 
-    if buf.cursor.row < buf.lines.len_lines() {
-        let rope_line: RopeSlice = buf.lines.line(buf.cursor.row);
+    if buf.cursor.row < buf.line_count() {
+        let rope_line: RopeSlice = buf.line(buf.cursor.row);
 
         let selection = Range {
             anchor: buf.cursor.col,

@@ -72,7 +72,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("first-non-blank", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let line = buf.lines.line(buf.cursor.row);
+        let line = buf.line(buf.cursor.row);
         let mut i = 0;
         for (idx, char) in line.chars().enumerate() {
             if !char.is_whitespace() {
@@ -88,8 +88,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("open-above", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let char_idx = buf.lines.line_to_char(buf.cursor.row);
-        buf.lines.insert(char_idx, "\n");
+        let char_idx = buf.get_cursor_to_char();
+        buf.insert_idx(char_idx, "\n");
         buf.cursor.col = 0;
         ctx.state
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
@@ -98,8 +98,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("open-below", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        let char_idx = buf.lines.line_to_char(buf.cursor.row + 1);
-        buf.lines.insert(char_idx, "\n");
+        let char_idx = buf.get_line_to_char(buf.cursor.row + 1);
+        buf.insert_idx(char_idx, "\n");
         buf.cursor.row += 1;
         buf.cursor.col = 0;
 
@@ -424,8 +424,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register_operator("delete-range", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let row = buf.cursor.row;
-        let line_start = buf.lines.line_to_char(row);
-        let line_end = buf.lines.line_to_char(row + 1);
+        let line_start = buf.get_line_to_char(row);
+        let line_end = buf.get_line_to_char(row + 1);
         let line_len = line_end - line_start;
 
         if let Some(range) = buf.range.take() {
@@ -433,13 +433,13 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             let end = range.anchor.max(range.head);
             let del_start = line_start + start.min(line_len);
             let del_end = line_start + end.min(line_len);
-            buf.lines.remove(del_start..del_end);
+            buf.remove_line(del_start, del_end);
             buf.cursor.col = start;
         } else if line_len > 0 {
             let col = buf.cursor.col.min(line_len.saturating_sub(1));
             let del_start = line_start + col;
             let del_end = del_start + 1;
-            buf.lines.remove(del_start..del_end);
+            buf.remove_line(del_start, del_end);
         }
 
         Ok(())
@@ -448,8 +448,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register_operator("change-range", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let row = buf.cursor.row;
-        let line_start = buf.lines.line_to_char(row);
-        let line_end = buf.lines.line_to_char(row + 1);
+        let line_start = buf.get_line_to_char(row);
+        let line_end = buf.get_line_to_char(row + 1);
         let line_len = line_end - line_start;
 
         if let Some(range) = buf.range.take() {
@@ -457,7 +457,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             let end = range.anchor.max(range.head);
             let del_start = line_start + start.min(line_len);
             let del_end = line_start + end.min(line_len);
-            buf.lines.remove(del_start..del_end);
+            buf.remove_line(del_start, del_end);
             buf.cursor.col = start;
             buf.mode = Mode::Insert;
         }
