@@ -478,4 +478,19 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         ctx.state.focused_buf_mut().redo();
         Ok(())
     });
+
+    registry.register("undo-tree-show", |ctx| {
+        let tree_text = {
+            let buf = ctx.state.focused_buf();
+            buf.undo_tree.render()
+        };
+
+        let id = ctx
+            .state
+            .buffer_manager
+            .create_buffer_from("*undo-tree*", &tree_text, None);
+
+        ctx.state.focused_buf_id = id;
+        Ok(())
+    });
 }

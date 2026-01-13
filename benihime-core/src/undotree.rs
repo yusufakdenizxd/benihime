@@ -15,6 +15,17 @@ pub enum UndoEntry {
     Group(Vec<Edit>),
 }
 
+impl UndoEntry {
+    fn label(&self) -> String {
+        match self {
+            UndoEntry::Single(edit) => format!("{edit:?}"),
+            UndoEntry::Group(edits) => {
+                format!("Group({} edits)", edits.len())
+            }
+        }
+    }
+}
+
 pub type NodeId = Rc<RefCell<UndoNode>>;
 
 #[derive(Debug)]
@@ -117,5 +128,52 @@ impl UndoTree {
         let entry = child.borrow().entry.clone();
         self.current = child;
         entry
+    }
+    pub fn render(&self) -> String {
+        let mut out = String::new();
+        out.push_str("Undo Tree\n");
+        out.push_str("=========\n");
+
+        self.render_node(&self.root, &mut out, "", true);
+
+        out
+    }
+
+    fn render_node(&self, node: &NodeId, out: &mut String, prefix: &str, is_last: bool) {
+        let node_ref = node.borrow();
+
+        let marker = if Rc::ptr_eq(node, &self.current) {
+            "●"
+        } else {
+            "○"
+        };
+
+        let branch = if prefix.is_empty() {
+            ""
+        } else if is_last {
+            "└─ "
+        } else {
+            "├─ "
+        };
+
+        let label = match &node_ref.entry {
+            Some(entry) => entry.label(),
+            None => "root".to_string(),
+        };
+
+        out.push_str(&format!("{prefix}{branch}{marker} {label}\n"));
+
+        let new_prefix = if prefix.is_empty() {
+            "   ".to_string()
+        } else if is_last {
+            format!("{prefix}   ")
+        } else {
+            format!("{prefix}│  ")
+        };
+
+        let len = node_ref.children.len();
+        for (i, child) in node_ref.children.iter().enumerate() {
+            self.render_node(child, out, &new_prefix, i + 1 == len);
+        }
     }
 }
