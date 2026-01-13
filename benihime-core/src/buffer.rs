@@ -1,8 +1,10 @@
 use anyhow::anyhow;
-use ropey::Rope;
-use std::{cmp::Ordering, path::PathBuf, str::FromStr};
+use ropey::{Rope, RopeSlice, iter::Lines};
+use std::{path::PathBuf, str::FromStr};
 
-use crate::movement::selection::Range;
+use crate::{
+    movement::selection::Range,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
 pub struct Cursor {
@@ -61,7 +63,7 @@ impl FromStr for Mode {
 #[derive(Debug, Clone)]
 pub struct Buffer {
     pub id: i32,
-    pub lines: Rope,
+    lines: Rope,
     pub name: String,
     pub cursor: Cursor,
     pub scroll_offset: usize,
@@ -103,8 +105,40 @@ impl Buffer {
         }
     }
 
+    pub fn to_string(&self) -> String {
+        self.lines.to_string()
+    }
+
     pub fn line_count(&self) -> usize {
         self.lines.len_lines()
+    }
+
+    pub fn line(&self, row: usize) -> RopeSlice<'_> {
+        self.lines.line(row)
+    }
+
+    pub fn lines_at(&self, index: usize) -> Lines<'_> {
+        self.lines.lines_at(index)
+    }
+
+    pub fn get_line_to_char(&self, row: usize) -> usize {
+        self.lines.line_to_char(row)
+    }
+
+    pub fn get_slice(&self, range: std::ops::Range<usize>) -> RopeSlice<'_> {
+        self.lines.slice(range)
+    }
+
+    pub fn insert_idx(&mut self, idx: usize, text: &str) {
+        self.lines.insert(idx, text);
+    }
+
+    pub fn remove_line(&mut self, start: usize, end: usize) {
+        self.lines.remove(start..end);
+    }
+
+    pub fn get_cursor_to_char(&self) -> usize {
+        self.lines.line_to_char(self.cursor.row)
     }
 
     pub fn line_len(&self, row: usize) -> usize {
