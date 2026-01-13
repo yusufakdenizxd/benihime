@@ -4,7 +4,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use crate::{
     movement::selection::Range,
-    undotree::{Edit, UndoTree},
+    undotree::{Edit, UndoEntry, UndoTree},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
@@ -73,7 +73,7 @@ pub struct Buffer {
     pub file_path: Option<PathBuf>,
     pub selection: Option<Selection>,
     pub range: Option<Range>,
-    undo_tree: UndoTree,
+    pub undo_tree: UndoTree,
     undo_recording: bool,
 }
 
@@ -319,17 +319,39 @@ impl Buffer {
     }
 
     pub fn undo(&mut self) {
-        if let Some(edit) = self.undo_tree.undo() {
+        if let Some(entry) = self.undo_tree.undo() {
             self.undo_recording = false;
-            self.apply_inverse_edit(&edit);
+
+            match entry {
+                UndoEntry::Single(edit) => {
+                    self.apply_inverse_edit(&edit);
+                }
+                UndoEntry::Group(edits) => {
+                    for edit in edits.iter().rev() {
+                        self.apply_inverse_edit(edit);
+                    }
+                }
+            }
+
             self.undo_recording = true;
         }
     }
 
     pub fn redo(&mut self) {
-        if let Some(edit) = self.undo_tree.redo() {
+        if let Some(entry) = self.undo_tree.redo() {
             self.undo_recording = false;
-            self.apply_edit(&edit);
+
+            match entry {
+                UndoEntry::Single(edit) => {
+                    self.apply_edit(&edit);
+                }
+                UndoEntry::Group(edits) => {
+                    for edit in edits {
+                        self.apply_edit(&edit);
+                    }
+                }
+            }
+
             self.undo_recording = true;
         }
     }
