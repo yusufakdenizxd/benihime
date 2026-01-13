@@ -95,7 +95,7 @@ pub enum MinibufferCallbackResult {
 
 impl<T> MiniBufferTrait for MiniBuffer<T>
 where
-    T: Clone + Send + MiniBufferDisplay + 'static,
+    T: Clone + MiniBufferDisplay + 'static,
 {
     fn render_candidates(&self) -> Vec<String> {
         self.state
@@ -192,7 +192,7 @@ where
 }
 
 pub struct MiniBufferManager {
-    pub current: Option<Box<dyn MiniBufferTrait + Send>>,
+    pub current: Option<Box<dyn MiniBufferTrait>>,
 }
 
 impl MiniBufferManager {
@@ -200,7 +200,7 @@ impl MiniBufferManager {
         Self { current: None }
     }
 
-    pub fn activate(&mut self, minibuffer: Box<dyn MiniBufferTrait + Send>) {
+    pub fn activate(&mut self, minibuffer: Box<dyn MiniBufferTrait>) {
         self.current = Some(minibuffer);
     }
 }
