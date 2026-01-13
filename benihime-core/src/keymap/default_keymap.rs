@@ -397,4 +397,24 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "change-range",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('u'),
+            modifiers: KeyModifiers::NONE,
+        }),
+        "undo",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('r'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "redo",
+        None,
+    );
 }

@@ -464,4 +464,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register("undo", |ctx: &mut CommandContext| {
+        ctx.state.focused_buf_mut().undo();
+        Ok(())
+    });
+
+    registry.register("redo", |ctx: &mut CommandContext| {
+        ctx.state.focused_buf_mut().redo();
+        Ok(())
+    });
 }
