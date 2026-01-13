@@ -74,6 +74,7 @@ pub struct Buffer {
     pub selection: Option<Selection>,
     pub range: Option<Range>,
     undo_tree: UndoTree,
+    undo_recording: bool,
 }
 
 impl Buffer {
@@ -90,6 +91,7 @@ impl Buffer {
             selection: None,
             range: None,
             undo_tree: UndoTree::new(),
+            undo_recording: true,
         }
     }
 
@@ -106,6 +108,7 @@ impl Buffer {
             selection: None,
             range: None,
             undo_tree: UndoTree::new(),
+            undo_recording: true,
         }
     }
 
@@ -134,11 +137,11 @@ impl Buffer {
     }
 
     pub fn insert_idx(&mut self, idx: usize, text: &str) {
-        self.lines.insert(idx, text);
+        self.insert(idx, text);
     }
 
     pub fn remove_line(&mut self, start: usize, end: usize) {
-        self.lines.remove(start..end);
+        self.remove(start..end)
     }
 
     pub fn get_cursor_to_char(&self) -> usize {
@@ -185,15 +188,32 @@ impl Buffer {
         let insert_col = col.min(line_len);
         let char_idx = self.lines.line_to_char(row) + insert_col;
 
-        self.lines.insert(char_idx, s);
+        if self.undo_recording {
+            self.undo_tree.record(Edit::Insert {
+                at: char_idx,
+                text: s.to_string(),
+            });
+        }
 
-        let new_lines = s.chars().filter(|&c| c == '\n').count();
-        self.cursor.row += new_lines;
+        self.insert(char_idx, s);
 
-        if new_lines > 0 {
-            self.cursor.col = s.chars().rev().take_while(|&c| c != '\n').count();
+        let mut newlines = 0;
+        let mut last_line_len = 0;
+
+        for ch in s.chars() {
+            if ch == '\n' {
+                newlines += 1;
+                last_line_len = 0;
+            } else {
+                last_line_len += 1;
+            }
+        }
+
+        if newlines > 0 {
+            self.cursor.row += newlines;
+            self.cursor.col = last_line_len;
         } else {
-            self.cursor.col = insert_col + s.chars().count();
+            self.cursor.col = insert_col + last_line_len;
         }
     }
 
@@ -207,13 +227,13 @@ impl Buffer {
 
         if col > 0 {
             let char_idx = self.lines.line_to_char(row) + col - 1;
-            self.lines.remove(char_idx..char_idx + 1);
+            self.remove(char_idx..char_idx + 1);
             self.cursor.col -= 1;
         } else {
             let prev_line_len = self.line_len(row - 1);
             let char_idx = self.lines.line_to_char(row);
             if char_idx > 0 {
-                self.lines.remove(char_idx - 1..char_idx);
+                self.remove(char_idx - 1..char_idx);
                 self.cursor.row -= 1;
                 self.cursor.col = prev_line_len;
             }
@@ -253,7 +273,7 @@ impl Buffer {
             let end_char = self.lines.line_to_char(end.row) + end.col;
 
             if start_char <= end_char {
-                self.lines.remove(start_char..end_char);
+                self.remove(start_char..end_char);
             }
 
             self.cursor = start;
@@ -281,4 +301,28 @@ impl Buffer {
             self.scroll_offset = self.lines.len_lines().saturating_sub(screen_height);
         }
     }
+
+    fn insert(&mut self, at: usize, text: &str) {
+        if self.undo_recording {
+            self.undo_tree.record(Edit::Insert {
+                at,
+                text: text.to_string(),
+            });
+        }
+        self.lines.insert(at, text);
+    }
+
+    fn remove(&mut self, range: std::ops::Range<usize>) {
+        let deleted = self.lines.slice(range.clone()).to_string();
+
+        if self.undo_recording {
+            self.undo_tree.record(Edit::Delete {
+                at: range.start,
+                text: deleted,
+            });
+        }
+
+        self.lines.remove(range);
+    }
+
 }
