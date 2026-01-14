@@ -3,34 +3,6 @@ use std::path::PathBuf;
 
 use crate::{buffer::Buffer, editor_state::EditorState};
 
-pub struct MiniBufferState<T> {
-    pub input: String,
-    pub prompt: String,
-    pub items: Vec<T>,
-    pub base_items: Vec<T>,
-    pub index: usize,
-    pub offset: usize,
-    pub callback: Box<dyn Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send>,
-}
-
-impl<T: Clone> MiniBufferState<T> {
-    pub fn new(
-        prompt: String,
-        items: Vec<T>,
-        callback: impl Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send + 'static,
-    ) -> Self {
-        Self {
-            input: String::new(),
-            prompt,
-            items: items.clone(),
-            base_items: items,
-            index: 0,
-            callback: Box::new(callback),
-            offset: 0,
-        }
-    }
-}
-
 pub trait MiniBufferTrait {
     fn render_candidates(&self) -> Vec<String>;
     fn move_focus(&mut self, delta: isize);
@@ -45,7 +17,13 @@ pub trait MiniBufferTrait {
 }
 
 pub struct MiniBuffer<T> {
-    pub state: MiniBufferState<T>,
+    input: String,
+    prompt: String,
+    items: Vec<T>,
+    base_items: Vec<T>,
+    index: usize,
+    offset: usize,
+    callback: Box<dyn Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send>,
 }
 
 impl<T: Clone> MiniBuffer<T> {
@@ -55,7 +33,13 @@ impl<T: Clone> MiniBuffer<T> {
         callback: impl Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send + 'static,
     ) -> Self {
         Self {
-            state: MiniBufferState::new(prompt.to_string(), items, callback),
+            input: String::new(),
+            prompt: prompt.to_string(),
+            items: items.clone(),
+            base_items: items,
+            index: 0,
+            offset: 0,
+            callback: Box::new(callback),
         }
     }
 }
@@ -98,8 +82,7 @@ where
     T: Clone + MiniBufferDisplay + 'static,
 {
     fn render_candidates(&self) -> Vec<String> {
-        self.state
-            .items
+        self.items
             .iter()
             .map(|item| item.as_display_string())
             .collect()
@@ -108,40 +91,40 @@ where
     fn move_focus(&mut self, delta: isize) {
         let scrolloff = 1;
         let max_count = 10;
-        let len = self.state.items.len();
+        let len = self.items.len();
 
         assert!(len > 0);
 
-        let new_index = ((self.state.index as isize + delta).rem_euclid(len as isize)) as usize;
-        self.state.index = new_index;
+        let new_index = ((self.index as isize + delta).rem_euclid(len as isize)) as usize;
+        self.index = new_index;
 
         if len <= max_count {
             return;
         }
 
-        let top = self.state.offset;
-        let bottom = self.state.offset + max_count;
+        let top = self.offset;
+        let bottom = self.offset + max_count;
 
         //When Goes Up
         if new_index < top + scrolloff {
-            self.state.offset = new_index.saturating_sub(scrolloff);
+            self.offset = new_index.saturating_sub(scrolloff);
         }
         //When Goes Down
         if new_index + scrolloff >= bottom && bottom < len {
-            self.state.offset = (new_index + scrolloff + 1).saturating_sub(max_count);
+            self.offset = (new_index + scrolloff + 1).saturating_sub(max_count);
         }
 
         //Clamp
-        if self.state.offset + max_count > len {
-            self.state.offset = len.saturating_sub(max_count);
+        if self.offset + max_count > len {
+            self.offset = len.saturating_sub(max_count);
         }
     }
 
     fn run_callback(&mut self, editor: &mut EditorState) -> Result<MinibufferCallbackResult> {
-        if let Some(item) = self.state.items.get(self.state.index).cloned() {
-            if let Some(new_items) = (self.state.callback)(editor, &item)? {
-                self.state.items = new_items;
-                self.state.index = 0;
+        if let Some(item) = self.items.get(self.index).cloned() {
+            if let Some(new_items) = (self.callback)(editor, &item)? {
+                self.items = new_items;
+                self.index = 0;
                 return Ok(MinibufferCallbackResult::NewItems);
             }
         }
@@ -149,36 +132,35 @@ where
     }
 
     fn prompt(&self) -> &str {
-        &self.state.prompt
+        &self.prompt
     }
 
     fn input(&self) -> &String {
-        &self.state.input
+        &self.input
     }
 
     fn input_mut(&mut self) -> &mut String {
-        &mut self.state.input
+        &mut self.input
     }
 
     fn index(&self) -> usize {
-        self.state.index
+        self.index
     }
 
     fn offset(&self) -> usize {
-        self.state.offset
+        self.offset
     }
 
     fn len(&self) -> usize {
-        self.state.items.len()
+        self.items.len()
     }
 
     fn filter_items(&mut self) {
         if self.input().is_empty() {
-            self.state.items = self.state.base_items.clone();
+            self.items = self.base_items.clone();
         } else {
-            let query = self.state.input.to_lowercase();
-            self.state.items = self
-                .state
+            let query = self.input.to_lowercase();
+            self.items = self
                 .base_items
                 .iter()
                 .filter(|item| item.as_display_string().to_lowercase().contains(&query))
@@ -186,8 +168,8 @@ where
                 .collect();
         }
 
-        self.state.index = 0;
-        self.state.offset = 0;
+        self.index = 0;
+        self.offset = 0;
     }
 }
 
