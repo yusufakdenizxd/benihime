@@ -1,6 +1,6 @@
 use egui::{Context, RichText};
 
-use crate::{buffer::Mode, editor_state::EditorState, mini_buffer::MiniBufferTrait};
+use crate::{buffer::Mode, editor_state::EditorState};
 
 pub fn render_minibuffer(ctx: &Context, state: &EditorState) {
     let buf = state.focused_buf();

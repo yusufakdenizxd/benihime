@@ -230,7 +230,7 @@ pub struct Theme {
 impl From<Value> for Theme {
     fn from(value: Value) -> Self {
         //TODO: Show warnings
-        let (theme, warnings) = Theme::from_toml(value);
+        let (theme, _warnings) = Theme::from_toml(value);
         theme
     }
 }

@@ -15,7 +15,7 @@ impl ThemeLoader {
 
     pub fn load(&self, name: &str) -> Result<Theme> {
         //TODO: Show warnings
-        let (theme, warnings) = self.load_with_warnings(name)?;
+        let (theme, _warnings) = self.load_with_warnings(name)?;
 
         Ok(theme)
     }
