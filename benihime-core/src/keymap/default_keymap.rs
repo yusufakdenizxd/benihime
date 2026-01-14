@@ -417,4 +417,44 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "redo",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('d'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "scroll-half-down",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('f'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "scroll-full-down",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('u'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "scroll-half-up",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('b'),
+            modifiers: KeyModifiers::CTRL,
+        }),
+        "scroll-full-up",
+        None,
+    );
 }

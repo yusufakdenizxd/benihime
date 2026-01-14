@@ -493,4 +493,32 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         ctx.state.focused_buf_id = id;
         Ok(())
     });
+
+    registry.register("scroll-half-down", |ctx| {
+        let h = ctx.state.screen_height / 2;
+        let buf = ctx.state.focused_buf_mut();
+        buf.scroll_down(h);
+        Ok(())
+    });
+
+    registry.register("scroll-half-up", |ctx| {
+        let h = ctx.state.screen_height / 2;
+        let buf = ctx.state.focused_buf_mut();
+        buf.scroll_up(h);
+        Ok(())
+    });
+
+    registry.register("scroll-full-down", |ctx| {
+        let h = ctx.state.screen_height;
+        let buf = ctx.state.focused_buf_mut();
+        buf.scroll_down(h);
+        Ok(())
+    });
+
+    registry.register("scroll-full-up", |ctx| {
+        let h = ctx.state.screen_height;
+        let buf = ctx.state.focused_buf_mut();
+        buf.scroll_up(h);
+        Ok(())
+    });
 }

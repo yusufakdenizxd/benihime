@@ -377,4 +377,16 @@ impl Buffer {
             }
         }
     }
+
+    pub fn scroll_down(&mut self, lines: usize) {
+        let max_row = self.line_count().saturating_sub(1);
+
+        let new_row = (self.cursor.row + lines).min(max_row);
+        self.cursor.row = new_row;
+    }
+
+    pub fn scroll_up(&mut self, lines: usize) {
+        let new_row = self.cursor.row.saturating_sub(lines);
+        self.cursor.row = new_row;
+    }
 }
