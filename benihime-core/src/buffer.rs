@@ -389,4 +389,20 @@ impl Buffer {
         let new_row = self.cursor.row.saturating_sub(lines);
         self.cursor.row = new_row;
     }
+
+    pub fn goto_first_line(&mut self) {
+        self.cursor.row = 0;
+        self.cursor.col = 0;
+        self.selection = None;
+    }
+
+    pub fn goto_last_line(&mut self) {
+        let last_row = self.line_count().saturating_sub(1);
+        self.cursor.row = last_row;
+
+        let line_len = self.line_len(last_row);
+        self.cursor.col = self.cursor.col.min(line_len);
+
+        self.selection = None;
+    }
 }

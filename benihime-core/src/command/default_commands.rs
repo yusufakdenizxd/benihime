@@ -521,4 +521,15 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         buf.scroll_up(h);
         Ok(())
     });
+    registry.register("goto-first-line", |ctx| {
+        let buf = ctx.state.focused_buf_mut();
+        buf.goto_first_line();
+        Ok(())
+    });
+
+    registry.register("goto-last-line", |ctx| {
+        let buf = ctx.state.focused_buf_mut();
+        buf.goto_last_line();
+        Ok(())
+    });
 }

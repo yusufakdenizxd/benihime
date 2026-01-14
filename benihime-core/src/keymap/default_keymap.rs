@@ -457,4 +457,30 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "scroll-full-up",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
+                code: KeyCode::Char('g'),
+                modifiers: KeyModifiers::NONE,
+            },
+            KeyChord {
+                code: KeyCode::Char('g'),
+                modifiers: KeyModifiers::NONE,
+            },
+        ]),
+        "goto-first-line",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('g'),
+            modifiers: KeyModifiers::SHIFT,
+        }),
+        "goto-last-line",
+        None,
+    );
 }
