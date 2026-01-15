@@ -22,9 +22,10 @@ pub fn render_bufferline(ctx: &Context, state: &EditorState) {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 0.0;
 
-                for (_, name, active) in buffer_line {
+                for (_, name, active, is_modified) in buffer_line {
                     let padding_x = 14.0;
                     let tab_height = 30.0;
+                    let dot_space = if is_modified { 12.0 } else { 0.0 };
 
                     let text_width = ui.fonts(|f| {
                         f.layout_no_wrap(name.clone(), egui::FontId::default(), text_color)
@@ -32,7 +33,7 @@ pub fn render_bufferline(ctx: &Context, state: &EditorState) {
                             .x
                     });
 
-                    let tab_width = text_width + padding_x * 2.0;
+                    let tab_width = text_width + dot_space + padding_x * 2.0;
 
                     let rect = ui.allocate_space(egui::vec2(tab_width, tab_height)).1;
 
@@ -51,6 +52,16 @@ pub fn render_bufferline(ctx: &Context, state: &EditorState) {
                         egui::FontId::default(),
                         if active { strong_text } else { text_color },
                     );
+
+                    if is_modified {
+                        let circle_radius = 5.0;
+                        let circle_pos = egui::pos2(rect.right() - 8.0, rect.center().y);
+                        ui.painter().circle_filled(
+                            circle_pos,
+                            circle_radius,
+                            Color32::from_rgb(0, 150, 0),
+                        );
+                    }
                 }
             });
         });
