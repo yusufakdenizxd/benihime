@@ -2,10 +2,11 @@
 resolver = "2"
 members = [
   "benihime-core"
-]
+, "benihime-loader"]
 
 default-members = [
   "benihime-core"
 ]
 
 [workspace.dependencies]
+anyhow = "1.0.99"

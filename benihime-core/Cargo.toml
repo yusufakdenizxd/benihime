@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.99"
+anyhow.workspace = true
 bitflags = "2.10.0"
 eframe = "0.32.3"
 egui = "0.32.3"
@@ -15,3 +15,4 @@ ropey = "1.6.1"
 thiserror = "2.0.16"
 toml = "0.9.10"
 unicode-general-category = "1.1.0"
+benihime-loader = {path = "../benihime-loader"}
