@@ -483,4 +483,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "goto-last-line",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('s'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "save-current-buffer",
+        None,
+    );
 }

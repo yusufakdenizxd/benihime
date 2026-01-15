@@ -532,4 +532,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         buf.goto_last_line();
         Ok(())
     });
+
+    registry.register("save-current-buffer", |ctx| {
+        let buf = ctx.state.focused_buf_mut();
+        let _ = buf.save();
+        Ok(())
+    });
 }
