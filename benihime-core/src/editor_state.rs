@@ -51,12 +51,12 @@ impl EditorState {
         format!("{} {}", mode, buf.id)
     }
 
-    pub fn buffer_line(&self) -> Vec<(i32, String, bool)> {
+    pub fn buffer_line(&self) -> Vec<(i32, String, bool, bool)> {
         self.buffer_manager
             .iter_buffers()
             .map(|(id, buf)| {
                 let is_active = *id == self.focused_buf_id;
-                (*id, buf.name.clone(), is_active)
+                (*id, buf.name.clone(), is_active, buf.is_modified())
             })
             .collect()
     }

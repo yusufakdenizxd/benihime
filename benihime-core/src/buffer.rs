@@ -74,6 +74,7 @@ pub struct Buffer {
     pub selection: Option<Selection>,
     pub range: Option<Range>,
     pub undo_tree: UndoTree,
+    dirty: bool,
     undo_recording: bool,
 }
 
@@ -92,6 +93,7 @@ impl Buffer {
             range: None,
             undo_tree: UndoTree::new(),
             undo_recording: true,
+            dirty: false,
         }
     }
 
@@ -109,6 +111,7 @@ impl Buffer {
             range: None,
             undo_tree: UndoTree::new(),
             undo_recording: true,
+            dirty: false,
         }
     }
 
@@ -302,6 +305,7 @@ impl Buffer {
                 text: text.to_string(),
             });
         }
+        self.dirty = true;
         self.lines.insert(at, text);
     }
 
@@ -315,6 +319,7 @@ impl Buffer {
             });
         }
 
+        self.dirty = true;
         self.lines.remove(range);
     }
 
@@ -333,6 +338,7 @@ impl Buffer {
                 }
             }
 
+            self.dirty = true;
             self.undo_recording = true;
         }
     }
@@ -352,6 +358,7 @@ impl Buffer {
                 }
             }
 
+            self.dirty = true;
             self.undo_recording = true;
         }
     }
@@ -406,7 +413,7 @@ impl Buffer {
         self.selection = None;
     }
 
-    pub fn save(&self) -> anyhow::Result<()> {
+    pub fn save(&mut self) -> anyhow::Result<()> {
         let path = self
             .file_path
             .as_ref()
@@ -418,6 +425,16 @@ impl Buffer {
         file.write_all(self.lines.to_string().as_bytes())
             .map_err(|e| anyhow!("Failed to write to {:?}: {}", path, e))?;
 
+        self.mark_clean();
+
         Ok(())
+    }
+
+    pub fn is_modified(&self) -> bool {
+        self.dirty
+    }
+
+    pub fn mark_clean(&mut self) {
+        self.dirty = false;
     }
 }
