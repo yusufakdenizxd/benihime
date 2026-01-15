@@ -357,7 +357,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("kill-this-buffer", |ctx: &mut CommandContext| {
         let state = &mut ctx.state;
-        state.kill_active_buffer();
+        state.kill_active_buffer()?;
         Ok(())
     });
 

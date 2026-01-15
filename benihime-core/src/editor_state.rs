@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use std::sync::Arc;
 
 use crate::{
@@ -61,27 +62,38 @@ impl EditorState {
             .collect()
     }
 
-    pub fn kill_active_buffer(&mut self) {
+    pub fn kill_active_buffer(&mut self) -> anyhow::Result<()> {
         let len = self.buffer_manager.buffers_len();
         if len == 0 {
-            return;
+            return Ok(());
         }
+
         let buf_id_to_kill = self.focused_buf_id;
 
-        //Last Buffer
+        let buf = self
+            .buffer_manager
+            .get_buffer(buf_id_to_kill)
+            .ok_or_else(|| anyhow!("Buffer not found"))?;
+
+        if buf.is_modified() {
+            return Err(anyhow!(
+                "Cannot kill modified buffer '{}'. Save it first.",
+                buf.name
+            ));
+        }
+
         if len == 1 {
             self.buffer_manager.create_empty_buffer("[No Name]");
         }
+
         self.buffer_manager.kill_buffer(buf_id_to_kill);
 
-        let binding = self.buffer_manager.get_buffer_ids();
-        let new_focus_id = binding
-            .iter()
-            .filter(|id| ***id != buf_id_to_kill)
-            .max()
-            .unwrap();
+        let buffer_ids = self.buffer_manager.get_buffer_ids();
+        if let Some(new_focus_id) = buffer_ids.iter().filter(|id| ***id != buf_id_to_kill).max() {
+            self.focused_buf_id = **new_focus_id;
+        }
 
-        self.focused_buf_id = **new_focus_id;
+        Ok(())
     }
 
     pub fn set_theme(&mut self, theme: Theme) {
