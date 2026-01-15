@@ -50,8 +50,7 @@ pub struct Editor {
 
 impl Editor {
     pub fn new() -> Self {
-        let paths = benihime_loader::Paths::new();
-        let layout = benihime_loader::RuntimeLayout::from_xdg(paths.unwrap().config);
+        let loader = benihime_loader::Loader::new().unwrap();
 
         let mut buffer_manager = BufferManager::new();
         let first_id = buffer_manager.create_empty_buffer("untitled");
@@ -59,7 +58,7 @@ impl Editor {
         let mut command_registry = CommandRegistry::new();
         command::default_commands::register_default_commands(&mut command_registry);
 
-        let theme_loader = ThemeLoader::new(layout.themes);
+        let theme_loader = ThemeLoader::new(loader.paths.themes_dir());
 
         let mut keymap = Keymap::new();
         keymap::default_keymap::register_default_keymap(&mut keymap);
