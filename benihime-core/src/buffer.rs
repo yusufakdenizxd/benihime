@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use ropey::{Rope, RopeSlice, iter::Lines};
-use std::{path::PathBuf, str::FromStr};
+use std::{io::Write, path::PathBuf, str::FromStr};
 
 use crate::{
     movement::selection::Range,
@@ -404,5 +404,20 @@ impl Buffer {
         self.cursor.col = self.cursor.col.min(line_len);
 
         self.selection = None;
+    }
+
+    pub fn save(&self) -> anyhow::Result<()> {
+        let path = self
+            .file_path
+            .as_ref()
+            .ok_or_else(|| anyhow!("No file path set for buffer '{}'", self.name))?;
+
+        let mut file = std::fs::File::create(path)
+            .map_err(|e| anyhow!("Failed to open file {:?}: {}", path, e))?;
+
+        file.write_all(self.lines.to_string().as_bytes())
+            .map_err(|e| anyhow!("Failed to write to {:?}: {}", path, e))?;
+
+        Ok(())
     }
 }
