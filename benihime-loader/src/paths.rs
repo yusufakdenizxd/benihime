@@ -39,4 +39,8 @@ impl Paths {
             cache,
         })
     }
+
+    pub fn themes_dir(&self) -> PathBuf {
+        self.config.join("themes")
+    }
 }

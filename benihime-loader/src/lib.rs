@@ -1,5 +1,18 @@
-pub mod layout;
-pub mod path;
+pub mod paths;
+pub mod themes;
 
-pub use layout::RuntimeLayout;
-pub use path::Paths;
+use anyhow::Result;
+
+use crate::paths::Paths;
+
+pub struct Loader {
+    pub paths: Paths,
+}
+
+impl Loader {
+    pub fn new() -> Result<Self> {
+        let paths = Paths::new()?;
+        themes::bootstrap::ensure_themes_exist(&paths)?;
+        Ok(Self { paths })
+    }
+}
