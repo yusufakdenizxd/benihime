@@ -131,6 +131,51 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
+    registry.register_motion("word-backward-end", |ctx: &mut CommandContext| {
+        movement_commands::move_prev_word_end(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("long-word-forward", |ctx: &mut CommandContext| {
+        movement_commands::move_next_long_word_start(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("long-word-forward-end", |ctx: &mut CommandContext| {
+        movement_commands::move_next_long_word_end(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("long-word-backward", |ctx: &mut CommandContext| {
+        movement_commands::move_prev_long_word_start(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("long-word-backward-end", |ctx: &mut CommandContext| {
+        movement_commands::move_prev_long_word_end(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("sub-word-forward", |ctx: &mut CommandContext| {
+        movement_commands::move_next_sub_word_start(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("sub-word-forward-end", |ctx: &mut CommandContext| {
+        movement_commands::move_next_sub_word_end(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("sub-word-backward", |ctx: &mut CommandContext| {
+        movement_commands::move_prev_sub_word_start(ctx);
+        Ok(())
+    });
+
+    registry.register_motion("sub-word-backward-end", |ctx: &mut CommandContext| {
+        movement_commands::move_prev_sub_word_end(ctx);
+        Ok(())
+    });
+
     registry.register("execute-command-buffer", |ctx: &mut CommandContext| {
         ctx.state
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;

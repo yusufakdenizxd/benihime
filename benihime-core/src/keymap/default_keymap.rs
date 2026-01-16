@@ -157,6 +157,36 @@ pub fn register_default_keymap(km: &mut Keymap) {
     );
 
     km.bind(
+        &[Mode::Normal, Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('w'),
+            modifiers: KeyModifiers::SHIFT,
+        }),
+        "long-word-forward",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal, Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('e'),
+            modifiers: KeyModifiers::SHIFT,
+        }),
+        "long-word-forward-end",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal, Mode::Visual],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('b'),
+            modifiers: KeyModifiers::SHIFT,
+        }),
+        "long-word-backward",
+        None,
+    );
+
+    km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
             code: KeyCode::Char(':'),
