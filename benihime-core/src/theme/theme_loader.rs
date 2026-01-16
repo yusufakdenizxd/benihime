@@ -2,7 +2,7 @@ use anyhow::{Ok, Result, anyhow};
 use std::path::PathBuf;
 use toml::Value;
 
-use super::theme::Theme;
+use crate::theme::Theme;
 
 pub struct ThemeLoader {
     dir: PathBuf,

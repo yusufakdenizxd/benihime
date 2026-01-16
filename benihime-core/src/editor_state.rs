@@ -10,7 +10,7 @@ use crate::{
     },
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,
-    theme::{theme::Theme, theme_loader::ThemeLoader},
+    theme::{Theme, theme_loader::ThemeLoader},
 };
 
 pub struct EditorState {
