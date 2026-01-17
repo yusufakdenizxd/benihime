@@ -15,8 +15,8 @@ use crate::{
 use crate::{editor_state::EditorState, movement::movement_commands};
 
 use super::{
-    command::{CommandArg, CommandContext},
     command_registry::CommandRegistry,
+    {CommandArg, CommandContext},
 };
 
 pub fn register_default_commands(registry: &mut CommandRegistry) {

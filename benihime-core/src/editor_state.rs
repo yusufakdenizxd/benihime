@@ -5,8 +5,8 @@ use crate::{
     buffer::{Buffer, Mode},
     buffer_manager::BufferManager,
     command::{
-        command::{CommandArg, CommandContext},
         command_registry::CommandRegistry,
+        {CommandArg, CommandContext},
     },
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,

@@ -1,4 +1,4 @@
-use crate::{buffer::Mode, command::command::CommandArg};
+use crate::{buffer::Mode, command::CommandArg};
 
 use super::{
     key_chord::{KeyChord, KeyCode, KeyModifiers},

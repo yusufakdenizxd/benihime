@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{buffer::Mode, command::command::CommandArg};
+use crate::{buffer::Mode, command::CommandArg};
 
 use super::key_chord::KeyChord;
 

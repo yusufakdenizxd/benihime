@@ -1,6 +1,6 @@
 use ropey::RopeSlice;
 
-use crate::command::command::CommandContext;
+use crate::command::CommandContext;
 
 use super::{movement, selection::Range};
 

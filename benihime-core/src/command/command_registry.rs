@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::editor::HandleKeyError;
 
-use super::command::{Cmd, CommandArg, CommandContext, CommandFn};
+use crate::command::{Cmd, CommandArg, CommandContext, CommandFn};
 
 pub struct CommandRegistry {
     pub commands: HashMap<String, Cmd>,
