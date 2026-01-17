@@ -12,9 +12,8 @@ use crate::{
     command::{self, command_registry::CommandRegistry},
     editor_state::EditorState,
     keymap::{
-        self,
+        self, Keymap,
         key_chord::{KeyChord, KeyCode, KeyModifiers},
-        keymap::Keymap,
     },
     mini_buffer::MiniBufferManager,
     theme::theme_loader::ThemeLoader,

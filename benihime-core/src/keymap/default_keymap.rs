@@ -2,7 +2,7 @@ use crate::{buffer::Mode, command::CommandArg};
 
 use super::{
     key_chord::{KeyChord, KeyCode, KeyModifiers},
-    keymap::{KeySequence, Keymap},
+    {KeySequence, Keymap},
 };
 
 pub fn register_default_keymap(km: &mut Keymap) {
