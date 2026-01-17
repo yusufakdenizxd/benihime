@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 const APP_NAME: &str = "benihime";
 
-fn home_dir() -> Result<PathBuf> {
+pub fn home_dir() -> Result<PathBuf> {
     dirs_next::home_dir().ok_or_else(|| anyhow!("Home directory not found"))
 }
 

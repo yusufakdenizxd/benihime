@@ -3,6 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use benihime_loader::paths;
 use egui::ViewportBuilder;
 use thiserror::Error;
 
@@ -16,6 +17,7 @@ use crate::{
         key_chord::{KeyChord, KeyCode, KeyModifiers},
     },
     mini_buffer::MiniBufferManager,
+    project::project_manager::ProjectManager,
     theme::theme_loader::ThemeLoader,
 };
 
@@ -62,8 +64,17 @@ impl Editor {
         let mut keymap = Keymap::new();
         keymap::default_keymap::register_default_keymap(&mut keymap);
 
+        let mut project_manager = ProjectManager::new();
+
+        //TODO: fetch from config file
+        if let Ok(dir) = paths::home_dir() {
+            let projects_dir = dir.join("dev");
+            project_manager.discover_in_path(&projects_dir);
+        }
+
         let state = EditorState {
             focused_buf_id: first_id,
+            project_manager,
             buffer_manager,
             command_buffer: String::new(),
             message: None,
@@ -74,6 +85,7 @@ impl Editor {
             registry: Arc::new(command_registry),
             theme: theme_loader.default(),
             theme_loader: Arc::new(theme_loader),
+            cwd: None,
         };
 
         Self {
