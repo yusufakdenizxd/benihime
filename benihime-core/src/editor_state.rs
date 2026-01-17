@@ -1,20 +1,20 @@
 use anyhow::anyhow;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use crate::{
     buffer::{Buffer, Mode},
     buffer_manager::BufferManager,
-    command::{
-        command_registry::CommandRegistry,
-        {CommandArg, CommandContext},
-    },
+    command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,
+    project::project_manager::ProjectManager,
     theme::{Theme, theme_loader::ThemeLoader},
 };
 
 pub struct EditorState {
     pub focused_buf_id: i32,
+    pub project_manager: ProjectManager,
+    pub cwd: Option<PathBuf>,
     pub buffer_manager: BufferManager,
     pub minibuffer_manager: MiniBufferManager,
     pub screen_height: usize,

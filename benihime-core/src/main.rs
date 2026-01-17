@@ -11,6 +11,7 @@ mod macros;
 mod mini_buffer;
 mod movement;
 mod position;
+mod project;
 mod render;
 mod theme;
 mod undotree;
