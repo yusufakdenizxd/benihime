@@ -4,7 +4,7 @@ use crate::project::Project;
 
 pub struct ProjectManager {
     projects: HashMap<String, Project>,
-    current: Option<String>,
+    current: Option<Project>,
 }
 
 impl ProjectManager {
@@ -20,9 +20,7 @@ impl ProjectManager {
     }
 
     pub fn current(&self) -> Option<&Project> {
-        self.current
-            .as_ref()
-            .and_then(|name| self.projects.get(name))
+        self.current.as_ref()
     }
 
     pub fn discover_in_path(&mut self, path: &PathBuf) {
@@ -52,12 +50,12 @@ impl ProjectManager {
         }
     }
 
-    pub fn switch(&mut self, name: &str) -> Option<&Project> {
-        if self.projects.contains_key(name) {
-            self.current = Some(name.to_string());
-            self.current()
-        } else {
-            None
-        }
+    pub fn switch(&mut self, project: Project) -> Option<&Project> {
+        self.current = Some(project);
+        self.current()
+    }
+
+    pub fn get_projects(&self) -> Vec<Project> {
+        self.projects.values().cloned().collect()
     }
 }

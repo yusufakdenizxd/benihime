@@ -1,7 +1,7 @@
 use anyhow::{Ok, Result};
 use std::path::PathBuf;
 
-use crate::{buffer::Buffer, editor_state::EditorState};
+use crate::{buffer::Buffer, editor_state::EditorState, project::Project};
 
 pub trait MiniBufferTrait {
     fn render_candidates(&self) -> Vec<String>;
@@ -61,6 +61,12 @@ impl MiniBufferDisplay for String {
 }
 
 impl MiniBufferDisplay for Buffer {
+    fn as_display_string(&self) -> String {
+        self.name.to_string()
+    }
+}
+
+impl MiniBufferDisplay for Project {
     fn as_display_string(&self) -> String {
         self.name.to_string()
     }
