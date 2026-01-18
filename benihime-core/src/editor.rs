@@ -54,7 +54,7 @@ impl Editor {
         let loader = benihime_loader::Loader::new().unwrap();
 
         let mut buffer_manager = BufferManager::new();
-        let first_id = buffer_manager.create_empty_buffer("untitled");
+        let first_id = buffer_manager.create_empty_buffer("[No Name]");
 
         let mut command_registry = CommandRegistry::new();
         command::default_commands::register_default_commands(&mut command_registry);
