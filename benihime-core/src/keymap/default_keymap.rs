@@ -523,4 +523,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "save-current-buffer",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('n'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "open-project",
+        None,
+    );
 }

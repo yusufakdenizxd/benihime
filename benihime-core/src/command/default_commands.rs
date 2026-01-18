@@ -11,6 +11,7 @@ use crate::{
     buffer::{Buffer, Mode, Selection},
     editor::HandleKeyError,
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
+    project::Project,
 };
 use crate::{editor_state::EditorState, movement::movement_commands};
 
@@ -584,6 +585,26 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("save-current-buffer", |ctx| {
         let buf = ctx.state.focused_buf_mut();
         let _ = buf.save();
+        Ok(())
+    });
+
+    registry.register("open-project", |ctx: &mut CommandContext| {
+        let projects = ctx.state.project_manager.get_projects();
+
+        let minibuffer: MiniBuffer<Project> = MiniBuffer::new(
+            "Open Project: ",
+            projects,
+            |state: &mut EditorState, project: &Project| {
+                state.switch_project(project.clone());
+                Ok(None)
+            },
+        );
+
+        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.state
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
+
         Ok(())
     });
 }
