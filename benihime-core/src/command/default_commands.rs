@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use anyhow::Ok;
+use anyhow::{Ok, anyhow};
 use ignore::Walk;
 
 use crate::{
@@ -252,7 +252,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("find-file", |ctx: &mut CommandContext| {
-        let cwd = std::env::current_dir().unwrap();
+        let cwd = match ctx.state.cwd.clone() {
+            Some(v) => v,
+            None => return Err(anyhow!("Not in a Project")),
+        };
 
         let files: Vec<PathBuf> = Walk::new(cwd)
             .filter_map(Result::ok)
