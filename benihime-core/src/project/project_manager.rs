@@ -23,6 +23,13 @@ impl ProjectManager {
         self.current.as_ref()
     }
 
+    pub fn current_name(&self) -> Option<String> {
+        match self.current.as_ref() {
+            Some(p) => Some(p.name.clone()),
+            None => None,
+        }
+    }
+
     pub fn discover_in_path(&mut self, path: &PathBuf) {
         let entries = match std::fs::read_dir(path) {
             Ok(entries) => entries,
