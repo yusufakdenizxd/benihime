@@ -200,7 +200,11 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("open-file", |ctx: &mut CommandContext| {
-        let cwd = std::env::current_dir().unwrap();
+        let cwd = match ctx.state.cwd.clone() {
+            Some(v) => v,
+            None => return Err(anyhow!("Not in a Project")),
+        };
+
         let mut files: Vec<PathBuf> = fs::read_dir(&cwd)?
             .filter_map(|e| e.ok().map(|e| e.path()))
             .collect();
