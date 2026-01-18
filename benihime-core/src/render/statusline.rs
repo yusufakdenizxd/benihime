@@ -16,8 +16,6 @@ pub fn render_statusline(ctx: &Context, state: &EditorState) {
                     ui.colored_label(egui::Color32::RED, state.error_message.clone().unwrap());
                 } else if state.message.is_some() {
                     ui.label(state.message.clone().unwrap());
-                } else {
-                    ui.label("");
                 }
             });
         });
