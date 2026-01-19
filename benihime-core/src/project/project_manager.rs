@@ -2,6 +2,8 @@ use std::{collections::HashMap, path::PathBuf};
 
 use crate::project::{Project, ProjectId};
 
+pub const DEFAULT_PROJECT_ID: ProjectId = ProjectId(0);
+
 pub struct ProjectManager {
     projects: HashMap<ProjectId, Project>,
     name_index: HashMap<String, ProjectId>,
@@ -11,10 +13,23 @@ pub struct ProjectManager {
 
 impl ProjectManager {
     pub fn new() -> Self {
+        let mut projects = HashMap::new();
+        let mut name_index = HashMap::new();
+
+        let default_project = Project {
+            id: DEFAULT_PROJECT_ID,
+            name: "empty".to_string(),
+            root: PathBuf::new(),
+            buffers: Vec::new(),
+        };
+
+        projects.insert(DEFAULT_PROJECT_ID, default_project);
+        name_index.insert("empty".to_string(), DEFAULT_PROJECT_ID);
+
         Self {
-            projects: HashMap::new(),
-            name_index: HashMap::new(),
-            current: None,
+            projects,
+            name_index,
+            current: Some(DEFAULT_PROJECT_ID),
             next_id: 1,
         }
     }
