@@ -1,30 +1,51 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::project::Project;
+use crate::project::{Project, ProjectId};
 
 pub struct ProjectManager {
-    projects: HashMap<String, Project>,
-    current: Option<Project>,
+    projects: HashMap<ProjectId, Project>,
+    name_index: HashMap<String, ProjectId>,
+    current: Option<ProjectId>,
+    next_id: u64,
 }
 
 impl ProjectManager {
     pub fn new() -> Self {
         Self {
             projects: HashMap::new(),
+            name_index: HashMap::new(),
             current: None,
+            next_id: 1,
         }
     }
 
-    pub fn add(&mut self, project: Project) {
-        self.projects.insert(project.name.clone(), project);
+    pub fn add(&mut self, name: String, root: PathBuf) -> ProjectId {
+        let id = ProjectId(self.next_id);
+        self.next_id += 1;
+
+        let project = Project {
+            id,
+            name: name.clone(),
+            root,
+            buffers: Vec::new(),
+        };
+
+        self.projects.insert(id, project);
+        self.name_index.insert(name, id);
+
+        id
     }
 
     pub fn current(&self) -> Option<&Project> {
-        self.current.as_ref()
+        self.current.and_then(|id| self.projects.get(&id))
     }
 
     pub fn current_name(&self) -> Option<String> {
-        self.current.as_ref().map(|p| p.name.clone())
+        self.current().map(|p| p.name.clone())
+    }
+
+    pub fn current_id(&self) -> Option<ProjectId> {
+        self.current
     }
 
     pub fn discover_in_path(&mut self, path: &PathBuf) {
@@ -45,21 +66,33 @@ impl ProjectManager {
                 None => continue,
             };
 
-            let project = Project {
-                name: name.to_string(),
-                root: entry_path,
-            };
+            if self.name_index.contains_key(&name) {
+                continue;
+            }
 
-            self.projects.insert(name.to_string(), project);
+            self.add(name, entry_path);
         }
     }
 
-    pub fn switch(&mut self, project: Project) -> Option<&Project> {
-        self.current = Some(project);
-        self.current()
+    pub fn switch_by_id(&mut self, id: ProjectId) -> Option<&Project> {
+        if self.projects.contains_key(&id) {
+            self.current = Some(id);
+            self.projects.get(&id)
+        } else {
+            None
+        }
     }
 
-    pub fn get_projects(&self) -> Vec<Project> {
+    pub fn switch_by_name(&mut self, name: &str) -> Option<&Project> {
+        let id = *self.name_index.get(name)?;
+        self.switch_by_id(id)
+    }
+
+    pub fn get_projects(&self) -> Vec<&Project> {
+        self.projects.values().collect()
+    }
+
+    pub fn get_projects_cloned(&self) -> Vec<Project> {
         self.projects.values().cloned().collect()
     }
 }

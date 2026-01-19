@@ -7,7 +7,7 @@ use crate::{
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,
-    project::{Project, project_manager::ProjectManager},
+    project::{Project, ProjectId, project_manager::ProjectManager},
     theme::{Theme, theme_loader::ThemeLoader},
 };
 
@@ -115,8 +115,8 @@ impl EditorState {
         )
     }
 
-    pub fn switch_project(&mut self, project: Project) {
-        let project = self.project_manager.switch(project);
+    pub fn switch_project(&mut self, project_id: ProjectId) {
+        let project = self.project_manager.switch_by_id(project_id);
         if let Some(project) = project {
             self.cwd = Some(project.root.clone());
         }

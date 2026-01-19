@@ -593,13 +593,13 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("open-project", |ctx: &mut CommandContext| {
-        let projects = ctx.state.project_manager.get_projects();
+        let projects = ctx.state.project_manager.get_projects_cloned();
 
         let minibuffer: MiniBuffer<Project> = MiniBuffer::new(
             "Open Project: ",
             projects,
             |state: &mut EditorState, project: &Project| {
-                state.switch_project(project.clone());
+                state.switch_project(project.id);
                 Ok(None)
             },
         );
