@@ -24,10 +24,7 @@ impl ProjectManager {
     }
 
     pub fn current_name(&self) -> Option<String> {
-        match self.current.as_ref() {
-            Some(p) => Some(p.name.clone()),
-            None => None,
-        }
+        self.current.as_ref().map(|p| p.name.clone())
     }
 
     pub fn discover_in_path(&mut self, path: &PathBuf) {
