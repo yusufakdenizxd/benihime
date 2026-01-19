@@ -2,17 +2,17 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::buffer::Buffer;
+use crate::buffer::{Buffer, BufferId};
 
 pub struct BufferManager {
-    next_id: i32,
-    buffers: BTreeMap<i32, Buffer>,
+    next_id: BufferId,
+    buffers: BTreeMap<BufferId, Buffer>,
 }
 
 impl BufferManager {
     pub fn new() -> Self {
         Self {
-            next_id: 1,
+            next_id: BufferId(1),
             buffers: BTreeMap::new(),
         }
     }
@@ -21,11 +21,11 @@ impl BufferManager {
         self.buffers.len()
     }
 
-    pub fn get_buffer(&self, id: i32) -> Option<&Buffer> {
+    pub fn get_buffer(&self, id: BufferId) -> Option<&Buffer> {
         self.buffers.get(&id)
     }
 
-    pub fn get_buffer_mut(&mut self, id: i32) -> Option<&mut Buffer> {
+    pub fn get_buffer_mut(&mut self, id: BufferId) -> Option<&mut Buffer> {
         self.buffers.get_mut(&id)
     }
 
@@ -37,11 +37,11 @@ impl BufferManager {
         self.buffers.values().cloned().collect()
     }
 
-    pub fn iter_buffers(&self) -> impl Iterator<Item = (&i32, &Buffer)> {
+    pub fn iter_buffers(&self) -> impl Iterator<Item = (&BufferId, &Buffer)> {
         self.buffers.iter()
     }
 
-    pub fn get_buffer_ids(&self) -> Vec<&i32> {
+    pub fn get_buffer_ids(&self) -> Vec<&BufferId> {
         self.buffers.keys().collect()
     }
 
@@ -56,9 +56,9 @@ impl BufferManager {
             .and_then(|id| self.buffers.get(id))
     }
 
-    pub fn create_empty_buffer(&mut self, name: &str) -> i32 {
-        let id = self.next_id;
-        self.next_id += 1;
+    pub fn create_empty_buffer(&mut self, name: &str) -> BufferId {
+        let id = BufferId(self.next_id.0);
+        self.next_id = BufferId(self.next_id.0 + 1);
 
         let buf = Buffer::new(id, name, None);
         self.buffers.insert(id, buf);
@@ -71,9 +71,9 @@ impl BufferManager {
         name: &str,
         text: &str,
         file_path: Option<&PathBuf>,
-    ) -> i32 {
-        let id = self.next_id;
-        self.next_id += 1;
+    ) -> BufferId {
+        let id = BufferId(self.next_id.0);
+        self.next_id = BufferId(self.next_id.0 + 1);
 
         let buf = Buffer::from(id, name, text, file_path.cloned());
         self.buffers.insert(id, buf);
@@ -81,7 +81,7 @@ impl BufferManager {
         id
     }
 
-    pub fn open_file(&mut self, path: &PathBuf) -> i32 {
+    pub fn open_file(&mut self, path: &PathBuf) -> BufferId {
         let contents = fs::read_to_string(path).unwrap_or_default();
 
         self.create_buffer_from(
@@ -91,7 +91,7 @@ impl BufferManager {
         )
     }
 
-    pub fn kill_buffer(&mut self, id: i32) {
+    pub fn kill_buffer(&mut self, id: BufferId) {
         self.buffers.remove(&id);
     }
 }

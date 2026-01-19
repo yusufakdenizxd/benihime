@@ -47,6 +47,15 @@ pub enum Mode {
     Minibuffer,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct BufferId(pub u64);
+
+impl std::fmt::Display for BufferId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl FromStr for Mode {
     type Err = anyhow::Error;
 
@@ -63,7 +72,7 @@ impl FromStr for Mode {
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
-    pub id: i32,
+    pub id: BufferId,
     lines: Rope,
     pub name: String,
     pub cursor: Cursor,
@@ -79,7 +88,7 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    pub fn new(id: i32, name: &str, file_path: Option<PathBuf>) -> Self {
+    pub fn new(id: BufferId, name: &str, file_path: Option<PathBuf>) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -97,7 +106,7 @@ impl Buffer {
         }
     }
 
-    pub fn from(id: i32, name: &str, text: &str, file_path: Option<PathBuf>) -> Self {
+    pub fn from(id: BufferId, name: &str, text: &str, file_path: Option<PathBuf>) -> Self {
         Self {
             id,
             name: name.to_string(),
