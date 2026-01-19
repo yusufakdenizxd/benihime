@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use std::{path::PathBuf, sync::Arc};
 
 use crate::{
-    buffer::{Buffer, Mode},
+    buffer::{Buffer, BufferId, Mode},
     buffer_manager::BufferManager,
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub struct EditorState {
-    pub focused_buf_id: i32,
+    pub focused_buf_id: BufferId,
     pub project_manager: ProjectManager,
     pub cwd: Option<PathBuf>,
     pub buffer_manager: BufferManager,
@@ -52,7 +52,7 @@ impl EditorState {
         format!("{} {}", mode, buf.id)
     }
 
-    pub fn buffer_line(&self) -> Vec<(i32, String, bool, bool)> {
+    pub fn buffer_line(&self) -> Vec<(BufferId, String, bool, bool)> {
         self.buffer_manager
             .iter_buffers()
             .map(|(id, buf)| {
