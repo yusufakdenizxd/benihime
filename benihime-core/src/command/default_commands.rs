@@ -200,7 +200,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("open-file", |ctx: &mut CommandContext| {
-        let cwd = match ctx.state.cwd.clone() {
+        let cwd = match ctx.state.cwd() {
             Some(v) => v,
             None => return Err(anyhow!("Not in a Project")),
         };
@@ -257,7 +257,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("find-file", |ctx: &mut CommandContext| {
-        let cwd = match ctx.state.cwd.clone() {
+        let cwd = match ctx.state.cwd() {
             Some(v) => v,
             None => return Err(anyhow!("Not in a Project")),
         };
