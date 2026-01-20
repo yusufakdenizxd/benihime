@@ -7,7 +7,10 @@ use crate::{
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,
-    project::{ProjectId, project_manager::ProjectManager},
+    project::{
+        ProjectId,
+        project_manager::{DEFAULT_PROJECT_ID, ProjectManager},
+    },
     theme::{Theme, theme_loader::ThemeLoader},
 };
 
@@ -156,5 +159,30 @@ impl EditorState {
 
         self.project_manager.add_buffer_to_current(id);
         id
+    }
+
+    pub fn close_current_project(&mut self) -> anyhow::Result<()> {
+        let id = self.project_manager.current_id();
+
+        let killed_buffers = self
+            .project_manager
+            .close_project(id, &mut self.buffer_manager)?;
+
+        for buf_id in &killed_buffers {
+            self.buffer_manager.kill_buffer(*buf_id);
+        }
+
+        if self.project_manager.current_id() == DEFAULT_PROJECT_ID {
+            let last_project = self.project_manager.current();
+
+            if last_project.buffers.is_empty() {
+                let new_buf = self.create_empty_buffer("[No Name]");
+                self.focused_buf_id = new_buf;
+            } else {
+                self.focused_buf_id = last_project.buffers[0];
+            }
+        }
+
+        Ok(())
     }
 }
