@@ -60,7 +60,7 @@ impl ProjectManager {
             .expect("current project id must always exist")
     }
 
-    fn current_mut(&mut self) -> &mut Project {
+    pub fn current_mut(&mut self) -> &mut Project {
         self.projects
             .get_mut(&self.current)
             .expect("current project id must always exist")

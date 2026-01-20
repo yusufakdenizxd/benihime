@@ -66,8 +66,9 @@ impl EditorState {
     }
 
     pub fn kill_active_buffer(&mut self) -> anyhow::Result<()> {
-        let len = self.buffer_manager.buffers_len();
-        if len == 0 {
+        let project = self.project_manager.current_mut();
+
+        if project.buffers.is_empty() {
             return Ok(());
         }
 
@@ -85,15 +86,15 @@ impl EditorState {
             ));
         }
 
-        if len == 1 {
-            self.create_empty_buffer("[No Name]");
-        }
+        project.buffers.retain(|&id| id != buf_id_to_kill);
 
         self.buffer_manager.kill_buffer(buf_id_to_kill);
 
-        let buffer_ids = self.buffer_manager.get_buffer_ids();
-        if let Some(new_focus_id) = buffer_ids.iter().filter(|id| ***id != buf_id_to_kill).max() {
-            self.focused_buf_id = **new_focus_id;
+        if let Some(&new_focus) = project.buffers.last() {
+            self.focused_buf_id = new_focus;
+        } else {
+            let new_buf = self.create_empty_buffer("[No Name]");
+            self.focused_buf_id = new_buf;
         }
 
         Ok(())
