@@ -122,6 +122,12 @@ impl EditorState {
         let project = self.project_manager.switch_by_id(project_id);
         if let Some(project) = project {
             self.cwd = Some(project.root.clone());
+            if project.buffers.is_empty() {
+                let buf = self.create_empty_buffer("[No Name]");
+                self.focused_buf_id = buf;
+            } else {
+                self.focused_buf_id = project.buffers[0];
+            }
         }
     }
 
