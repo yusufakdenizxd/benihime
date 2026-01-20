@@ -17,7 +17,6 @@ use crate::{
 pub struct EditorState {
     pub focused_buf_id: BufferId,
     pub project_manager: ProjectManager,
-    pub cwd: Option<PathBuf>,
     pub buffer_manager: BufferManager,
     pub minibuffer_manager: MiniBufferManager,
     pub screen_height: usize,
@@ -31,6 +30,10 @@ pub struct EditorState {
 }
 
 impl EditorState {
+    pub fn cwd(&self) -> Option<&PathBuf> {
+        self.project_manager.current().root.as_ref()
+    }
+
     pub fn focused_buf_mut(&mut self) -> &mut Buffer {
         self.buffer_manager
             .get_buffer_mut(self.focused_buf_id)
@@ -125,7 +128,6 @@ impl EditorState {
     pub fn switch_project(&mut self, project_id: ProjectId) {
         let project = self.project_manager.switch_by_id(project_id);
         if let Some(project) = project {
-            self.cwd = Some(project.root.clone());
             if project.buffers.is_empty() {
                 let buf = self.create_empty_buffer("[No Name]");
                 self.focused_buf_id = buf;

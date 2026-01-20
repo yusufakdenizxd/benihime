@@ -12,6 +12,6 @@ pub struct ProjectId(u64);
 pub struct Project {
     pub id: ProjectId,
     pub name: String,
-    pub root: PathBuf,
+    pub root: Option<PathBuf>,
     pub buffers: Vec<BufferId>,
 }

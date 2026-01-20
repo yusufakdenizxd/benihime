@@ -25,7 +25,7 @@ impl ProjectManager {
         let default_project = Project {
             id: DEFAULT_PROJECT_ID,
             name: "empty".to_string(),
-            root: PathBuf::new(),
+            root: None,
             buffers: Vec::new(),
         };
 
@@ -47,7 +47,7 @@ impl ProjectManager {
         let project = Project {
             id,
             name: name.clone(),
-            root,
+            root: Some(root),
             buffers: Vec::new(),
         };
 

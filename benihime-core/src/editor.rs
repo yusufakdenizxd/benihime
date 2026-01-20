@@ -81,7 +81,6 @@ impl Editor {
             registry: Arc::new(command_registry),
             theme: theme_loader.default(),
             theme_loader: Arc::new(theme_loader),
-            cwd: None,
         };
 
         let first_id = state.create_empty_buffer("[No Name]");
