@@ -57,6 +57,10 @@ impl ProjectManager {
         id
     }
 
+    pub fn len(&self) -> usize {
+        self.projects.len()
+    }
+
     pub fn current(&self) -> &Project {
         self.projects
             .get(&self.current)
@@ -154,5 +158,19 @@ impl ProjectManager {
         }
 
         Ok(buffer_ids)
+    }
+
+    pub fn next_project_id(&self) -> ProjectId {
+        let ids: Vec<_> = self.projects.keys().copied().collect();
+
+        let pos = ids.iter().position(|&id| id == self.current).unwrap_or(0);
+        ids[(pos + 1) % ids.len()]
+    }
+
+    pub fn previous_project_id(&self) -> ProjectId {
+        let ids: Vec<_> = self.projects.keys().copied().collect();
+
+        let pos = ids.iter().position(|&id| id == self.current).unwrap_or(0);
+        ids[(pos + ids.len() - 1) % ids.len()]
     }
 }
