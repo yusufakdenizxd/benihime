@@ -543,4 +543,24 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "kill-current-project",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('j'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "next-project",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('k'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "previous-project",
+        None,
+    );
 }

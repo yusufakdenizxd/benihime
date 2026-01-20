@@ -187,4 +187,34 @@ impl EditorState {
 
         Ok(())
     }
+
+    pub fn switch_to_next_project(&mut self) -> anyhow::Result<()> {
+        if self.project_manager.len() == 0 {
+            return Err(anyhow!("Can't find next project"));
+        }
+        let next_id = self.project_manager.next_project_id();
+        self.switch_to_project(next_id);
+        Ok(())
+    }
+
+    pub fn switch_to_previous_project(&mut self) -> anyhow::Result<()> {
+        if self.project_manager.len() == 0 {
+            return Err(anyhow!("Can't find next project"));
+        }
+        let prev_id = self.project_manager.previous_project_id();
+        self.switch_to_project(prev_id);
+        Ok(())
+    }
+
+    pub fn switch_to_project(&mut self, id: ProjectId) {
+        self.project_manager.switch_by_id(id);
+        let project = self.project_manager.current();
+
+        if project.buffers.is_empty() {
+            let buf = self.create_empty_buffer("[No Name]");
+            self.focused_buf_id = buf;
+        } else {
+            self.focused_buf_id = project.buffers[0];
+        }
+    }
 }

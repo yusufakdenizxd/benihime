@@ -615,4 +615,12 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("kill-current-project", |ctx: &mut CommandContext| {
         ctx.state.close_current_project()
     });
+
+    registry.register("next-project", |ctx: &mut CommandContext| {
+        ctx.state.switch_to_next_project()
+    });
+
+    registry.register("previous-project", |ctx: &mut CommandContext| {
+        ctx.state.switch_to_previous_project()
+    });
 }
