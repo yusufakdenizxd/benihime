@@ -314,34 +314,37 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("next-buffer", |ctx: &mut CommandContext| {
         let state = &mut ctx.state;
         let focused_id = state.focused_buf_id;
-        let mut ids = state.buffer_manager.get_buffer_ids();
+        let ids = &state.project_manager.current().buffers;
 
-        ids.sort();
         if ids.is_empty() {
             return Ok(());
         }
 
-        if let Some(id) = ids.iter().position(|&id| *id == focused_id) {
-            let next_index = (id + 1) % ids.len();
-            state.focused_buf_id = *ids[next_index];
-        }
+        let next = match ids.iter().position(|&id| id == focused_id) {
+            Some(i) => ids[(i + 1) % ids.len()],
+            None => ids[0],
+        };
+
+        state.focused_buf_id = next;
 
         Ok(())
     });
+
     registry.register("previous-buffer", |ctx: &mut CommandContext| {
         let state = &mut ctx.state;
         let focused_id = state.focused_buf_id;
-        let mut ids = state.buffer_manager.get_buffer_ids();
+        let ids = &state.project_manager.current().buffers;
 
-        ids.sort();
         if ids.is_empty() {
             return Ok(());
         }
 
-        if let Some(pos) = ids.iter().position(|&id| *id == focused_id) {
-            let prev_index = (pos + ids.len() - 1) % ids.len();
-            state.focused_buf_id = *ids[prev_index];
-        }
+        let prev = match ids.iter().position(|&id| id == focused_id) {
+            Some(i) => ids[(i + ids.len() - 1) % ids.len()],
+            None => ids[0],
+        };
+
+        state.focused_buf_id = prev;
 
         Ok(())
     });
