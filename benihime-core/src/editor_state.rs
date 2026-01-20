@@ -7,7 +7,7 @@ use crate::{
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
     mini_buffer::MiniBufferManager,
-    project::{Project, ProjectId, project_manager::ProjectManager},
+    project::{ProjectId, project_manager::ProjectManager},
     theme::{Theme, theme_loader::ThemeLoader},
 };
 
