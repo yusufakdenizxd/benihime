@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use std::{path::PathBuf, sync::Arc};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use crate::{
     buffer::{Buffer, BufferId, Mode},
@@ -86,7 +86,7 @@ impl EditorState {
         }
 
         if len == 1 {
-            self.buffer_manager.create_empty_buffer("[No Name]");
+            self.create_empty_buffer("[No Name]");
         }
 
         self.buffer_manager.kill_buffer(buf_id_to_kill);
@@ -123,5 +123,31 @@ impl EditorState {
         if let Some(project) = project {
             self.cwd = Some(project.root.clone());
         }
+    }
+
+    pub fn create_empty_buffer(&mut self, name: &str) -> BufferId {
+        let id = self.buffer_manager.create_empty_buffer(name);
+        self.project_manager.add_buffer_to_current(id);
+        id
+    }
+
+    pub fn create_buffer_from_text(&mut self, name: &str, text: &str) -> BufferId {
+        let id = self.buffer_manager.create_buffer_from(name, text, None);
+
+        self.project_manager.add_buffer_to_current(id);
+        id
+    }
+
+    pub fn open_file(&mut self, path: &PathBuf) -> BufferId {
+        let contents = fs::read_to_string(path).unwrap_or_default();
+
+        let id = self.buffer_manager.create_buffer_from(
+            path.file_name().unwrap().to_str().unwrap(),
+            &contents,
+            Some(path),
+        );
+
+        self.project_manager.add_buffer_to_current(id);
+        id
     }
 }

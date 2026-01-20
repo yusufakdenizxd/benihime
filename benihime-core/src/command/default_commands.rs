@@ -240,7 +240,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
                     return Ok(Some(new_items));
                 } else {
-                    let id = state.buffer_manager.open_file(&path.clone());
+                    let id = state.open_file(&path.clone());
                     state.focused_buf_id = id;
                     println!("Opened file: {}", path.display());
                 }
@@ -272,7 +272,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "Find File: ",
             files,
             |state: &mut EditorState, path: &PathBuf| {
-                let id = state.buffer_manager.open_file(&path.clone());
+                let id = state.open_file(&path.clone());
                 state.focused_buf_id = id;
                 Ok(None)
             },
@@ -538,10 +538,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             buf.undo_tree.render()
         };
 
-        let id = ctx
-            .state
-            .buffer_manager
-            .create_buffer_from("*undo-tree*", &tree_text, None);
+        let id = ctx.state.create_buffer_from_text("*undo-tree*", &tree_text);
 
         ctx.state.focused_buf_id = id;
         Ok(())

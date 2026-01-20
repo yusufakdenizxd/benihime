@@ -8,7 +8,7 @@ use egui::ViewportBuilder;
 use thiserror::Error;
 
 use crate::{
-    buffer::Mode,
+    buffer::{BufferId, Mode},
     buffer_manager::BufferManager,
     command::{self, command_registry::CommandRegistry},
     editor_state::EditorState,
@@ -53,8 +53,7 @@ impl Editor {
     pub fn new() -> Self {
         let loader = benihime_loader::Loader::new().unwrap();
 
-        let mut buffer_manager = BufferManager::new();
-        let first_id = buffer_manager.create_empty_buffer("[No Name]");
+        let buffer_manager = BufferManager::new();
 
         let mut command_registry = CommandRegistry::new();
         command::default_commands::register_default_commands(&mut command_registry);
@@ -72,8 +71,8 @@ impl Editor {
             project_manager.discover_in_path(&projects_dir);
         }
 
-        let state = EditorState {
-            focused_buf_id: first_id,
+        let mut state = EditorState {
+            focused_buf_id: BufferId(0),
             project_manager,
             buffer_manager,
             command_buffer: String::new(),
@@ -87,6 +86,9 @@ impl Editor {
             theme_loader: Arc::new(theme_loader),
             cwd: None,
         };
+
+        let first_id = state.create_empty_buffer("[No Name]");
+        state.focused_buf_id = first_id;
 
         Self {
             state: Arc::new(Mutex::new(state)),

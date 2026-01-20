@@ -1,6 +1,9 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::project::{Project, ProjectId};
+use crate::{
+    buffer::BufferId,
+    project::{Project, ProjectId},
+};
 
 pub const DEFAULT_PROJECT_ID: ProjectId = ProjectId(0);
 
@@ -54,6 +57,12 @@ impl ProjectManager {
     pub fn current(&self) -> &Project {
         self.projects
             .get(&self.current)
+            .expect("current project id must always exist")
+    }
+
+    fn current_mut(&mut self) -> &mut Project {
+        self.projects
+            .get_mut(&self.current)
             .expect("current project id must always exist")
     }
 
@@ -111,5 +120,9 @@ impl ProjectManager {
 
     pub fn get_projects_cloned(&self) -> Vec<Project> {
         self.projects.values().cloned().collect()
+    }
+
+    pub fn add_buffer_to_current(&mut self, id: BufferId) {
+        self.current_mut().buffers.push(id);
     }
 }
