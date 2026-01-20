@@ -53,11 +53,14 @@ impl EditorState {
     }
 
     pub fn buffer_line(&self) -> Vec<(BufferId, String, bool, bool)> {
-        self.buffer_manager
-            .iter_buffers()
-            .map(|(id, buf)| {
-                let is_active = *id == self.focused_buf_id;
-                (*id, buf.name.clone(), is_active, buf.is_modified())
+        self.project_manager
+            .current()
+            .buffers
+            .iter()
+            .filter_map(|f| self.buffer_manager.get_buffer(*f))
+            .map(|buf| {
+                let is_active = buf.id == self.focused_buf_id;
+                (buf.id, buf.name.clone(), is_active, buf.is_modified())
             })
             .collect()
     }
