@@ -533,4 +533,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "open-project",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: KeyCode::Char('x'),
+            modifiers: KeyModifiers::SUPER,
+        }),
+        "kill-current-project",
+        None,
+    );
 }

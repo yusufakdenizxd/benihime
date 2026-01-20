@@ -611,4 +611,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register("kill-current-project", |ctx: &mut CommandContext| {
+        ctx.state.close_current_project()
+    });
 }
