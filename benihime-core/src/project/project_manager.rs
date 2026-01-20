@@ -7,7 +7,7 @@ pub const DEFAULT_PROJECT_ID: ProjectId = ProjectId(0);
 pub struct ProjectManager {
     projects: HashMap<ProjectId, Project>,
     name_index: HashMap<String, ProjectId>,
-    current: Option<ProjectId>,
+    current: ProjectId,
     next_id: u64,
 }
 
@@ -29,7 +29,7 @@ impl ProjectManager {
         Self {
             projects,
             name_index,
-            current: Some(DEFAULT_PROJECT_ID),
+            current: DEFAULT_PROJECT_ID,
             next_id: 1,
         }
     }
@@ -51,15 +51,17 @@ impl ProjectManager {
         id
     }
 
-    pub fn current(&self) -> Option<&Project> {
-        self.current.and_then(|id| self.projects.get(&id))
+    pub fn current(&self) -> &Project {
+        self.projects
+            .get(&self.current)
+            .expect("current project id must always exist")
     }
 
-    pub fn current_name(&self) -> Option<String> {
-        self.current().map(|p| p.name.clone())
+    pub fn current_name(&self) -> String {
+        self.current().name.clone()
     }
 
-    pub fn current_id(&self) -> Option<ProjectId> {
+    pub fn current_id(&self) -> ProjectId {
         self.current
     }
 
@@ -91,7 +93,7 @@ impl ProjectManager {
 
     pub fn switch_by_id(&mut self, id: ProjectId) -> Option<&Project> {
         if self.projects.contains_key(&id) {
-            self.current = Some(id);
+            self.current = id;
             self.projects.get(&id)
         } else {
             None
