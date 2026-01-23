@@ -6,6 +6,11 @@ use bitflags::bitflags;
 
 use crate::hashmap;
 
+use egui::{
+    style::{WidgetVisuals, Widgets},
+    Color32, Stroke, Visuals,
+};
+
 pub mod theme_loader;
 
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
@@ -303,5 +308,101 @@ impl Theme {
             ..Default::default()
         };
         (theme, load_errors)
+    }
+
+    pub fn to_egui_visuals(&self) -> Visuals {
+        let mut visuals = Visuals::dark();
+
+        if let Some(bg) = self.get("ui.background").bg {
+            visuals.panel_fill = bg.into();
+            visuals.window_fill = bg.into();
+        }
+
+        let text_color = self
+            .get("ui.text")
+            .fg
+            .map(Into::into)
+            .unwrap_or(visuals.override_text_color.unwrap_or(Color32::WHITE));
+        visuals.override_text_color = Some(text_color);
+
+        if let Some(bg) = self.get("ui.background").bg {
+            visuals.faint_bg_color = bg.into();
+        }
+        if let Some(bg) = self.get("ui.cursorline").bg {
+            visuals.extreme_bg_color = bg.into();
+        }
+        if let Some(bg) = self.get("ui.selection").bg {
+            visuals.code_bg_color = bg.into();
+        }
+
+        if let Some(fg) = self.get("warning").fg {
+            visuals.warn_fg_color = fg.into();
+        }
+        if let Some(fg) = self.get("error").fg {
+            visuals.error_fg_color = fg.into();
+        }
+
+        let noninteractive_group = self.get("ui.menu");
+        let noninteractive = WidgetVisuals {
+            weak_bg_fill: noninteractive_group
+                .bg
+                .map(Into::into)
+                .unwrap_or(visuals.panel_fill),
+            bg_fill: noninteractive_group
+                .bg
+                .map(Into::into)
+                .unwrap_or(visuals.panel_fill),
+            bg_stroke: Stroke::NONE,
+            fg_stroke: Stroke::new(
+                1.0,
+                noninteractive_group
+                    .fg
+                    .map(Into::into)
+                    .unwrap_or(text_color),
+            ),
+            corner_radius: 0.0.into(),
+            expansion: 0.0,
+        };
+
+        let menu_selected = self.get("ui.menu.selected");
+        let hovered = WidgetVisuals {
+            bg_fill: menu_selected
+                .bg
+                .map(Into::into)
+                .unwrap_or(noninteractive.bg_fill),
+            bg_stroke: Stroke::NONE, // TODO: Borders
+            fg_stroke: Stroke::new(
+                1.0,
+                menu_selected.fg.map(Into::into).unwrap_or(text_color),
+            ),
+            ..noninteractive
+        };
+
+        let text_focus = self.get("ui.text.focus");
+        let active = WidgetVisuals {
+            bg_fill: text_focus.bg.map(Into::into).unwrap_or(hovered.bg_fill),
+            bg_stroke: Stroke::NONE, // TODO: Borders
+            fg_stroke: Stroke::new(
+                1.0,
+                text_focus.fg.map(Into::into).unwrap_or(text_color),
+            ),
+            ..hovered
+        };
+
+        visuals.widgets = Widgets {
+            noninteractive,
+            inactive: noninteractive,
+            hovered,
+            active,
+            open: noninteractive,
+        };
+
+        if let Some(bg) = self.get("ui.selection").bg {
+            visuals.selection.bg_fill = bg.into();
+        }
+
+        visuals.selection.stroke = Stroke::NONE;
+
+        visuals
     }
 }

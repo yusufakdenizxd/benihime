@@ -12,6 +12,69 @@ use crate::editor_state::EditorState;
 
 pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
     egui::CentralPanel::default().show(ctx, |ui| {
+        let bg_color;
+        let text_color;
+        let cursorline_bg;
+        let selection_bg;
+        let primary_selection_bg;
+        let line_nr_selected_fg;
+        let line_nr_fg;
+        let cursor_normal_bg;
+        let cursor_normal_fg;
+        let cursor_insert_bg;
+        let cursor_select_bg;
+
+        {
+            let theme = &state.theme;
+            bg_color = theme
+                .get("ui.background")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::BLACK);
+            text_color = theme
+                .get("ui.text")
+                .fg
+                .map(Into::into)
+                .unwrap_or(Color32::WHITE);
+            cursorline_bg = theme
+                .get("ui.cursorline")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::from_gray(40));
+            selection_bg = theme
+                .get("ui.selection")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::from_gray(80));
+            primary_selection_bg = theme
+                .get("ui.selection.primary")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::from_gray(90));
+            line_nr_selected_fg = theme
+                .get("ui.linenr.selected")
+                .fg
+                .map(Into::into)
+                .unwrap_or(Color32::WHITE);
+            line_nr_fg = theme.get("ui.linenr").fg.map(Into::into).unwrap_or(Color32::GRAY);
+            let cursor_style = theme.get("ui.cursor.normal");
+            cursor_normal_bg = cursor_style.bg.map(Into::into).unwrap_or(Color32::WHITE);
+            cursor_normal_fg = cursor_style
+                .fg
+                .map(Into::into)
+                .unwrap_or(Color32::BLACK);
+            cursor_insert_bg = theme
+                .get("ui.cursor.insert")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::LIGHT_BLUE);
+            cursor_select_bg = theme
+                .get("ui.cursor.select")
+                .bg
+                .map(Into::into)
+                .unwrap_or(Color32::LIGHT_BLUE);
+        }
+
         let font_size = 16.0;
         let font_id = FontId::monospace(font_size);
 
@@ -52,7 +115,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                 ),
             ),
             0.0,
-            Color32::from_gray(30),
+            bg_color,
         );
 
         let start = buf.scroll_offset;
@@ -70,25 +133,17 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                 ui.painter().rect_filled(
                     Rect::from_min_size(Pos2 { x: x_start, y }, egui::vec2(width, char_height)),
                     0.0,
-                    Color32::from_rgba_unmultiplied(60, 60, 60, 80),
+                    cursorline_bg,
                 );
             }
 
             let line_number_color = if buf.cursor.row == row {
-                Color32::LIGHT_BLUE
+                line_nr_selected_fg
             } else {
-                Color32::GRAY
+                line_nr_fg
             };
 
-            let line_number_text = if buf.cursor.row == row {
-                format!("{:>width$}", row + 1, width = gutter_width)
-            } else {
-                format!(
-                    "{:>width$}",
-                    row.abs_diff(buf.cursor.row),
-                    width = gutter_width
-                )
-            };
+            let line_number_text = format!("{:>width$}", row + 1, width = gutter_width);
 
             ui.painter().text(
                 Pos2 {
@@ -139,7 +194,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                                     },
                                 ),
                                 0.0,
-                                Color32::from_gray(80),
+                                selection_bg,
                             );
                         }
                     }
@@ -172,7 +227,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                                 },
                             ),
                             0.0,
-                            Color32::from_rgba_unmultiplied(100, 100, 100, 40),
+                            primary_selection_bg,
                         );
                     }
                 }
@@ -204,7 +259,7 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                     egui::Align2::LEFT_TOP,
                     ch.to_string(),
                     font_id.clone(),
-                    Color32::WHITE,
+                    text_color,
                 );
             }
         }
@@ -225,21 +280,32 @@ pub fn render_buffer(ctx: &Context, state: &mut MutexGuard<'_, EditorState>) {
                 ui.painter().rect_filled(
                     Rect::from_min_size(cursor_pos, egui::vec2(char_width, char_height)),
                     0.0,
-                    Color32::WHITE,
+                    cursor_normal_bg,
                 );
+
+                if buf.cursor.col < buf.line_len(buf.cursor.row) {
+                    let ch = buf.line(buf.cursor.row).char(buf.cursor.col);
+                    ui.painter().text(
+                        cursor_pos,
+                        egui::Align2::LEFT_TOP,
+                        ch.to_string(),
+                        font_id.clone(),
+                        cursor_normal_fg,
+                    );
+                }
             }
             Mode::Insert => {
                 ui.painter().rect_filled(
                     Rect::from_min_size(cursor_pos, egui::vec2(2.0, char_height)),
                     0.0,
-                    Color32::LIGHT_BLUE,
+                    cursor_insert_bg,
                 );
             }
             Mode::Visual => {
                 ui.painter().rect_filled(
                     Rect::from_min_size(cursor_pos, egui::vec2(char_width, char_height)),
                     0.0,
-                    Color32::LIGHT_BLUE,
+                    cursor_select_bg,
                 );
             }
             _ => {}

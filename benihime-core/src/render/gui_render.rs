@@ -39,6 +39,9 @@ impl eframe::App for &mut Editor {
 
         let state = &mut self.state.lock().unwrap();
 
+        // Apply theme colors
+        ctx.set_visuals(state.theme.to_egui_visuals());
+
         render_bufferline(ctx, state);
 
         render_statusline(ctx, state);
