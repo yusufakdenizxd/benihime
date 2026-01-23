@@ -15,6 +15,9 @@ pub fn render_statusline(ctx: &Context, state: &EditorState) {
                 } else if state.message.is_some() {
                     ui.label(state.message.clone().unwrap());
                 }
+                if state.prefix_arg.is_some() {
+                    ui.label(state.prefix_arg.unwrap().to_string());
+                }
             });
         });
     });
