@@ -24,6 +24,18 @@ impl KeySequence {
     pub fn default() -> Self {
         KeySequence { chords: vec![] }
     }
+
+    pub fn to_string(&self) -> String {
+        if self.chords.is_empty() {
+            return "<empty>".to_string();
+        }
+
+        self.chords
+            .iter()
+            .map(|chord| chord.to_string())
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -76,5 +88,35 @@ impl Keymap {
             self.buffer.chords.clear();
         }
         None
+    }
+
+    pub fn render(&self) -> String {
+        let mut lines: Vec<String> = Vec::new();
+
+        let mut mode_map: HashMap<Mode, Vec<(&KeySequence, &String)>> = HashMap::new();
+
+        for ((seq, mode), (command, _args)) in &self.bindings {
+            mode_map.entry(*mode).or_default().push((seq, command));
+        }
+
+        let mut modes: Vec<Mode> = mode_map.keys().copied().collect();
+        modes.sort_by_key(|m| *m as u8);
+
+        for mode in modes {
+            lines.push(format!("=== {:?} mode ===", mode));
+
+            if let Some(bindings) = mode_map.get(&mode) {
+                let mut sorted_bindings = bindings.clone();
+                sorted_bindings.sort_by_key(|(seq, _)| seq.to_string());
+
+                for (seq, command_name) in sorted_bindings {
+                    lines.push(format!("{:<20} => {}", seq.to_string(), command_name));
+                }
+            }
+
+            lines.push(String::new());
+        }
+
+        lines.join("\n")
     }
 }

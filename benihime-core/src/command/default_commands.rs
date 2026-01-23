@@ -674,4 +674,13 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("previous-project", |ctx: &mut CommandContext| {
         ctx.state.switch_to_previous_project()
     });
+
+    registry.register("keymap", |ctx| {
+        let tree_text = ctx.state.keymap.render();
+
+        let id = ctx.state.create_buffer_from_text("*keymap*", &tree_text);
+
+        ctx.state.focused_buf_id = id;
+        Ok(())
+    });
 }

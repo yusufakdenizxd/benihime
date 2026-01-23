@@ -225,4 +225,35 @@ impl KeyChord {
             _ => None,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        let mut parts = Vec::new();
+
+        if self.modifiers.control {
+            parts.push("Ctrl".to_string());
+        }
+        if self.modifiers.alt {
+            parts.push("Alt".to_string());
+        }
+        if self.modifiers.shift {
+            parts.push("Shift".to_string());
+        }
+        if self.modifiers.super_key {
+            parts.push("Super".to_string());
+        }
+
+        let key_str = match &self.code {
+            KeyCode::Char(c) => c.to_string(),
+            KeyCode::Enter => "Enter".to_string(),
+            KeyCode::Backspace => "Backspace".to_string(),
+            KeyCode::Esc => "Esc".to_string(),
+            KeyCode::Tab => "Tab".to_string(),
+            // fallback for all other keys
+            other => format!("{:?}", other),
+        };
+
+        parts.push(key_str);
+
+        parts.join("+")
+    }
 }
