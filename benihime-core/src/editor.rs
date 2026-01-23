@@ -119,13 +119,20 @@ impl Editor {
 
         match state.focused_buf_mut().mode {
             Mode::Insert => {
-                let buf = state.focused_buf_mut(); // mutable borrow starts here
-                if chord.code == KeyCode::Backspace {
+                let buf = state.focused_buf_mut();
+                let result = if chord.code == KeyCode::Backspace {
                     buf.delete_char_before_cursor();
+                    Ok(())
                 } else if chord.code == KeyCode::Enter {
-                    buf.insert_char('\n');
+                    buf.insert_char('\n')
                 } else if let Some(c) = chord.as_char() {
-                    buf.insert_char(c);
+                    buf.insert_char(c)
+                } else {
+                    Ok(())
+                };
+
+                if let Err(err) = result {
+                    state.error_message = Some(err.to_string());
                 }
             }
             Mode::Command => {

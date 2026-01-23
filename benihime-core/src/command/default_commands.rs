@@ -106,7 +106,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("open-above", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let char_idx = buf.get_cursor_to_char();
-        buf.insert_idx(char_idx, "\n");
+        buf.insert_idx(char_idx, "\n")?;
         buf.cursor.col = 0;
         ctx.state
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
@@ -116,7 +116,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("open-below", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
         let char_idx = buf.get_line_to_char(buf.cursor.row + 1);
-        buf.insert_idx(char_idx, "\n");
+        buf.insert_idx(char_idx, "\n")?;
         buf.cursor.row += 1;
         buf.cursor.col = 0;
 
@@ -592,7 +592,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             buf.undo_tree.render()
         };
 
-        let id = ctx.state.create_buffer_from_text("*undo-tree*", &tree_text);
+        let id = ctx
+            .state
+            .create_read_only_buffer_from_text("*undo-tree*", &tree_text);
 
         ctx.state.focused_buf_id = id;
         Ok(())
@@ -678,7 +680,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("keymap", |ctx| {
         let tree_text = ctx.state.keymap.render();
 
-        let id = ctx.state.create_buffer_from_text("*keymap*", &tree_text);
+        let id = ctx
+            .state
+            .create_read_only_buffer_from_text("*keymap*", &tree_text);
 
         ctx.state.focused_buf_id = id;
         Ok(())

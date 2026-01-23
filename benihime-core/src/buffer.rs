@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{Ok, anyhow};
 use ropey::{Rope, RopeSlice, iter::Lines};
 use std::{io::Write, path::PathBuf, str::FromStr};
 
@@ -85,10 +85,11 @@ pub struct Buffer {
     pub undo_tree: UndoTree,
     dirty: bool,
     undo_recording: bool,
+    read_only: bool,
 }
 
 impl Buffer {
-    pub fn new(id: BufferId, name: &str, file_path: Option<PathBuf>) -> Self {
+    pub fn new(id: BufferId, name: &str, file_path: Option<PathBuf>, read_only: bool) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -103,10 +104,17 @@ impl Buffer {
             undo_tree: UndoTree::new(),
             undo_recording: true,
             dirty: false,
+            read_only,
         }
     }
 
-    pub fn from(id: BufferId, name: &str, text: &str, file_path: Option<PathBuf>) -> Self {
+    pub fn from(
+        id: BufferId,
+        name: &str,
+        text: &str,
+        file_path: Option<PathBuf>,
+        read_only: bool,
+    ) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -121,6 +129,7 @@ impl Buffer {
             undo_tree: UndoTree::new(),
             undo_recording: true,
             dirty: false,
+            read_only,
         }
     }
 
@@ -148,8 +157,12 @@ impl Buffer {
         self.lines.slice(range)
     }
 
-    pub fn insert_idx(&mut self, idx: usize, text: &str) {
+    pub fn insert_idx(&mut self, idx: usize, text: &str) -> anyhow::Result<()> {
+        if self.read_only {
+            return Err(anyhow!("Buffer is read only"));
+        }
         self.insert(idx, text);
+        Ok(())
     }
 
     pub fn remove_line(&mut self, start: usize, end: usize) {
@@ -182,18 +195,24 @@ impl Buffer {
         }
     }
 
-    pub fn insert_char(&mut self, c: char) {
+    pub fn insert_char(&mut self, c: char) -> anyhow::Result<()> {
+        if self.read_only {
+            return Err(anyhow!("Buffer is read only"));
+        }
         let mut s = String::new();
         s.push(c);
-        self.insert_str(&s);
+        self.insert_str(&s)
     }
 
-    pub fn insert_str(&mut self, s: &str) {
+    pub fn insert_str(&mut self, s: &str) -> anyhow::Result<()> {
+        if self.read_only {
+            return Err(anyhow!("Buffer is read only"));
+        }
         let row = self.cursor.row;
         let col = self.cursor.col;
 
         if row >= self.lines.len_lines() {
-            return;
+            return Ok(());
         }
 
         let line_len = self.line_len(row);
@@ -220,6 +239,8 @@ impl Buffer {
         } else {
             self.cursor.col = insert_col + last_line_len;
         }
+
+        Ok(())
     }
 
     pub fn delete_char_before_cursor(&mut self) {

@@ -60,7 +60,7 @@ impl BufferManager {
         let id = BufferId(self.next_id.0);
         self.next_id = BufferId(self.next_id.0 + 1);
 
-        let buf = Buffer::new(id, name, None);
+        let buf = Buffer::new(id, name, None, false);
         self.buffers.insert(id, buf);
 
         id
@@ -75,7 +75,17 @@ impl BufferManager {
         let id = BufferId(self.next_id.0);
         self.next_id = BufferId(self.next_id.0 + 1);
 
-        let buf = Buffer::from(id, name, text, file_path.cloned());
+        let buf = Buffer::from(id, name, text, file_path.cloned(), false);
+        self.buffers.insert(id, buf);
+
+        id
+    }
+
+    pub fn create_read_only_buffer_from(&mut self, name: &str, text: &str) -> BufferId {
+        let id = BufferId(self.next_id.0);
+        self.next_id = BufferId(self.next_id.0 + 1);
+
+        let buf = Buffer::from(id, name, text, None, true);
         self.buffers.insert(id, buf);
 
         id

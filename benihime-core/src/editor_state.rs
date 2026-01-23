@@ -156,6 +156,13 @@ impl EditorState {
         id
     }
 
+    pub fn create_read_only_buffer_from_text(&mut self, name: &str, text: &str) -> BufferId {
+        let id = self.buffer_manager.create_read_only_buffer_from(name, text);
+
+        self.project_manager.add_buffer_to_current(id);
+        id
+    }
+
     pub fn open_file(&mut self, path: &PathBuf) -> BufferId {
         let contents = fs::read_to_string(path).unwrap_or_default();
 
