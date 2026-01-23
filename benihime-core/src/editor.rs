@@ -43,7 +43,6 @@ impl PartialEq for HandleKeyError {
 
 pub struct Editor {
     pub state: Arc<Mutex<EditorState>>,
-    pub keymap: Keymap,
 }
 
 impl Editor {
@@ -82,6 +81,7 @@ impl Editor {
             theme: theme_loader.default(),
             theme_loader: Arc::new(theme_loader),
             prefix_arg: None,
+            keymap,
         };
 
         let first_id = state.create_empty_buffer("[No Name]");
@@ -89,61 +89,63 @@ impl Editor {
 
         Self {
             state: Arc::new(Mutex::new(state)),
-            keymap,
         }
     }
 
     pub fn handle_key(&mut self, key: KeyCode, modifiers: KeyModifiers) {
         let mut state = self.state.lock().unwrap();
-        let buf = state.focused_buf_mut();
+        let buf_mode = {
+            let buf = state.focused_buf();
+            buf.mode
+        };
 
         let chord = KeyChord {
             code: key,
             modifiers,
         };
 
-        if buf.mode == Mode::Normal {
+        if buf_mode == Mode::Normal {
             if let Some(digit) = chord.as_digit() {
                 state.prefix_arg = Some(state.prefix_arg.unwrap_or(0) * 10 + digit);
                 return;
             }
         }
 
-        match self.keymap.push_key(buf.mode, &chord) {
-            Some((command_name, args)) => {
-                let _ = state.exec(&command_name, args);
-                state.clear_prefix();
-            }
-            None => match buf.mode {
-                Mode::Insert => {
-                    if chord.code == KeyCode::Backspace {
-                        buf.delete_char_before_cursor();
-                    } else if chord.code == KeyCode::Enter {
-                        buf.insert_char('\n');
-                    } else if let Some(c) = chord.as_char() {
-                        buf.insert_char(c);
-                    }
-                }
-                Mode::Command => {
-                    if chord.code == KeyCode::Backspace {
-                        state.command_buffer.pop();
-                    } else if let Some(c) = chord.as_char() {
-                        state.command_buffer.push(c);
-                    }
-                }
+        if let Some((command_name, args)) = state.keymap.push_key(buf_mode, &chord) {
+            let _ = state.exec(&command_name, args);
+            state.clear_prefix();
+            return;
+        }
 
-                Mode::Minibuffer => {
-                    if let Some(mini) = state.minibuffer_manager.current.as_mut() {
-                        if chord.code == KeyCode::Backspace {
-                            mini.input_mut().pop();
-                        } else if let Some(c) = chord.as_char() {
-                            mini.input_mut().push(c);
-                        }
-                        mini.filter_items();
-                    }
+        match state.focused_buf_mut().mode {
+            Mode::Insert => {
+                let buf = state.focused_buf_mut(); // mutable borrow starts here
+                if chord.code == KeyCode::Backspace {
+                    buf.delete_char_before_cursor();
+                } else if chord.code == KeyCode::Enter {
+                    buf.insert_char('\n');
+                } else if let Some(c) = chord.as_char() {
+                    buf.insert_char(c);
                 }
-                _ => {}
-            },
+            }
+            Mode::Command => {
+                if chord.code == KeyCode::Backspace {
+                    state.command_buffer.pop();
+                } else if let Some(c) = chord.as_char() {
+                    state.command_buffer.push(c);
+                }
+            }
+            Mode::Minibuffer => {
+                if let Some(mini) = state.minibuffer_manager.current.as_mut() {
+                    if chord.code == KeyCode::Backspace {
+                        mini.input_mut().pop();
+                    } else if let Some(c) = chord.as_char() {
+                        mini.input_mut().push(c);
+                    }
+                    mini.filter_items();
+                }
+            }
+            _ => {}
         }
     }
 

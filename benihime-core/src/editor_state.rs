@@ -6,6 +6,7 @@ use crate::{
     buffer_manager::BufferManager,
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
     editor::HandleKeyError,
+    keymap::Keymap,
     mini_buffer::MiniBufferManager,
     project::{
         ProjectId,
@@ -28,6 +29,7 @@ pub struct EditorState {
     pub theme: Theme,
     pub theme_loader: Arc<ThemeLoader>,
     pub prefix_arg: Option<usize>,
+    pub keymap: Keymap,
 }
 
 impl EditorState {
