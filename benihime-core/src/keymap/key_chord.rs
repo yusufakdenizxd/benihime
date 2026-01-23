@@ -218,4 +218,11 @@ impl KeyChord {
             _ => None,
         }
     }
+
+    pub fn as_digit(&self) -> Option<usize> {
+        match self.code {
+            KeyCode::Char(c) if c.is_ascii_digit() => c.to_digit(10).map(|d| d as usize),
+            _ => None,
+        }
+    }
 }

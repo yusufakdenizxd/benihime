@@ -81,6 +81,7 @@ impl Editor {
             registry: Arc::new(command_registry),
             theme: theme_loader.default(),
             theme_loader: Arc::new(theme_loader),
+            prefix_arg: None,
         };
 
         let first_id = state.create_empty_buffer("[No Name]");
@@ -100,9 +101,18 @@ impl Editor {
             code: key,
             modifiers,
         };
+
+        if buf.mode == Mode::Normal {
+            if let Some(digit) = chord.as_digit() {
+                state.prefix_arg = Some(state.prefix_arg.unwrap_or(0) * 10 + digit);
+                return;
+            }
+        }
+
         match self.keymap.push_key(buf.mode, &chord) {
             Some((command_name, args)) => {
                 let _ = state.exec(&command_name, args);
+                state.clear_prefix();
             }
             None => match buf.mode {
                 Mode::Insert => {

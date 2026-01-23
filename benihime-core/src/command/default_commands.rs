@@ -23,27 +23,39 @@ use super::{
 pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-left", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.cursor.col = buf.cursor.col.saturating_sub(1);
+
+        for _ in 0..ctx.count {
+            buf.cursor.col = buf.cursor.col.saturating_sub(1);
+        }
         Ok(())
     });
 
     registry.register("move-down", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.cursor.row = min(buf.cursor.row + 1, buf.line_count() - 1);
-        buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+
+        for _ in 0..ctx.count {
+            buf.cursor.row = min(buf.cursor.row + 1, buf.line_count() - 1);
+            buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+        }
         Ok(())
     });
 
     registry.register("move-up", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.cursor.row = buf.cursor.row.saturating_sub(1);
-        buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+
+        for _ in 0..ctx.count {
+            buf.cursor.row = buf.cursor.row.saturating_sub(1);
+            buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+        }
         Ok(())
     });
 
     registry.register("move-right", |ctx: &mut CommandContext| {
         let buf = ctx.state.focused_buf_mut();
-        buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
+
+        for _ in 0..ctx.count {
+            buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
+        }
         Ok(())
     });
 
@@ -115,65 +127,98 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register_motion("word-forward", |ctx: &mut CommandContext| {
-        movement_commands::move_next_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_word_start(ctx);
+        }
 
         Ok(())
     });
 
     registry.register_motion("word-backward", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_word_start(ctx);
+        }
 
         Ok(())
     });
 
     registry.register_motion("word-end", |ctx: &mut CommandContext| {
-        movement_commands::move_next_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_word_end(ctx);
+        }
 
         Ok(())
     });
 
     registry.register_motion("word-backward-end", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_word_end(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("long-word-forward", |ctx: &mut CommandContext| {
-        movement_commands::move_next_long_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_long_word_start(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("long-word-forward-end", |ctx: &mut CommandContext| {
-        movement_commands::move_next_long_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_long_word_end(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("long-word-backward", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_long_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_long_word_start(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("long-word-backward-end", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_long_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_long_word_end(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("sub-word-forward", |ctx: &mut CommandContext| {
-        movement_commands::move_next_sub_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_sub_word_start(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("sub-word-forward-end", |ctx: &mut CommandContext| {
-        movement_commands::move_next_sub_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_next_sub_word_end(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("sub-word-backward", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_sub_word_start(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_sub_word_start(ctx);
+        }
+
         Ok(())
     });
 
     registry.register_motion("sub-word-backward-end", |ctx: &mut CommandContext| {
-        movement_commands::move_prev_sub_word_end(ctx);
+        for _ in 0..ctx.count {
+            movement_commands::move_prev_sub_word_end(ctx);
+        }
+
         Ok(())
     });
 
@@ -526,12 +571,18 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("undo", |ctx: &mut CommandContext| {
-        ctx.state.focused_buf_mut().undo();
+        for _ in 0..ctx.count {
+            ctx.state.focused_buf_mut().undo();
+        }
+
         Ok(())
     });
 
     registry.register("redo", |ctx: &mut CommandContext| {
-        ctx.state.focused_buf_mut().redo();
+        for _ in 0..ctx.count {
+            ctx.state.focused_buf_mut().redo();
+        }
+
         Ok(())
     });
 

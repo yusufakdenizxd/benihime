@@ -70,6 +70,7 @@ impl CommandRegistry {
                         &mut CommandContext {
                             state: ctx.state,
                             args: &None,
+                            count: 1,
                         },
                     );
                 }
@@ -81,6 +82,7 @@ impl CommandRegistry {
                     &mut CommandContext {
                         state: ctx.state,
                         args: &Some(vec![CommandArg::Str(e.to_string())]),
+                        count: 1,
                     },
                 );
                 Err(HandleKeyError::ExecutionFailed(e))

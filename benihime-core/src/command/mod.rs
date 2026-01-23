@@ -50,6 +50,7 @@ impl CommandArg {
 
 pub struct CommandContext<'a> {
     pub state: &'a mut EditorState,
+    pub count: usize,
     pub args: &'a Option<Vec<CommandArg>>,
 }
 

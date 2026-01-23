@@ -27,6 +27,7 @@ pub struct EditorState {
     pub registry: Arc<CommandRegistry>,
     pub theme: Theme,
     pub theme_loader: Arc<ThemeLoader>,
+    pub prefix_arg: Option<usize>,
 }
 
 impl EditorState {
@@ -115,12 +116,15 @@ impl EditorState {
         name: &str,
         args: Option<Vec<CommandArg>>,
     ) -> Result<(), HandleKeyError> {
+        let count = self.prefix_arg.take().unwrap_or(1);
+
         let registry = Arc::clone(&self.registry);
         registry.execute(
             name,
             &mut CommandContext {
                 state: self,
                 args: &args,
+                count,
             },
         )
     }
@@ -216,5 +220,9 @@ impl EditorState {
         } else {
             self.focused_buf_id = project.buffers[0];
         }
+    }
+
+    pub fn clear_prefix(&mut self) {
+        self.prefix_arg = None;
     }
 }
