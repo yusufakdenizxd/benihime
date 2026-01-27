@@ -1,8 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-  "benihime-core"
-, "benihime-loader"]
+  "benihime-core",
+  "benihime-loader",
+  "benihime-renderer"
+]
 
 default-members = [
   "benihime-core"
@@ -10,3 +12,5 @@ default-members = [
 
 [workspace.dependencies]
 anyhow = "1.0.99"
+env_logger = "0.10"
+log = "0.4"
