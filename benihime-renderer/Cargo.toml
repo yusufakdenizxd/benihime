@@ -1,0 +1,12 @@
+[package]
+name = "benihime-renderer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+env_logger.workspace = true
+log.workspace = true
+wgpu = "28.0"
+winit = { version = "0.30"}
+pollster = "0.3"

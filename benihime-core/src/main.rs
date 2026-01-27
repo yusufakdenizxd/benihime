@@ -17,6 +17,7 @@ mod theme;
 mod undotree;
 
 fn main() {
-    let mut editor = Editor::new();
-    let _ = editor.run();
+    benihime_renderer::run();
+    // let mut editor = Editor::new();
+    // let _ = editor.run();
 }
