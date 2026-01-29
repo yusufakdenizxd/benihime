@@ -10,3 +10,4 @@ log.workspace = true
 wgpu = "28.0"
 winit = { version = "0.30"}
 pollster = "0.3"
+bytemuck = { version = "1.24", features = [ "derive" ] }
