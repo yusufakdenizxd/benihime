@@ -1,14 +1,22 @@
 use std::{iter, sync::Arc};
 
+use glyphon::{
+    Attrs, Buffer, Cache, Color, Family, FontSystem, Metrics, Resolution, Shaping, SwashCache,
+    TextArea, TextAtlas, TextBounds, TextRenderer, Viewport,
+};
+
 use winit::{
     application::ApplicationHandler,
     event::*,
     event_loop::{ActiveEventLoop, EventLoop},
-    keyboard::{KeyCode, PhysicalKey},
+    keyboard::KeyCode,
     window::Window,
 };
 
-use wgpu::util::DeviceExt;
+use wgpu::{
+    CommandEncoderDescriptor, LoadOp, MultisampleState, Operations, RenderPassColorAttachment,
+    RenderPassDescriptor, TextureFormat, TextureViewDescriptor, util::DeviceExt,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -51,7 +59,7 @@ pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
+    surface_config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
 
     render_pipeline: wgpu::RenderPipeline,
@@ -59,11 +67,21 @@ pub struct State {
     vertex_buffer: wgpu::Buffer,
     num_vertices: u32,
 
+    font_system: FontSystem,
+    swash_cache: SwashCache,
+    viewport: glyphon::Viewport,
+    atlas: glyphon::TextAtlas,
+    text_renderer: glyphon::TextRenderer,
+    text_buffer: glyphon::Buffer,
+
     window: Arc<Window>,
 }
 
 impl State {
     async fn new(window: Arc<Window>) -> anyhow::Result<State> {
+        let physical_size = window.inner_size();
+        let scale_factor = window.scale_factor();
+
         let size = window.inner_size();
         let num_vertices = VERTICES.len() as u32;
 
@@ -95,13 +113,14 @@ impl State {
 
         let surface_caps = surface.get_capabilities(&adapter);
 
+        let swapchain_format = TextureFormat::Bgra8UnormSrgb;
         let surface_format = surface_caps
             .formats
             .iter()
             .copied()
             .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
-        let config = wgpu::SurfaceConfiguration {
+        let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
             width: size.width,
@@ -111,6 +130,8 @@ impl State {
             desired_maximum_frame_latency: 2,
             view_formats: vec![],
         };
+
+        surface.configure(&device, &surface_config);
 
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
@@ -136,7 +157,7 @@ impl State {
                 entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     // 4.
-                    format: config.format,
+                    format: surface_config.format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
@@ -167,24 +188,56 @@ impl State {
             usage: wgpu::BufferUsages::VERTEX,
         });
 
+        let mut font_system = FontSystem::new();
+        let swash_cache = SwashCache::new();
+        let cache = Cache::new(&device);
+        let viewport = Viewport::new(&device, &cache);
+        let mut atlas = TextAtlas::new(&device, &queue, &cache, swapchain_format);
+        let text_renderer =
+            TextRenderer::new(&mut atlas, &device, MultisampleState::default(), None);
+        let mut text_buffer = Buffer::new(&mut font_system, Metrics::new(30.0, 42.0));
+
+        let physical_width = (physical_size.width as f64 * scale_factor) as f32;
+        let physical_height = (physical_size.height as f64 * scale_factor) as f32;
+
+        text_buffer.set_size(
+            &mut font_system,
+            Some(physical_width),
+            Some(physical_height),
+        );
+        text_buffer.set_text(
+            &mut font_system,
+            "Kannonbiraki Benihime Aratame",
+            &Attrs::new().family(Family::SansSerif),
+            Shaping::Advanced,
+            None,
+        );
+        text_buffer.shape_until_scroll(&mut font_system, false);
+
         Ok(Self {
             surface,
             device,
             queue,
-            config,
+            surface_config,
             is_surface_configured: false,
             render_pipeline,
             vertex_buffer,
             num_vertices,
+            font_system,
+            swash_cache,
+            viewport,
+            atlas,
+            text_renderer,
+            text_buffer,
             window,
         })
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
         if width > 0 && height > 0 {
-            self.config.width = width;
-            self.config.height = height;
-            self.surface.configure(&self.device, &self.config);
+            self.surface_config.width = width;
+            self.surface_config.height = height;
+            self.surface.configure(&self.device, &self.surface_config);
             self.is_surface_configured = true;
         }
     }
@@ -281,41 +334,97 @@ impl ApplicationHandler<State> for App {
         _window_id: winit::window::WindowId,
         event: WindowEvent,
     ) {
-        let state = match &mut self.state {
-            Some(canvas) => canvas,
-            None => return,
+        let Some(state) = &mut self.state else {
+            return;
         };
 
+        let State {
+            window,
+            device,
+            queue,
+            surface,
+            surface_config,
+            font_system,
+            swash_cache,
+            viewport,
+            atlas,
+            text_renderer,
+            text_buffer,
+            ..
+        } = state;
+
         match event {
-            WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::Resized(size) => state.resize(size.width, size.height),
-            WindowEvent::RedrawRequested => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        let size = state.window.inner_size();
-                        state.resize(size.width, size.height);
-                    }
-                    Err(e) => {
-                        log::error!("Unable to render {}", e);
-                    }
-                }
+            WindowEvent::Resized(size) => {
+                surface_config.width = size.width;
+                surface_config.height = size.height;
+                surface.configure(device, surface_config);
+                window.request_redraw();
             }
-            WindowEvent::MouseInput { state, button, .. } => match (button, state.is_pressed()) {
-                (MouseButton::Left, true) => {}
-                (MouseButton::Left, false) => {}
-                _ => {}
-            },
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        physical_key: PhysicalKey::Code(code),
-                        state: key_state,
-                        ..
+            WindowEvent::RedrawRequested => {
+                viewport.update(
+                    queue,
+                    Resolution {
+                        width: surface_config.width,
+                        height: surface_config.height,
                     },
-                ..
-            } => state.handle_key(event_loop, code, key_state.is_pressed()),
+                );
+
+                text_renderer
+                    .prepare(
+                        device,
+                        queue,
+                        font_system,
+                        atlas,
+                        viewport,
+                        [TextArea {
+                            buffer: text_buffer,
+                            left: 10.0,
+                            top: 10.0,
+                            scale: 1.0,
+                            bounds: TextBounds {
+                                left: 0,
+                                top: 0,
+                                right: 600,
+                                bottom: 160,
+                            },
+                            default_color: Color::rgb(255, 255, 255),
+                            custom_glyphs: &[],
+                        }],
+                        swash_cache,
+                    )
+                    .unwrap();
+
+                let frame = surface.get_current_texture().unwrap();
+                let view = frame.texture.create_view(&TextureViewDescriptor::default());
+                let mut encoder =
+                    device.create_command_encoder(&CommandEncoderDescriptor { label: None });
+                {
+                    let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                        label: None,
+                        color_attachments: &[Some(RenderPassColorAttachment {
+                            view: &view,
+                            depth_slice: None,
+                            resolve_target: None,
+                            ops: Operations {
+                                load: LoadOp::Clear(wgpu::Color::BLACK),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                        multiview_mask: None,
+                    });
+
+                    text_renderer.render(atlas, viewport, &mut pass).unwrap();
+                }
+
+                queue.submit(Some(encoder.finish()));
+                frame.present();
+
+                atlas.trim();
+            }
+            WindowEvent::CloseRequested => event_loop.exit(),
             _ => {}
         }
     }
