@@ -13,4 +13,5 @@ default-members = [
 [workspace.dependencies]
 anyhow = "1.0.99"
 env_logger = "0.10"
+thiserror = "2.0.16"
 log = "0.4"
