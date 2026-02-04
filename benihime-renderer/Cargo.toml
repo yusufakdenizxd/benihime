@@ -8,8 +8,12 @@ anyhow.workspace = true
 env_logger.workspace = true
 log.workspace = true
 thiserror.workspace = true
+bitflags.workspace = true
 wgpu = "28.0"
+tiny-skia = "0.12.0"
 winit = { version = "0.30"}
 pollster = "0.3"
 bytemuck = { version = "1.24", features = [ "derive" ] }
 glyphon = "0.10.0"
+resvg = "0.46.0"
+fontdb = "0.12"

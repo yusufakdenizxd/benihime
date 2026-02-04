@@ -23,6 +23,7 @@ pub enum Key {
     NumLock,
     PrintScreen,
     Pause,
+    Other,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
