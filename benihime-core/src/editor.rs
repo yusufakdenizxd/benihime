@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
 use benihime_loader::paths;
-use egui::ViewportBuilder;
 use thiserror::Error;
 
 use crate::{
@@ -154,17 +153,5 @@ impl Editor {
             }
             _ => {}
         }
-    }
-
-    pub fn run(&mut self) -> eframe::Result<()> {
-        let options = eframe::NativeOptions {
-            viewport: ViewportBuilder::with_decorations(ViewportBuilder::default(), false),
-            ..Default::default()
-        };
-        eframe::run_native(
-            "Benihime Editor",
-            options,
-            Box::new(|_cc| Ok(Box::new(self))),
-        )
     }
 }

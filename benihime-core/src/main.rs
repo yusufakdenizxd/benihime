@@ -1,5 +1,6 @@
 use editor::Editor;
 
+mod application;
 mod buffer;
 mod buffer_manager;
 mod chars;
@@ -14,10 +15,10 @@ mod position;
 mod project;
 mod render;
 mod theme;
+mod ui;
 mod undotree;
 
 fn main() {
-    benihime_renderer::renderer::run();
-    // let mut editor = Editor::new();
-    // let _ = editor.run();
+    let mut editor = Editor::new();
+    let _ = editor.run();
 }
