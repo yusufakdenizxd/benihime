@@ -26,6 +26,15 @@ impl Color {
         Self { r, g, b, a: 1.0 }
     }
 
+    pub fn from_hex_string(s: &str) -> Self {
+        if s.len() >= 7 {
+            if let (Ok(hex),) = (u32::from_str_radix(&s, 16),) {
+                return Color::from_hex(hex);
+            }
+        }
+        Color::WHITE
+    }
+
     pub const WHITE: Self = Self {
         r: 1.0,
         g: 1.0,
