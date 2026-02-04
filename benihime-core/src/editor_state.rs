@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{borrow::Cow, fs, path::PathBuf, sync::Arc};
 
 use crate::{
     buffer::{Buffer, BufferId, Mode},
@@ -30,6 +30,8 @@ pub struct EditorState {
     pub theme_loader: Arc<ThemeLoader>,
     pub prefix_arg: Option<usize>,
     pub keymap: Keymap,
+
+    pub write_count: usize,
 }
 
 impl EditorState {
@@ -233,5 +235,13 @@ impl EditorState {
 
     pub fn clear_prefix(&mut self) {
         self.prefix_arg = None;
+    }
+
+    pub async fn flush_writes(&mut self) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    pub fn set_error(&mut self, error: String) {
+        self.error_message = Some(error);
     }
 }

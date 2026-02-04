@@ -6,6 +6,7 @@ mod chars;
 mod command;
 mod editor;
 mod editor_state;
+mod graphics;
 mod keymap;
 mod macros;
 mod mini_buffer;
@@ -13,6 +14,7 @@ mod movement;
 mod position;
 mod project;
 mod theme;
+mod ui;
 mod undotree;
 
 fn main() {

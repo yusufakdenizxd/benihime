@@ -194,14 +194,23 @@ name = "benihime-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "benihime-event",
  "benihime-loader",
  "benihime-renderer",
  "bitflags 2.10.0",
  "env_logger 0.11.8",
+ "foldhash 0.2.0",
+ "futures-executor",
+ "futures-util",
+ "hashbrown 0.16.1",
  "ignore",
  "log",
+ "once_cell",
+ "parking_lot",
  "ropey",
+ "serde",
  "thiserror 2.0.17",
+ "tokio",
  "toml",
  "unicode-general-category",
 ]
@@ -841,6 +850,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures-macro"
+version = "0.3.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "futures-task"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -853,6 +873,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fa08315bb612088cc391249efdc3bc77536f16c91f6cf495e6fbe85b20a4a81"
 dependencies = [
  "futures-core",
+ "futures-macro",
  "futures-task",
  "pin-project-lite",
  "pin-utils",

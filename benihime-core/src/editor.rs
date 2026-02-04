@@ -8,6 +8,7 @@ use crate::{
     buffer_manager::BufferManager,
     command::{self, command_registry::CommandRegistry},
     editor_state::EditorState,
+    graphics::Rect,
     keymap::{
         self, Keymap,
         key_chord::{KeyChord, KeyCode, KeyModifiers},
@@ -15,6 +16,7 @@ use crate::{
     mini_buffer::MiniBufferManager,
     project::project_manager::ProjectManager,
     theme::theme_loader::ThemeLoader,
+    ui::{composer::Composer, job::Jobs},
 };
 
 #[derive(Debug, Error)]
@@ -40,7 +42,9 @@ impl PartialEq for HandleKeyError {
     }
 }
 
-pub struct Editor {
+pub struct Application {
+    pub composer: Composer,
+    pub jobs: Jobs,
     pub state: Arc<Mutex<EditorState>>,
 }
 
@@ -66,6 +70,9 @@ impl Editor {
             project_manager.discover_in_path(&projects_dir);
         }
 
+        let area = Rect::new(0, 0, 120, 40);
+        let mut composer = Composer::new(area);
+
         let mut state = EditorState {
             focused_buf_id: BufferId(0),
             project_manager,
@@ -81,6 +88,7 @@ impl Editor {
             theme_loader: Arc::new(theme_loader),
             prefix_arg: None,
             keymap,
+            write_count: 0,
         };
 
         let first_id = state.create_empty_buffer("[No Name]");
@@ -88,6 +96,8 @@ impl Editor {
 
         Self {
             state: Arc::new(Mutex::new(state)),
+            composer,
+            jobs: Jobs::new(),
         }
     }
 
