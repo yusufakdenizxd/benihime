@@ -1,0 +1,14 @@
+[package]
+name = "benihime-event"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace           = true
+foldhash.workspace         = true
+futures-executor.workspace = true
+hashbrown.workspace        = true
+log.workspace              = true
+once_cell.workspace        = true
+parking_lot                = { features = [ "hardware-lock-elision" ], workspace = true }
+tokio.workspace            = true
