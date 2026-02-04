@@ -17,3 +17,5 @@ bytemuck = { version = "1.24", features = [ "derive" ] }
 glyphon = "0.10.0"
 resvg = "0.46.0"
 fontdb = "0.12"
+
+benihime-event = {path = "../benihime-event"}

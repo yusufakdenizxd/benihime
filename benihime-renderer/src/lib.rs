@@ -247,6 +247,8 @@ pub fn run<A: Application + 'static>(window_config: WindowConfig, app: A) -> Res
                                 let weak = Arc::downgrade(win);
                                 std::thread::spawn(move || {
                                     loop {
+                                        pollster::block_on(benihime_event::redraw_requested());
+
                                         if let Some(win) = weak.upgrade() {
                                             win.request_redraw();
                                         } else {
