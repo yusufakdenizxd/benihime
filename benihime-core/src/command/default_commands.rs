@@ -8,8 +8,8 @@ use anyhow::{Ok, anyhow};
 use ignore::Walk;
 
 use crate::{
+    application::HandleKeyError,
     buffer::{Buffer, Mode, Selection},
-    editor::HandleKeyError,
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
     project::Project,
 };

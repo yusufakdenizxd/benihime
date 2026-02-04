@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::collections::HashMap;
 
-use crate::editor::HandleKeyError;
+use crate::application::HandleKeyError;
 
 use crate::command::{Cmd, CommandArg, CommandContext, CommandFn};
 

@@ -3,7 +3,7 @@ use std::any::Any;
 use benihime_renderer::Renderer;
 
 use crate::{
-    editor::Editor,
+    application::Application,
     editor_state::EditorState,
     graphics::{CursorKind, Rect},
     keymap::key_chord::KeyChord,
@@ -71,7 +71,7 @@ pub trait Component: Any + AnyComponent {
 
     fn render(&mut self, area: Rect, surface: &mut Surface, ctx: &mut Context);
 
-    fn cursor(&self, _area: Rect, _ctx: &Editor) -> (Option<Position>, CursorKind) {
+    fn cursor(&self, _area: Rect, _ctx: &Application) -> (Option<Position>, CursorKind) {
         (None, CursorKind::Hidden)
     }
 
@@ -179,7 +179,7 @@ impl Composer {
         }
     }
 
-    pub fn cursor(&self, area: Rect, editor: &Editor) -> (Option<Position>, CursorKind) {
+    pub fn cursor(&self, area: Rect, editor: &Application) -> (Option<Position>, CursorKind) {
         for layer in self.layers.iter().rev() {
             if let (Some(pos), kind) = layer.cursor(area, editor) {
                 return (Some(pos), kind);

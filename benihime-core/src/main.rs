@@ -1,10 +1,10 @@
-use editor::Editor;
+use application::Application;
 
+mod application;
 mod buffer;
 mod buffer_manager;
 mod chars;
 mod command;
-mod editor;
 mod editor_state;
 mod graphics;
 mod keymap;
@@ -18,5 +18,5 @@ mod ui;
 mod undotree;
 
 fn main() {
-    let mut editor = Editor::new();
+    let mut editor = Application::new();
 }

@@ -2,10 +2,10 @@ use anyhow::anyhow;
 use std::{borrow::Cow, fs, path::PathBuf, sync::Arc};
 
 use crate::{
+    application::HandleKeyError,
     buffer::{Buffer, BufferId, Mode},
     buffer_manager::BufferManager,
     command::{CommandArg, CommandContext, command_registry::CommandRegistry},
-    editor::HandleKeyError,
     keymap::Keymap,
     mini_buffer::MiniBufferManager,
     project::{

@@ -48,7 +48,7 @@ pub struct Application {
     pub state: Arc<Mutex<EditorState>>,
 }
 
-impl Editor {
+impl Application {
     pub fn new() -> Self {
         let loader = benihime_loader::Loader::new().unwrap();
 
