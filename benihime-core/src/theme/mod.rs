@@ -31,7 +31,7 @@ impl FromStr for Modifier {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone)]
 pub struct HighlightGroup {
     pub fg: Option<Color>,
     pub bg: Option<Color>,
@@ -91,7 +91,7 @@ impl Default for ColorPalette {
     fn default() -> Self {
         Self {
             palette: hashmap! {
-                "default".to_string() => Color::default(),
+                "default".to_string() => Color::WHITE,
                 "black".to_string() => Color::from_hex_string("#282828"),
                 "red".to_string() => Color::from_hex_string("#fb4934"),
                 "green".to_string() => Color::from_hex_string("##62693e"),
