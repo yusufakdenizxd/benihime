@@ -233,6 +233,7 @@ name = "benihime-renderer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "benihime-event",
  "bitflags 2.10.0",
  "bytemuck",
  "env_logger 0.10.2",
