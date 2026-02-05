@@ -8,13 +8,13 @@ use futures_util::{
 use once_cell::sync::OnceCell;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 
-use crate::{editor_state::EditorState, ui::composer::Composer};
+use crate::{editor::Editor, ui::composer::Composer};
 
-pub type EditorCompositorCallback = Box<dyn FnOnce(&mut EditorState, &mut Composer) + Send>;
-pub type EditorCallback = Box<dyn FnOnce(&mut EditorState) + Send>;
+pub type EditorCompositorCallback = Box<dyn FnOnce(&mut Editor, &mut Composer) + Send>;
+pub type EditorCallback = Box<dyn FnOnce(&mut Editor) + Send>;
 
-pub type LocalEditorCompositorCallback = Box<dyn FnOnce(&mut EditorState, &mut Composer)>;
-pub type LocalEditorCallback = Box<dyn FnOnce(&mut EditorState)>;
+pub type LocalEditorCompositorCallback = Box<dyn FnOnce(&mut Editor, &mut Composer)>;
+pub type LocalEditorCallback = Box<dyn FnOnce(&mut Editor)>;
 
 runtime_local! {
     static JOB_QUEUE: OnceCell<Sender<Callback>> = OnceCell::new();
@@ -24,14 +24,14 @@ pub async fn dispatch_callback(job: Callback) {
     let _ = JOB_QUEUE.wait().send(job).await;
 }
 
-pub async fn dispatch(job: impl FnOnce(&mut EditorState, &mut Composer) + Send + 'static) {
+pub async fn dispatch(job: impl FnOnce(&mut Editor, &mut Composer) + Send + 'static) {
     let _ = JOB_QUEUE
         .wait()
         .send(Callback::EditorCompositor(Box::new(job)))
         .await;
 }
 
-pub fn dispatch_blocking(job: impl FnOnce(&mut EditorState, &mut Composer) + Send + 'static) {
+pub fn dispatch_blocking(job: impl FnOnce(&mut Editor, &mut Composer) + Send + 'static) {
     let jobs = JOB_QUEUE.wait();
     send_blocking(jobs, Callback::EditorCompositor(Box::new(job)))
 }
@@ -150,7 +150,7 @@ impl Jobs {
 
     pub fn handle_callback(
         &self,
-        editor: &mut EditorState,
+        editor: &mut Editor,
         compositor: &mut Composer,
         call: anyhow::Result<Option<Callback>>,
     ) {
@@ -168,7 +168,7 @@ impl Jobs {
 
     pub fn handle_local_callback(
         &self,
-        editor: &mut EditorState,
+        editor: &mut Editor,
         compositor: &mut Composer,
         call: anyhow::Result<Option<LocalCallback>>,
     ) {
@@ -214,7 +214,7 @@ impl Jobs {
 
     pub async fn finish(
         &mut self,
-        editor: &mut EditorState,
+        editor: &mut Editor,
         mut compositor: Option<&mut Composer>,
     ) -> anyhow::Result<()> {
         log::debug!("waiting on jobs...");

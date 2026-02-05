@@ -15,7 +15,7 @@ use crate::{
     theme::{Theme, theme_loader::ThemeLoader},
 };
 
-pub struct EditorState {
+pub struct Editor {
     pub focused_buf_id: BufferId,
     pub project_manager: ProjectManager,
     pub buffer_manager: BufferManager,
@@ -34,7 +34,7 @@ pub struct EditorState {
     pub write_count: usize,
 }
 
-impl EditorState {
+impl Editor {
     pub fn cwd(&self) -> Option<&PathBuf> {
         self.project_manager.current().root.as_ref()
     }

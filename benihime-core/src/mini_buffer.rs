@@ -1,12 +1,12 @@
 use anyhow::{Ok, Result};
 use std::path::PathBuf;
 
-use crate::{buffer::Buffer, editor_state::EditorState, project::Project};
+use crate::{buffer::Buffer, editor::Editor, project::Project};
 
 pub trait MiniBufferTrait {
     fn render_candidates(&self) -> Vec<String>;
     fn move_focus(&mut self, delta: isize);
-    fn run_callback(&mut self, editor: &mut EditorState) -> Result<MinibufferCallbackResult>;
+    fn run_callback(&mut self, editor: &mut Editor) -> Result<MinibufferCallbackResult>;
     fn prompt(&self) -> &str;
     fn input_mut(&mut self) -> &mut String;
     fn input(&self) -> &String;
@@ -23,14 +23,14 @@ pub struct MiniBuffer<T> {
     base_items: Vec<T>,
     index: usize,
     offset: usize,
-    callback: Box<dyn Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send>,
+    callback: Box<dyn Fn(&mut Editor, &T) -> Result<Option<Vec<T>>> + Send>,
 }
 
 impl<T: Clone> MiniBuffer<T> {
     pub fn new(
         prompt: &str,
         items: Vec<T>,
-        callback: impl Fn(&mut EditorState, &T) -> Result<Option<Vec<T>>> + Send + 'static,
+        callback: impl Fn(&mut Editor, &T) -> Result<Option<Vec<T>>> + Send + 'static,
     ) -> Self {
         Self {
             input: String::new(),
@@ -126,7 +126,7 @@ where
         }
     }
 
-    fn run_callback(&mut self, editor: &mut EditorState) -> Result<MinibufferCallbackResult> {
+    fn run_callback(&mut self, editor: &mut Editor) -> Result<MinibufferCallbackResult> {
         if let Some(item) = self.items.get(self.index).cloned() {
             if let Some(new_items) = (self.callback)(editor, &item)? {
                 self.items = new_items;

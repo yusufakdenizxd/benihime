@@ -4,7 +4,7 @@ pub mod default_commands;
 use anyhow::{Result, anyhow};
 use std::path::PathBuf;
 
-use crate::{buffer::Mode, editor_state::EditorState};
+use crate::{buffer::Mode, editor::Editor};
 
 #[derive(Debug, Clone)]
 pub enum CommandArg {
@@ -49,7 +49,7 @@ impl CommandArg {
 }
 
 pub struct CommandContext<'a> {
-    pub state: &'a mut EditorState,
+    pub state: &'a mut Editor,
     pub count: usize,
     pub args: &'a Option<Vec<CommandArg>>,
 }

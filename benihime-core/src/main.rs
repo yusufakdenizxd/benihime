@@ -5,7 +5,7 @@ mod buffer;
 mod buffer_manager;
 mod chars;
 mod command;
-mod editor_state;
+mod editor;
 mod graphics;
 mod keymap;
 mod macros;

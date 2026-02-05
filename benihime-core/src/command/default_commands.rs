@@ -13,7 +13,7 @@ use crate::{
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
     project::Project,
 };
-use crate::{editor_state::EditorState, movement::movement_commands};
+use crate::{editor::Editor, movement::movement_commands};
 
 use super::{
     command_registry::CommandRegistry,
@@ -267,7 +267,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let minibuffer: MiniBuffer<PathBuf> = MiniBuffer::new(
             "Open File: ",
             files,
-            |state: &mut EditorState, path: &PathBuf| {
+            |state: &mut Editor, path: &PathBuf| {
                 if path.is_dir() {
                     let mut new_items: Vec<PathBuf> = fs::read_dir(path)?
                         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -316,7 +316,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let minibuffer: MiniBuffer<PathBuf> = MiniBuffer::new(
             "Find File: ",
             files,
-            |state: &mut EditorState, path: &PathBuf| {
+            |state: &mut Editor, path: &PathBuf| {
                 let id = state.open_file(&path.clone());
                 state.focused_buf_id = id;
                 Ok(None)
@@ -442,7 +442,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let minibuffer: MiniBuffer<String> = MiniBuffer::new(
             "Find Command: ",
             commands,
-            |state: &mut EditorState, command_name: &String| {
+            |state: &mut Editor, command_name: &String| {
                 let _ = state.exec(command_name, None);
                 Ok(None)
             },
@@ -512,7 +512,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let minibuffer: MiniBuffer<Buffer> = MiniBuffer::new(
             "Find Buffer: ",
             buffers,
-            |state: &mut EditorState, command_name: &Buffer| {
+            |state: &mut Editor, command_name: &Buffer| {
                 state.focused_buf_id = command_name.id;
                 Ok(None)
             },
@@ -651,7 +651,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         let minibuffer: MiniBuffer<Project> = MiniBuffer::new(
             "Open Project: ",
             projects,
-            |state: &mut EditorState, project: &Project| {
+            |state: &mut Editor, project: &Project| {
                 state.switch_project(project.id);
                 Ok(None)
             },

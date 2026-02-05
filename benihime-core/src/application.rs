@@ -7,7 +7,7 @@ use crate::{
     buffer::{BufferId, Mode},
     buffer_manager::BufferManager,
     command::{self, command_registry::CommandRegistry},
-    editor_state::EditorState,
+    editor::Editor,
     graphics::Rect,
     keymap::{
         self, Keymap,
@@ -45,7 +45,7 @@ impl PartialEq for HandleKeyError {
 pub struct Application {
     pub composer: Composer,
     pub jobs: Jobs,
-    pub state: Arc<Mutex<EditorState>>,
+    pub editor: Editor,
 }
 
 impl Application {
@@ -73,7 +73,7 @@ impl Application {
         let area = Rect::new(0, 0, 120, 40);
         let mut composer = Composer::new(area);
 
-        let mut state = EditorState {
+        let mut state = Editor {
             focused_buf_id: BufferId(0),
             project_manager,
             buffer_manager,
@@ -95,14 +95,14 @@ impl Application {
         state.focused_buf_id = first_id;
 
         Self {
-            state: Arc::new(Mutex::new(state)),
+            editor: state,
             composer,
             jobs: Jobs::new(),
         }
     }
 
     pub fn handle_key(&mut self, key: KeyCode, modifiers: KeyModifiers) {
-        let mut state = self.state.lock().unwrap();
+        let state = &mut self.editor;
         let buf_mode = {
             let buf = state.focused_buf();
             buf.mode

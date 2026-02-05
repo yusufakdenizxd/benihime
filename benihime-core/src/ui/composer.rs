@@ -4,7 +4,7 @@ use benihime_renderer::Renderer;
 
 use crate::{
     application::Application,
-    editor_state::EditorState,
+    editor::Editor,
     graphics::{CursorKind, Rect},
     keymap::key_chord::KeyChord,
     position::Position,
@@ -33,7 +33,7 @@ pub enum Event {
 pub type Surface = Renderer;
 
 pub struct Context<'a> {
-    pub editor: &'a mut EditorState,
+    pub editor: &'a mut Editor,
     pub scroll: Option<usize>,
     pub jobs: &'a mut Jobs,
     pub dt: f32,
