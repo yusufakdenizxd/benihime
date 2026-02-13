@@ -245,3 +245,22 @@ impl Editor {
         self.error_message = Some(error);
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EditorConfig {
+    pub smooth_scroll_enabled: bool,
+    pub scroll_lerp_factor: f32,
+    pub scroll_min_step_lines: f32,
+    pub scroll_min_step_cols: f32,
+}
+
+impl Default for EditorConfig {
+    fn default() -> Self {
+        Self {
+            smooth_scroll_enabled: true,
+            scroll_lerp_factor: 0.25,
+            scroll_min_step_lines: 0.75,
+            scroll_min_step_cols: 1.0,
+        }
+    }
+}
