@@ -8,7 +8,7 @@ pub fn move_word_impl<F>(cx: &mut CommandContext, move_fn: F)
 where
     F: Fn(RopeSlice, Range, usize) -> Range,
 {
-    let state = &mut cx.state;
+    let state = &mut cx.editor;
     let count = 1; // TODO: later read it from contexts repeat count
 
     let buf = state.focused_buf_mut();

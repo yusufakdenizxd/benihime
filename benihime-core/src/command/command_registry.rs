@@ -40,14 +40,14 @@ impl CommandRegistry {
         if let Some(cmd) = self.commands.get(name) {
             match cmd {
                 Cmd::Plain(f) => {
-                    ctx.state.focused_buf_mut().range = None;
+                    ctx.editor.focused_buf_mut().range = None;
                     self.call_cmd(f, ctx, name)
                 }
                 Cmd::Motion(f) => self.call_cmd(f, ctx, name),
                 Cmd::Operator(f) => self.call_cmd(f, ctx, name),
                 Cmd::System(f) => self.call_cmd(f, ctx, name),
                 Cmd::Navigation(f) => {
-                    ctx.state.focused_buf_mut().range = None;
+                    ctx.editor.focused_buf_mut().range = None;
                     self.call_cmd(f, ctx, name)
                 }
             }
@@ -68,7 +68,7 @@ impl CommandRegistry {
                     let _ = self.execute(
                         "clear-error-message",
                         &mut CommandContext {
-                            state: ctx.state,
+                            editor: ctx.editor,
                             args: &None,
                             count: 1,
                         },
@@ -80,7 +80,7 @@ impl CommandRegistry {
                 let _ = self.execute(
                     "error-message",
                     &mut CommandContext {
-                        state: ctx.state,
+                        editor: ctx.editor,
                         args: &Some(vec![CommandArg::Str(e.to_string())]),
                         count: 1,
                     },

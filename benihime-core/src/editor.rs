@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use benihime_renderer::WindowConfig;
 use std::{borrow::Cow, fs, path::PathBuf, sync::Arc};
 
 use crate::{
@@ -32,6 +33,9 @@ pub struct Editor {
     pub keymap: Keymap,
 
     pub write_count: usize,
+
+    pub needs_redraw: bool,
+    pub config: Arc<EditorConfig>,
 }
 
 impl Editor {
@@ -126,7 +130,7 @@ impl Editor {
         registry.execute(
             name,
             &mut CommandContext {
-                state: self,
+                editor: self,
                 args: &args,
                 count,
             },
@@ -244,6 +248,14 @@ impl Editor {
     pub fn set_error(&mut self, error: String) {
         self.error_message = Some(error);
     }
+
+    pub fn set_status(&mut self, status: String) {
+        self.message = Some(status);
+    }
+
+    pub fn mode(&self) -> Mode {
+        self.focused_buf().mode
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -252,6 +264,8 @@ pub struct EditorConfig {
     pub scroll_lerp_factor: f32,
     pub scroll_min_step_lines: f32,
     pub scroll_min_step_cols: f32,
+    pub scroll_lines: isize,
+    pub scroll_offset: usize,
 }
 
 impl Default for EditorConfig {
@@ -261,6 +275,8 @@ impl Default for EditorConfig {
             scroll_lerp_factor: 0.25,
             scroll_min_step_lines: 0.75,
             scroll_min_step_cols: 1.0,
+            scroll_lines: 3,
+            scroll_offset: 8,
         }
     }
 }

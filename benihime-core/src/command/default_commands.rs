@@ -22,7 +22,7 @@ use super::{
 
 pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-left", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.col = buf.cursor.col.saturating_sub(1);
@@ -31,7 +31,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("move-down", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.row = min(buf.cursor.row + 1, buf.line_count() - 1);
@@ -41,7 +41,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("move-up", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.row = buf.cursor.row.saturating_sub(1);
@@ -51,7 +51,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("move-right", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
@@ -62,10 +62,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("set-mode", |ctx: &mut CommandContext| {
         let mode: Mode = ctx.get_arg(0)?;
         if mode == Mode::Command {
-            ctx.state.command_buffer.clear();
+            ctx.editor.command_buffer.clear();
         }
 
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         if buf.mode != Mode::Insert && mode == Mode::Insert {
             buf.undo_tree.commit_group();
         }
@@ -76,19 +76,19 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("beginning-of-line", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         buf.cursor.col = 0;
         Ok(())
     });
 
     registry.register("end-of-line", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         buf.cursor.col = buf.line_len(buf.cursor.row);
         Ok(())
     });
 
     registry.register("first-non-blank", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let line = buf.line(buf.cursor.row);
         let mut i = 0;
         for (idx, char) in line.chars().enumerate() {
@@ -104,23 +104,23 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("open-above", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let char_idx = buf.get_cursor_to_char();
         buf.insert_idx(char_idx, "\n")?;
         buf.cursor.col = 0;
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
         Ok(())
     });
 
     registry.register("open-below", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let char_idx = buf.get_line_to_char(buf.cursor.row + 1);
         buf.insert_idx(char_idx, "\n")?;
         buf.cursor.row += 1;
         buf.cursor.col = 0;
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
 
         Ok(())
@@ -223,11 +223,11 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("execute-command-buffer", |ctx: &mut CommandContext| {
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
 
-        let line = ctx.state.command_buffer.clone();
-        ctx.state.command_buffer.clear();
+        let line = ctx.editor.command_buffer.clone();
+        ctx.editor.command_buffer.clear();
 
         if line.is_empty() {
             return Ok(());
@@ -240,12 +240,12 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         let args: Vec<CommandArg> = parts.map(CommandArg::parse_arg).collect();
 
-        ctx.state.exec(command_name, Some(args))?;
+        ctx.editor.exec(command_name, Some(args))?;
         Ok(())
     });
 
     registry.register("open-file", |ctx: &mut CommandContext| {
-        let cwd = match ctx.state.cwd() {
+        let cwd = match ctx.editor.cwd() {
             Some(v) => v,
             None => return Err(anyhow!("Not in a Project")),
         };
@@ -293,16 +293,16 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             },
         );
 
-        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
 
     registry.register("find-file", |ctx: &mut CommandContext| {
-        let cwd = match ctx.state.cwd() {
+        let cwd = match ctx.editor.cwd() {
             Some(v) => v,
             None => return Err(anyhow!("Not in a Project")),
         };
@@ -323,9 +323,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             },
         );
 
-        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
@@ -333,7 +333,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("echo", |ctx: &mut CommandContext| {
         let text: String = ctx.get_arg(0)?;
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         state.message = Some(text);
         state.error_message = None;
 
@@ -342,7 +342,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("error-message", |ctx: &mut CommandContext| {
         let text: String = ctx.get_arg(0)?;
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         state.message = None;
         state.error_message = Some(text);
 
@@ -350,14 +350,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register_system("clear-error-message", |ctx: &mut CommandContext| {
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         state.error_message = None;
 
         Ok(())
     });
 
     registry.register("next-buffer", |ctx: &mut CommandContext| {
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         let focused_id = state.focused_buf_id;
         let ids = &state.project_manager.current().buffers;
 
@@ -376,7 +376,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("previous-buffer", |ctx: &mut CommandContext| {
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         let focused_id = state.focused_buf_id;
         let ids = &state.project_manager.current().buffers;
 
@@ -394,14 +394,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
     registry.register("center-cursor", |ctx: &mut CommandContext| {
-        let screen_height = ctx.state.screen_height;
-        let buf = ctx.state.focused_buf_mut();
+        let screen_height = ctx.editor.screen_height;
+        let buf = ctx.editor.focused_buf_mut();
         buf.center_cursor(screen_height);
         Ok(())
     });
 
     registry.register("minibuffer-next-completion", |ctx: &mut CommandContext| {
-        if let Some(mini) = ctx.state.minibuffer_manager.current.as_mut() {
+        if let Some(mini) = ctx.editor.minibuffer_manager.current.as_mut() {
             mini.move_focus(1);
         }
         Ok(())
@@ -410,7 +410,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register(
         "minibuffer-previous-completion",
         |ctx: &mut CommandContext| {
-            if let Some(mini) = ctx.state.minibuffer_manager.current.as_mut() {
+            if let Some(mini) = ctx.editor.minibuffer_manager.current.as_mut() {
                 mini.move_focus(-1);
             }
             Ok(())
@@ -418,14 +418,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     );
 
     registry.register("minibuffer-accept", |ctx: &mut CommandContext| {
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
 
-        if let Some(mut mini) = ctx.state.minibuffer_manager.current.take() {
-            let result = mini.run_callback(ctx.state)?;
+        if let Some(mut mini) = ctx.editor.minibuffer_manager.current.take() {
+            let result = mini.run_callback(ctx.editor)?;
             match result {
                 MinibufferCallbackResult::NewItems => {
-                    ctx.state.minibuffer_manager.current = Some(mini);
+                    ctx.editor.minibuffer_manager.current = Some(mini);
                     //Early return to be in minibuffer mode
                     return Ok(());
                 }
@@ -437,7 +437,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("find-command", |ctx: &mut CommandContext| {
-        let commands: Vec<String> = ctx.state.registry.commands.keys().cloned().collect();
+        let commands: Vec<String> = ctx.editor.registry.commands.keys().cloned().collect();
 
         let minibuffer: MiniBuffer<String> = MiniBuffer::new(
             "Find Command: ",
@@ -448,22 +448,22 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             },
         );
 
-        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
 
     registry.register("kill-this-buffer", |ctx: &mut CommandContext| {
-        let state = &mut ctx.state;
+        let state = &mut ctx.editor;
         state.kill_active_buffer()?;
         Ok(())
     });
 
     registry.register("enter-visual-mode", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         if buf.mode != Mode::Visual {
             buf.selection = Some(Selection { start: buf.cursor });
             buf.mode = Mode::Visual;
@@ -472,14 +472,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("exit-visual-mode", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         buf.selection = None;
         buf.mode = Mode::Normal;
         Ok(())
     });
 
     registry.register("visual_select_other_end", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         if buf.mode == Mode::Visual {
             if let Some(selection) = &mut buf.selection {
                 std::mem::swap(&mut selection.start, &mut buf.cursor);
@@ -489,7 +489,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("delete-selection", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         if buf.mode == Mode::Visual {
             buf.delete_selection();
             buf.mode = Mode::Normal;
@@ -498,7 +498,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("change-selection", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         if buf.mode == Mode::Visual {
             buf.delete_selection();
             buf.mode = Mode::Insert;
@@ -507,7 +507,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("find-buffer", |ctx: &mut CommandContext| {
-        let buffers = ctx.state.buffer_manager.get_buffers_cloned();
+        let buffers = ctx.editor.buffer_manager.get_buffers_cloned();
 
         let minibuffer: MiniBuffer<Buffer> = MiniBuffer::new(
             "Find Buffer: ",
@@ -518,16 +518,16 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             },
         );
 
-        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
 
     registry.register_operator("delete-range", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let row = buf.cursor.row;
         let line_start = buf.get_line_to_char(row);
         let line_end = buf.get_line_to_char(row + 1);
@@ -551,7 +551,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register_operator("change-range", |ctx: &mut CommandContext| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let row = buf.cursor.row;
         let line_start = buf.get_line_to_char(row);
         let line_end = buf.get_line_to_char(row + 1);
@@ -572,7 +572,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("undo", |ctx: &mut CommandContext| {
         for _ in 0..ctx.count {
-            ctx.state.focused_buf_mut().undo();
+            ctx.editor.focused_buf_mut().undo();
         }
 
         Ok(())
@@ -580,7 +580,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("redo", |ctx: &mut CommandContext| {
         for _ in 0..ctx.count {
-            ctx.state.focused_buf_mut().redo();
+            ctx.editor.focused_buf_mut().redo();
         }
 
         Ok(())
@@ -588,65 +588,65 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("undo-tree-show", |ctx| {
         let tree_text = {
-            let buf = ctx.state.focused_buf();
+            let buf = ctx.editor.focused_buf();
             buf.undo_tree.render()
         };
 
         let id = ctx
-            .state
+            .editor
             .create_read_only_buffer_from_text("*undo-tree*", &tree_text);
 
-        ctx.state.focused_buf_id = id;
+        ctx.editor.focused_buf_id = id;
         Ok(())
     });
 
     registry.register("scroll-half-down", |ctx| {
-        let h = ctx.state.screen_height / 2;
-        let buf = ctx.state.focused_buf_mut();
+        let h = ctx.editor.screen_height / 2;
+        let buf = ctx.editor.focused_buf_mut();
         buf.scroll_down(h);
         Ok(())
     });
 
     registry.register("scroll-half-up", |ctx| {
-        let h = ctx.state.screen_height / 2;
-        let buf = ctx.state.focused_buf_mut();
+        let h = ctx.editor.screen_height / 2;
+        let buf = ctx.editor.focused_buf_mut();
         buf.scroll_up(h);
         Ok(())
     });
 
     registry.register("scroll-full-down", |ctx| {
-        let h = ctx.state.screen_height;
-        let buf = ctx.state.focused_buf_mut();
+        let h = ctx.editor.screen_height;
+        let buf = ctx.editor.focused_buf_mut();
         buf.scroll_down(h);
         Ok(())
     });
 
     registry.register("scroll-full-up", |ctx| {
-        let h = ctx.state.screen_height;
-        let buf = ctx.state.focused_buf_mut();
+        let h = ctx.editor.screen_height;
+        let buf = ctx.editor.focused_buf_mut();
         buf.scroll_up(h);
         Ok(())
     });
     registry.register("goto-first-line", |ctx| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         buf.goto_first_line();
         Ok(())
     });
 
     registry.register("goto-last-line", |ctx| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         buf.goto_last_line();
         Ok(())
     });
 
     registry.register("save-current-buffer", |ctx| {
-        let buf = ctx.state.focused_buf_mut();
+        let buf = ctx.editor.focused_buf_mut();
         let _ = buf.save();
         Ok(())
     });
 
     registry.register("open-project", |ctx: &mut CommandContext| {
-        let projects = ctx.state.project_manager.get_projects_cloned();
+        let projects = ctx.editor.project_manager.get_projects_cloned();
 
         let minibuffer: MiniBuffer<Project> = MiniBuffer::new(
             "Open Project: ",
@@ -657,34 +657,34 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             },
         );
 
-        ctx.state.minibuffer_manager.activate(Box::new(minibuffer));
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
 
-        ctx.state
+        ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
 
         Ok(())
     });
 
     registry.register("kill-current-project", |ctx: &mut CommandContext| {
-        ctx.state.close_current_project()
+        ctx.editor.close_current_project()
     });
 
     registry.register("next-project", |ctx: &mut CommandContext| {
-        ctx.state.switch_to_next_project()
+        ctx.editor.switch_to_next_project()
     });
 
     registry.register("previous-project", |ctx: &mut CommandContext| {
-        ctx.state.switch_to_previous_project()
+        ctx.editor.switch_to_previous_project()
     });
 
     registry.register("keymap", |ctx| {
-        let tree_text = ctx.state.keymap.render();
+        let tree_text = ctx.editor.keymap.render();
 
         let id = ctx
-            .state
+            .editor
             .create_read_only_buffer_from_text("*keymap*", &tree_text);
 
-        ctx.state.focused_buf_id = id;
+        ctx.editor.focused_buf_id = id;
         Ok(())
     });
 }

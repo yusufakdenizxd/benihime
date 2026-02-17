@@ -49,7 +49,7 @@ impl CommandArg {
 }
 
 pub struct CommandContext<'a> {
-    pub state: &'a mut Editor,
+    pub editor: &'a mut Editor,
     pub count: usize,
     pub args: &'a Option<Vec<CommandArg>>,
 }
