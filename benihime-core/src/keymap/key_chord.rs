@@ -1,3 +1,5 @@
+use benihime_renderer::event::Key;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeyModifiers {
     pub shift: bool,
@@ -41,43 +43,40 @@ impl KeyModifiers {
     };
 }
 
-#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Clone, Copy, Hash)]
-pub enum KeyCode {
-    Backspace,
-    Enter,
-    Left,
-    Right,
-    Up,
-    Down,
-    Home,
-    End,
-    PageUp,
-    PageDown,
-    Tab,
-    BackTab,
-    Delete,
-    Insert,
-    F(u8),
-    Char(char),
-    Null,
-    Esc,
-    CapsLock,
-    ScrollLock,
-    NumLock,
-    PrintScreen,
-    Pause,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeyChord {
-    pub code: KeyCode,
+    pub code: Key,
     pub modifiers: KeyModifiers,
 }
 
 impl KeyChord {
+    pub fn new(code: Key) -> KeyChord {
+        KeyChord {
+            code,
+            modifiers: KeyModifiers::NONE,
+        }
+    }
+
+    pub fn with_modifiers(
+        mut self,
+        control: bool,
+        shift: bool,
+        alt: bool,
+        super_key: bool,
+    ) -> Self {
+        self.modifiers = KeyModifiers {
+            control,
+            shift,
+            alt,
+            super_key,
+        };
+
+        self
+    }
+
     pub fn as_char(&self) -> Option<char> {
         match self.code {
-            KeyCode::Char(c) => {
+            Key::Char(c) => {
                 if self.modifiers.shift {
                     Some(c.to_ascii_uppercase())
                 } else {
@@ -90,7 +89,7 @@ impl KeyChord {
 
     pub fn as_digit(&self) -> Option<usize> {
         match self.code {
-            KeyCode::Char(c) if c.is_ascii_digit() => c.to_digit(10).map(|d| d as usize),
+            Key::Char(c) if c.is_ascii_digit() => c.to_digit(10).map(|d| d as usize),
             _ => None,
         }
     }
@@ -112,11 +111,11 @@ impl KeyChord {
         }
 
         let key_str = match &self.code {
-            KeyCode::Char(c) => c.to_string(),
-            KeyCode::Enter => "Enter".to_string(),
-            KeyCode::Backspace => "Backspace".to_string(),
-            KeyCode::Esc => "Esc".to_string(),
-            KeyCode::Tab => "Tab".to_string(),
+            Key::Char(c) => c.to_string(),
+            Key::Enter => "Enter".to_string(),
+            Key::Backspace => "Backspace".to_string(),
+            Key::Esc => "Esc".to_string(),
+            Key::Tab => "Tab".to_string(),
             // fallback for all other keys
             other => format!("{:?}", other),
         };

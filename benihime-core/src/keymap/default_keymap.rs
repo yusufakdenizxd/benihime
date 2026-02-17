@@ -1,7 +1,9 @@
+use benihime_renderer::event::Key;
+
 use crate::{buffer::Mode, command::CommandArg};
 
 use super::{
-    key_chord::{KeyChord, KeyCode, KeyModifiers},
+    key_chord::{KeyChord, KeyModifiers},
     {KeySequence, Keymap},
 };
 
@@ -9,7 +11,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('i'),
+            code: Key::Char('i'),
             modifiers: KeyModifiers::NONE,
         }),
         "set-mode",
@@ -19,7 +21,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Insert, Mode::Command, Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Esc,
+            code: Key::Esc,
             modifiers: KeyModifiers::NONE,
         }),
         "set-mode",
@@ -29,7 +31,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('x'),
+            code: Key::Char('x'),
             modifiers: KeyModifiers::SUPER,
         }),
         "set-mode",
@@ -39,7 +41,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('h'),
+            code: Key::Char('h'),
             modifiers: KeyModifiers::NONE,
         }),
         "move-left",
@@ -49,7 +51,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('j'),
+            code: Key::Char('j'),
             modifiers: KeyModifiers::NONE,
         }),
         "move-down",
@@ -59,7 +61,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('k'),
+            code: Key::Char('k'),
             modifiers: KeyModifiers::NONE,
         }),
         "move-up",
@@ -69,7 +71,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('l'),
+            code: Key::Char('l'),
             modifiers: KeyModifiers::NONE,
         }),
         "move-right",
@@ -79,7 +81,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('-'),
+            code: Key::Char('-'),
             modifiers: KeyModifiers::NONE,
         }),
         "first-non-blank",
@@ -89,7 +91,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('0'),
+            code: Key::Char('0'),
             modifiers: KeyModifiers::NONE,
         }),
         "beginning-of-line",
@@ -99,7 +101,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('='),
+            code: Key::Char('='),
             modifiers: KeyModifiers::NONE,
         }),
         "end-of-line",
@@ -109,7 +111,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('o'),
+            code: Key::Char('o'),
             modifiers: KeyModifiers::NONE,
         }),
         "open-below",
@@ -119,7 +121,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('o'),
+            code: Key::Char('o'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "open-above",
@@ -129,7 +131,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('e'),
+            code: Key::Char('e'),
             modifiers: KeyModifiers::NONE,
         }),
         "word-end",
@@ -139,7 +141,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('b'),
+            code: Key::Char('b'),
             modifiers: KeyModifiers::NONE,
         }),
         "word-backward",
@@ -149,7 +151,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('w'),
+            code: Key::Char('w'),
             modifiers: KeyModifiers::NONE,
         }),
         "word-forward",
@@ -159,7 +161,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('w'),
+            code: Key::Char('w'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "long-word-forward",
@@ -169,7 +171,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('e'),
+            code: Key::Char('e'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "long-word-forward-end",
@@ -179,7 +181,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal, Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('b'),
+            code: Key::Char('b'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "long-word-backward",
@@ -189,7 +191,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char(':'),
+            code: Key::Char(':'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "set-mode",
@@ -199,7 +201,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Command],
         KeySequence::single(KeyChord {
-            code: KeyCode::Enter,
+            code: Key::Enter,
             modifiers: KeyModifiers::NONE,
         }),
         "execute-command-buffer",
@@ -209,7 +211,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('j'),
+            code: Key::Char('j'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "next-buffer",
@@ -219,7 +221,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('k'),
+            code: Key::Char('k'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "previous-buffer",
@@ -230,11 +232,11 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal],
         KeySequence::new(vec![
             KeyChord {
-                code: KeyCode::Char('z'),
+                code: Key::Char('z'),
                 modifiers: KeyModifiers::NONE,
             },
             KeyChord {
-                code: KeyCode::Char('z'),
+                code: Key::Char('z'),
                 modifiers: KeyModifiers::NONE,
             },
         ]),
@@ -245,7 +247,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('j'),
+            code: Key::Char('j'),
             modifiers: KeyModifiers::CTRL,
         }),
         "minibuffer-next-completion",
@@ -255,7 +257,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('k'),
+            code: Key::Char('k'),
             modifiers: KeyModifiers::CTRL,
         }),
         "minibuffer-previous-completion",
@@ -265,7 +267,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Down,
+            code: Key::Down,
             modifiers: KeyModifiers::NONE,
         }),
         "minibuffer-next-completion",
@@ -275,7 +277,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Up,
+            code: Key::Up,
             modifiers: KeyModifiers::NONE,
         }),
         "minibuffer-previous-completion",
@@ -285,7 +287,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('p'),
+            code: Key::Char('p'),
             modifiers: KeyModifiers::SUPER,
         }),
         "find-file",
@@ -296,11 +298,11 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal],
         KeySequence::new(vec![
             KeyChord {
-                code: KeyCode::Char('x'),
+                code: Key::Char('x'),
                 modifiers: KeyModifiers::CTRL,
             },
             KeyChord {
-                code: KeyCode::Char('f'),
+                code: Key::Char('f'),
                 modifiers: KeyModifiers::CTRL,
             },
         ]),
@@ -311,7 +313,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Minibuffer],
         KeySequence::single(KeyChord {
-            code: KeyCode::Enter,
+            code: Key::Enter,
             modifiers: KeyModifiers::NONE,
         }),
         "minibuffer-accept",
@@ -321,7 +323,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('x'),
+            code: Key::Char('x'),
             modifiers: KeyModifiers::SUPER,
         }),
         "find-command",
@@ -331,7 +333,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('q'),
+            code: Key::Char('q'),
             modifiers: KeyModifiers::CTRL,
         }),
         "kill-this-buffer",
@@ -341,7 +343,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('v'),
+            code: Key::Char('v'),
             modifiers: KeyModifiers::NONE,
         }),
         "enter-visual-mode",
@@ -351,7 +353,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('v'),
+            code: Key::Char('v'),
             modifiers: KeyModifiers::NONE,
         }),
         "exit-visual-mode",
@@ -361,7 +363,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Esc,
+            code: Key::Esc,
             modifiers: KeyModifiers::NONE,
         }),
         "exit-visual-mode",
@@ -371,7 +373,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('o'),
+            code: Key::Char('o'),
             modifiers: KeyModifiers::NONE,
         }),
         "visual_select_other_end",
@@ -381,7 +383,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('d'),
+            code: Key::Char('d'),
             modifiers: KeyModifiers::NONE,
         }),
         "delete-selection",
@@ -391,7 +393,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Visual],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('c'),
+            code: Key::Char('c'),
             modifiers: KeyModifiers::NONE,
         }),
         "change-selection",
@@ -401,7 +403,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('b'),
+            code: Key::Char('b'),
             modifiers: KeyModifiers::SUPER,
         }),
         "find-buffer",
@@ -411,7 +413,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('d'),
+            code: Key::Char('d'),
             modifiers: KeyModifiers::NONE,
         }),
         "delete-range",
@@ -421,7 +423,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('c'),
+            code: Key::Char('c'),
             modifiers: KeyModifiers::NONE,
         }),
         "change-range",
@@ -431,7 +433,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('u'),
+            code: Key::Char('u'),
             modifiers: KeyModifiers::NONE,
         }),
         "undo",
@@ -441,7 +443,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('r'),
+            code: Key::Char('r'),
             modifiers: KeyModifiers::CTRL,
         }),
         "redo",
@@ -451,7 +453,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('d'),
+            code: Key::Char('d'),
             modifiers: KeyModifiers::CTRL,
         }),
         "scroll-half-down",
@@ -461,7 +463,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('f'),
+            code: Key::Char('f'),
             modifiers: KeyModifiers::CTRL,
         }),
         "scroll-full-down",
@@ -471,7 +473,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('u'),
+            code: Key::Char('u'),
             modifiers: KeyModifiers::CTRL,
         }),
         "scroll-half-up",
@@ -481,7 +483,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('b'),
+            code: Key::Char('b'),
             modifiers: KeyModifiers::CTRL,
         }),
         "scroll-full-up",
@@ -492,11 +494,11 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal],
         KeySequence::new(vec![
             KeyChord {
-                code: KeyCode::Char('g'),
+                code: Key::Char('g'),
                 modifiers: KeyModifiers::NONE,
             },
             KeyChord {
-                code: KeyCode::Char('g'),
+                code: Key::Char('g'),
                 modifiers: KeyModifiers::NONE,
             },
         ]),
@@ -507,7 +509,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('g'),
+            code: Key::Char('g'),
             modifiers: KeyModifiers::SHIFT,
         }),
         "goto-last-line",
@@ -517,7 +519,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('s'),
+            code: Key::Char('s'),
             modifiers: KeyModifiers::SUPER,
         }),
         "save-current-buffer",
@@ -527,7 +529,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('n'),
+            code: Key::Char('n'),
             modifiers: KeyModifiers::SUPER,
         }),
         "open-project",
@@ -537,7 +539,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('x'),
+            code: Key::Char('x'),
             modifiers: KeyModifiers::SUPER,
         }),
         "kill-current-project",
@@ -547,7 +549,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('j'),
+            code: Key::Char('j'),
             modifiers: KeyModifiers::SUPER,
         }),
         "next-project",
@@ -557,7 +559,7 @@ pub fn register_default_keymap(km: &mut Keymap) {
     km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
-            code: KeyCode::Char('k'),
+            code: Key::Char('k'),
             modifiers: KeyModifiers::SUPER,
         }),
         "previous-project",
