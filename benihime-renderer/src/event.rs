@@ -76,6 +76,12 @@ pub struct KeyPress {
     pub modifier: KeyModifiers,
 }
 
+impl KeyPress {
+    pub fn has_modifier(&self) -> bool {
+        self.modifier.super_key | self.modifier.alt | self.modifier.shift | self.modifier.control
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MouseButton {
     Left,
