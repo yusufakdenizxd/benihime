@@ -40,6 +40,11 @@ impl Component for EditorView {
             0
         };
 
+        let gutter_width_chars = 4;
+        let gutter_width = (gutter_width_chars as f32 * cell_width).ceil();
+        let gutter_width_u16 = gutter_width as u16;
+        let editor_start_x = area.x + gutter_width_u16;
+
         let y_offset = area.y + buffer_line_height;
         let editor_area_height = area
             .height
@@ -53,10 +58,19 @@ impl Component for EditorView {
             benihime_renderer::color::Color::rgb(0.1, 0.1, 0.15),
         );
 
+        surface.draw_rect(
+            area.x as f32,
+            y_offset as f32,
+            gutter_width,
+            editor_area_height as f32,
+            benihime_renderer::color::Color::rgb(0.08, 0.08, 0.12),
+        );
+
         let visible_lines = (editor_area_height as f32 / cell_height).floor() as usize;
 
         let start_line = buffer.scroll_offset;
         let end_line = (start_line + visible_lines).min(line_count);
+        let cursor_row = buffer.cursor.row;
 
         for (row, line_idx) in (start_line..end_line).enumerate() {
             let line = buffer.line(line_idx);
@@ -64,9 +78,38 @@ impl Component for EditorView {
 
             let y = y_offset as f32 + (row as f32 * cell_height);
 
+            let is_current_line = line_idx == cursor_row;
+            let line_num_str = format!("{:>4}", line_idx + 1);
+
+            let (text, color) = if is_current_line {
+                (
+                    line_num_str.clone(),
+                    benihime_renderer::color::Color::rgb(0.9, 0.6, 0.4),
+                )
+            } else if line_idx < cursor_row {
+                (
+                    format!("{:>4}", cursor_row - line_idx),
+                    benihime_renderer::color::Color::rgb(0.4, 0.4, 0.45),
+                )
+            } else {
+                (
+                    format!("{:>4}", line_idx - cursor_row),
+                    benihime_renderer::color::Color::rgb(0.4, 0.4, 0.45),
+                )
+            };
+
+            let line_num_section = benihime_renderer::text::TextSection::simple(
+                area.x as f32,
+                y,
+                text.as_str(),
+                surface.font_size() * 0.8,
+                color,
+            );
+            surface.draw_text(line_num_section);
+
             if !line_str.is_empty() {
                 let section = benihime_renderer::text::TextSection::simple(
-                    area.x as f32,
+                    editor_start_x as f32,
                     y,
                     line_str,
                     surface.font_size(),
