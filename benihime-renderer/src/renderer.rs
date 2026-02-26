@@ -641,13 +641,13 @@ impl Renderer {
             mask_instance_buffer: None,
             mask_instance_capacity: 0,
             font_family: default_family,
-            font_size: 16.0,
-            cell_width: 8.0,
-            cell_height: 16.0,
+            font_size: 32.0,
+            cell_width: 19.2,
+            cell_height: 32.0,
             line_top_offset: 0.0,
             buffer_pool: BufferPool {
                 buffers: Vec::with_capacity(4),
-                metrics: Metrics::new(16.0, 16.0 * LINE_HEIGHT_FACTOR),
+                metrics: Metrics::new(32.0, 32.0 * LINE_HEIGHT_FACTOR),
             },
             shaped_text_cache: crate::text_cache::ShapedTextCache::new(1000),
             blur_pipeline,
@@ -690,24 +690,29 @@ impl Renderer {
             .family(Family::Name(self.font_family.as_str()))
             .metrics(metrics);
 
-        buffer.set_text(&mut self.font_system, "00", &attrs, Shaping::Advanced, None);
+        buffer.set_text(&mut self.font_system, "MM", &attrs, Shaping::Advanced, None);
         buffer.shape_until_scroll(&mut self.font_system, false);
 
+        let mut measured_glyph_width = self.font_size * 0.55;
+        
         if let Some(run) = buffer.layout_runs().next() {
-            let advance_width = if run.glyphs.len() >= 2 {
-                run.glyphs[1].x
-            } else {
-                run.line_w / 2.0
-            };
-
-            self.cell_width = advance_width.max(1.0);
             self.cell_height = run.line_height.max(self.font_size);
             self.line_top_offset = run.line_top;
+            
+            if run.glyphs.len() >= 2 {
+                let advance = run.glyphs[1].x - run.glyphs[0].x;
+                if advance > 0.0 {
+                    measured_glyph_width = advance;
+                }
+            }
         } else {
             self.cell_height = self.font_size * LINE_HEIGHT_FACTOR;
-            self.cell_width = (self.font_size * 0.6).max(1.0);
             self.line_top_offset = 0.0;
         }
+        
+        self.cell_width = measured_glyph_width;
+        log::info!("Font metrics: font_size={}, cell_width={}, cell_height={}, ratio={}", 
+            self.font_size, self.cell_width, self.cell_height, self.cell_width / self.font_size);
     }
 
     pub fn update_viewport(&mut self, width: u32, height: u32) -> bool {
@@ -1292,7 +1297,7 @@ impl Renderer {
             ],
         };
 
-        let base_metrics = Metrics::new(self.font_size, self.cell_height);
+        let base_metrics = Metrics::new(self.font_size, self.font_size * LINE_HEIGHT_FACTOR);
 
         if !self.shaped_text_cache.entries.contains_key(&cache_key) {
             self.shaped_text_cache.misses += 1;
@@ -1700,6 +1705,10 @@ impl Renderer {
 
     pub fn cell_height(&self) -> f32 {
         self.cell_height
+    }
+
+    pub fn font_size(&self) -> f32 {
+        self.font_size
     }
 
     pub fn measure_text(&mut self, text: &str, font_size: f32) -> f32 {
