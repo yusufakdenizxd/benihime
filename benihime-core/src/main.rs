@@ -7,6 +7,7 @@ mod chars;
 mod command;
 mod editor;
 mod graphics;
+mod input_handler;
 mod keymap;
 mod macros;
 mod mini_buffer;
@@ -17,6 +18,13 @@ mod theme;
 mod ui;
 mod undotree;
 
-fn main() {
-    let mut editor = Application::new();
+fn main() -> anyhow::Result<()> {
+    let window_config = benihime_renderer::WindowConfig::new("The Editor", false);
+
+    let app = Application::new();
+
+    let result = benihime_renderer::run(window_config, app)
+        .map_err(|e| anyhow::anyhow!("Failed to run renderer: {}", e));
+
+    result
 }

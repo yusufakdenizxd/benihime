@@ -31,22 +31,35 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("move-down", |ctx: &mut CommandContext| {
+        let screen_height = ctx.editor.screen_height;
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.row = min(buf.cursor.row + 1, buf.line_count() - 1);
             buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
         }
+
+        if buf.cursor.row >= buf.scroll_offset + screen_height - scroll_offset {
+            buf.scroll_offset = buf.cursor.row + scroll_offset + 1 - screen_height;
+        }
+
         Ok(())
     });
 
     registry.register("move-up", |ctx: &mut CommandContext| {
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
 
         for _ in 0..ctx.count {
             buf.cursor.row = buf.cursor.row.saturating_sub(1);
             buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
         }
+
+        if buf.cursor.row < buf.scroll_offset + scroll_offset {
+            buf.scroll_offset = buf.cursor.row.saturating_sub(scroll_offset);
+        }
+
         Ok(())
     });
 
@@ -436,6 +449,17 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
         Ok(())
     });
 
+    registry.register("close-minibuffer", |ctx: &mut CommandContext| {
+        ctx.editor.minibuffer_manager.current = None;
+
+        ctx.editor
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Normal)]))?;
+
+        ctx.editor.needs_redraw = true;
+
+        Ok(())
+    });
+
     registry.register("find-command", |ctx: &mut CommandContext| {
         let commands: Vec<String> = ctx.editor.registry.commands.keys().cloned().collect();
 
@@ -601,30 +625,36 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("scroll-half-down", |ctx| {
-        let h = ctx.editor.screen_height / 2;
+        let screen_height = ctx.editor.screen_height;
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_down(h);
+        let h = screen_height / 2;
+        buf.scroll_down(h, screen_height, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-half-up", |ctx| {
-        let h = ctx.editor.screen_height / 2;
+        let screen_height = ctx.editor.screen_height;
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_up(h);
+        let h = screen_height / 2;
+        buf.scroll_up(h, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-full-down", |ctx| {
-        let h = ctx.editor.screen_height;
+        let screen_height = ctx.editor.screen_height;
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_down(h);
+        buf.scroll_down(screen_height, screen_height, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-full-up", |ctx| {
-        let h = ctx.editor.screen_height;
+        let screen_height = ctx.editor.screen_height;
+        let scroll_offset = ctx.editor.config.scroll_offset;
         let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_up(h);
+        buf.scroll_up(screen_height, scroll_offset);
         Ok(())
     });
     registry.register("goto-first-line", |ctx| {

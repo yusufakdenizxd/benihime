@@ -29,6 +29,16 @@ pub fn register_default_keymap(km: &mut Keymap) {
     );
 
     km.bind(
+        &[Mode::Minibuffer],
+        KeySequence::single(KeyChord {
+            code: Key::Esc,
+            modifiers: KeyModifiers::NONE,
+        }),
+        "close-minibuffer",
+        Some(vec![CommandArg::Mode(Mode::Normal)]),
+    );
+
+    km.bind(
         &[Mode::Normal],
         KeySequence::single(KeyChord {
             code: Key::Char('x'),

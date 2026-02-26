@@ -1,5 +1,5 @@
-use anyhow::{Ok, anyhow};
-use ropey::{Rope, RopeSlice, iter::Lines};
+use anyhow::{anyhow, Ok};
+use ropey::{iter::Lines, Rope, RopeSlice};
 use std::{io::Write, path::PathBuf, str::FromStr};
 
 use crate::{
@@ -415,16 +415,27 @@ impl Buffer {
         }
     }
 
-    pub fn scroll_down(&mut self, lines: usize) {
+    pub fn scroll_down(&mut self, lines: usize, screen_height: usize, scrolloff: usize) {
         let max_row = self.line_count().saturating_sub(1);
 
         let new_row = (self.cursor.row + lines).min(max_row);
         self.cursor.row = new_row;
+
+        if new_row >= self.scroll_offset + screen_height - scrolloff {
+            self.scroll_offset = new_row + scrolloff + 1 - screen_height;
+        }
+        self.scroll_offset = self
+            .scroll_offset
+            .min(max_row.saturating_add(1).saturating_sub(screen_height));
     }
 
-    pub fn scroll_up(&mut self, lines: usize) {
+    pub fn scroll_up(&mut self, lines: usize, scrolloff: usize) {
         let new_row = self.cursor.row.saturating_sub(lines);
         self.cursor.row = new_row;
+
+        if new_row < self.scroll_offset + scrolloff {
+            self.scroll_offset = new_row.saturating_sub(scrolloff);
+        }
     }
 
     pub fn goto_first_line(&mut self) {

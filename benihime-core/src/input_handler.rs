@@ -154,10 +154,10 @@ impl InputProcessor {
                 super_key: key_press.modifier.super_key,
             }),
             Key::Char(ch) => {
-                if self.mode == Mode::Insert || self.pending_char {
+                if self.pending_char {
                     Some(UnifiedKey::Character(ch))
                 } else {
-                    None
+                    Some(UnifiedKey::Character(ch))
                 }
             }
             _ => None,

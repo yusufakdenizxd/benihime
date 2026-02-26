@@ -134,7 +134,10 @@ impl Editor {
                 args: &args,
                 count,
             },
-        )
+        )?;
+        
+        self.needs_redraw = true;
+        Ok(())
     }
 
     pub fn switch_project(&mut self, project_id: ProjectId) {
