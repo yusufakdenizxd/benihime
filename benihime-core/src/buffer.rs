@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Ok};
-use ropey::{iter::Lines, Rope, RopeSlice};
+use anyhow::{Ok, anyhow};
+use ropey::{Rope, RopeSlice, iter::Lines};
 use std::{io::Write, path::PathBuf, str::FromStr};
 
 use crate::{
@@ -442,6 +442,7 @@ impl Buffer {
         self.cursor.row = 0;
         self.cursor.col = 0;
         self.selection = None;
+        self.scroll_offset = 0;
     }
 
     pub fn goto_last_line(&mut self) {
