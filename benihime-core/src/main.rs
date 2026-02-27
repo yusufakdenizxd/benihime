@@ -23,8 +23,8 @@ fn main() -> anyhow::Result<()> {
 
     let app = Application::new();
 
-    let result = benihime_renderer::run(window_config, app)
-        .map_err(|e| anyhow::anyhow!("Failed to run renderer: {}", e));
+    
 
-    result
+    benihime_renderer::run(window_config, app)
+        .map_err(|e| anyhow::anyhow!("Failed to run renderer: {}", e))
 }

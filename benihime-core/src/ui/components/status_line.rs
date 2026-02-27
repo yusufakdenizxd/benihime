@@ -1,7 +1,6 @@
 use benihime_renderer::Renderer;
 
 use crate::{
-    application::Application,
     graphics::Rect,
     ui::composer::{Component, Context},
 };

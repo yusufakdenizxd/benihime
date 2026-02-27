@@ -3,7 +3,6 @@ use benihime_renderer::Renderer;
 use crate::{
     application::Application,
     buffer::Mode,
-    editor::Editor,
     graphics::{CursorKind, Rect},
     position::Position,
     ui::composer::{Component, Context},

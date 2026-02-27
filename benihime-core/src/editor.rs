@@ -1,6 +1,5 @@
 use anyhow::anyhow;
-use benihime_renderer::WindowConfig;
-use std::{borrow::Cow, fs, path::PathBuf, sync::Arc};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use crate::{
     application::HandleKeyError,

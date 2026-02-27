@@ -233,12 +233,10 @@ pub fn word_move(slice: RopeSlice, range: Range, count: usize, target: WordMotio
         } else {
             range.head.min(len.saturating_sub(1))
         }
+    } else if range.anchor < range.head {
+        range.head.saturating_sub(1)
     } else {
-        if range.anchor < range.head {
-            range.head.saturating_sub(1)
-        } else {
-            range.head.saturating_add(1).min(len)
-        }
+        range.head.saturating_add(1).min(len)
     };
 
     let mut range = Range {

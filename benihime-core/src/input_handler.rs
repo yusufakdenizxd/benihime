@@ -174,18 +174,16 @@ impl InputProcessor {
         for ch in text.chars() {
             if self.mode == Mode::Insert || self.pending_char {
                 events.push(ProcessedInput::Key(UnifiedKey::Character(ch)));
+            } else if self.ctrl_held || self.alt_held {
+                events.push(ProcessedInput::Key(UnifiedKey::Modified {
+                    key: ch,
+                    shift: self.shift_held,
+                    ctrl: self.ctrl_held,
+                    alt: self.alt_held,
+                    super_key: self.super_held,
+                }));
             } else {
-                if self.ctrl_held || self.alt_held {
-                    events.push(ProcessedInput::Key(UnifiedKey::Modified {
-                        key: ch,
-                        shift: self.shift_held,
-                        ctrl: self.ctrl_held,
-                        alt: self.alt_held,
-                        super_key: self.super_held,
-                    }));
-                } else {
-                    events.push(ProcessedInput::Key(UnifiedKey::Character(ch)));
-                }
+                events.push(ProcessedInput::Key(UnifiedKey::Character(ch)));
             }
         }
 

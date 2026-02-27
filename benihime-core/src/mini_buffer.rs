@@ -127,13 +127,12 @@ where
     }
 
     fn run_callback(&mut self, editor: &mut Editor) -> Result<MinibufferCallbackResult> {
-        if let Some(item) = self.items.get(self.index).cloned() {
-            if let Some(new_items) = (self.callback)(editor, &item)? {
+        if let Some(item) = self.items.get(self.index).cloned()
+            && let Some(new_items) = (self.callback)(editor, &item)? {
                 self.items = new_items;
                 self.index = 0;
                 return Ok(MinibufferCallbackResult::NewItems);
             }
-        }
         Ok(MinibufferCallbackResult::Executed)
     }
 

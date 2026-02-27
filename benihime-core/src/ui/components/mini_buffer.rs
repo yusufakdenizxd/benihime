@@ -123,7 +123,7 @@ impl Component for MiniBufferComponent {
         if !input.is_empty() {
             let prompt_width = prompt.len() as f32 * surface.cell_width();
             let input_section = benihime_renderer::text::TextSection::simple(
-                (area.x as f32 + prompt_width),
+                area.x as f32 + prompt_width ,
                 input_y as f32,
                 input,
                 surface.font_size(),

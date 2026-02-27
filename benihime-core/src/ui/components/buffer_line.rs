@@ -36,7 +36,7 @@ impl Component for BufferLine {
 
         let mut x_offset = area.x as f32;
 
-        for (buf_id, name, is_active, is_modified) in buffers {
+        for (_buf_id, name, is_active, _is_modified) in buffers {
             let label = format!(" {} ", name.as_str());
 
             let color = if is_active {

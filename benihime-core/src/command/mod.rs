@@ -22,11 +22,10 @@ impl CommandArg {
             return CommandArg::Path(PathBuf::from(token));
         }
 
-        if let Some((row_str, col_str)) = token.split_once(',') {
-            if let (Ok(row), Ok(col)) = (row_str.parse::<usize>(), col_str.parse::<usize>()) {
+        if let Some((row_str, col_str)) = token.split_once(',')
+            && let (Ok(row), Ok(col)) = (row_str.parse::<usize>(), col_str.parse::<usize>()) {
                 return CommandArg::Position { row, col };
             }
-        }
 
         if let Ok(mode) = token.parse::<Mode>() {
             return CommandArg::Mode(mode);

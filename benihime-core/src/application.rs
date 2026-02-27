@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use benihime_loader::paths;
 use benihime_renderer::{
@@ -10,7 +10,7 @@ use thiserror::Error;
 use crate::{
     buffer::{BufferId, Mode},
     buffer_manager::BufferManager,
-    command::{self, CommandArg, command_registry::CommandRegistry},
+    command::{self, command_registry::CommandRegistry},
     editor::{Editor, EditorConfig},
     graphics::Rect,
     input_handler::InputHandler,
@@ -166,11 +166,11 @@ impl Application {
             modifiers,
         };
 
-        if buf_mode == Mode::Normal {
-            if let Some(digit) = chord.as_digit() {
-                state.prefix_arg = Some(state.prefix_arg.unwrap_or(0) * 10 + digit);
-                return;
-            }
+        if buf_mode == Mode::Normal
+            && let Some(digit) = chord.as_digit()
+        {
+            state.prefix_arg = Some(state.prefix_arg.unwrap_or(0) * 10 + digit);
+            return;
         }
 
         if let Some((command_name, args)) = state.keymap.push_key(buf_mode, &chord) {
@@ -206,6 +206,7 @@ impl Application {
                 } else if let Some(c) = chord.as_char() {
                     state.command_buffer.push(c);
                 }
+                state.needs_redraw = true;
             }
             Mode::Minibuffer => {
                 if let Some(mini) = state.minibuffer_manager.current.as_mut() {
@@ -360,8 +361,8 @@ impl benihime_renderer::Application for Application {
             return self.composer.handle_event(&event, &mut cx);
         }
 
-        if let Some(keys) = result.keys {
-            if let Some(binding) = keys.last() {
+        if let Some(keys) = result.keys
+            && let Some(binding) = keys.last() {
                 let event = Event::Key(binding.clone());
 
                 let mut cx = Context {
@@ -377,7 +378,6 @@ impl benihime_renderer::Application for Application {
                 }
                 return true;
             }
-        }
 
         match event {
             InputEvent::Text(text) => {
@@ -510,7 +510,7 @@ impl Application {
         let config = Arc::clone(&self.editor.config);
 
         if lines != 0 {
-            let direction = if lines > 0 {
+            let _direction = if lines > 0 {
                 Direction::Forward
             } else {
                 Direction::Backward

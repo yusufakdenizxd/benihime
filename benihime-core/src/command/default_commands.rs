@@ -263,7 +263,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             None => return Err(anyhow!("Not in a Project")),
         };
 
-        let mut files: Vec<PathBuf> = fs::read_dir(&cwd)?
+        let mut files: Vec<PathBuf> = fs::read_dir(cwd)?
             .filter_map(|e| e.ok().map(|e| e.path()))
             .collect();
 
@@ -504,11 +504,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("visual_select_other_end", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
-        if buf.mode == Mode::Visual {
-            if let Some(selection) = &mut buf.selection {
+        if buf.mode == Mode::Visual
+            && let Some(selection) = &mut buf.selection {
                 std::mem::swap(&mut selection.start, &mut buf.cursor);
             }
-        }
         Ok(())
     });
 
