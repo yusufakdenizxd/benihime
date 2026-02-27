@@ -24,6 +24,7 @@ impl Component for StatusLine {
     fn render(&mut self, area: Rect, surface: &mut Renderer, ctx: &mut Context) {
         let editor = &ctx.editor;
         let status_text = editor.status_line();
+        let status_width = (status_text.len() as f32 + 1.0) * surface.cell_width();
 
         let cell_height = surface.cell_height() as u16;
         let y = area.y + area.height.saturating_sub(cell_height);
@@ -44,5 +45,16 @@ impl Component for StatusLine {
             benihime_renderer::color::Color::WHITE,
         );
         surface.draw_text(section);
+
+        if !editor.command_buffer.is_empty() {
+            let section = benihime_renderer::text::TextSection::simple(
+                area.x as f32 + status_width,
+                y as f32,
+                editor.command_buffer.clone(),
+                surface.font_size(),
+                benihime_renderer::color::Color::WHITE,
+            );
+            surface.draw_text(section);
+        }
     }
 }
