@@ -320,11 +320,13 @@ pub fn run<A: Application + 'static>(window_config: WindowConfig, app: A) -> Res
                                     super_key: modifiers.super_key(),
                                 },
                             };
-                            if matches!(key_press.code, event::Key::Char(_))
-                                && !key_press.modifier.control
-                                && !key_press.modifier.alt
-                            {
-                                key_press.modifier.shift = false;
+                            if let event::Key::Char(c) = key_press.code {
+                                if c.is_ascii_uppercase()
+                                    && !key_press.modifier.control
+                                    && !key_press.modifier.alt
+                                {
+                                    key_press.code = event::Key::Char(c.to_ascii_lowercase());
+                                }
                             }
                             handled = self
                                 .app
