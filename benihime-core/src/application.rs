@@ -101,8 +101,8 @@ impl Application {
         composer.push(Box::new(BufferLine::new()));
         composer.push(Box::new(EditorView::new()));
         composer.push(Box::new(StatusLine::new()));
-        composer.push(Box::new(MiniBufferComponent::new()));
         composer.push(Box::new(CursorComponent::new()));
+        composer.push(Box::new(MiniBufferComponent::new()));
 
         let c = EditorConfig::default();
         let mut editor = Editor {
