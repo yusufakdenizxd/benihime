@@ -161,6 +161,13 @@ impl Application {
             buf.mode
         };
 
+        self.handle_key_with_mode(key, modifiers, buf_mode);
+    }
+
+    pub fn handle_key_with_mode(&mut self, key: Key, modifiers: KeyModifiers, mode: Mode) {
+        let state = &mut self.editor;
+        let buf_mode = mode;
+
         let chord = KeyChord {
             code: key,
             modifiers,
@@ -182,7 +189,7 @@ impl Application {
             return;
         }
 
-        match state.focused_buf_mut().mode {
+        match buf_mode {
             Mode::Insert => {
                 let buf = state.focused_buf_mut();
                 let result = if chord.code == Key::Backspace {
@@ -366,6 +373,8 @@ impl benihime_renderer::Application for Application {
         {
             let event = Event::Key(binding.clone());
 
+            let mode_before = self.editor.mode();
+
             let mut cx = Context {
                 editor: &mut self.editor,
                 scroll: None,
@@ -375,12 +384,12 @@ impl benihime_renderer::Application for Application {
 
             if !self.composer.handle_event(&event, &mut cx) {
                 let binding = binding.clone();
-                self.handle_key(binding.code, binding.modifiers);
+                self.handle_key_with_mode(binding.code, binding.modifiers, mode_before);
             }
             return true;
         }
 
-        match event {
+        let consumed = match event {
             InputEvent::Text(text) => {
                 for ch in text.chars() {
                     let binding = KeyChord::new(Key::Char(ch));
@@ -400,7 +409,10 @@ impl benihime_renderer::Application for Application {
                 false
             }
             _ => result.consumed,
-        }
+        };
+
+        self.input_handler.set_mode(self.editor.mode());
+        consumed
     }
 
     fn resize(&mut self, width: u32, height: u32, renderer: &mut Renderer) {
