@@ -28,7 +28,7 @@ impl Component for CursorComponent {
         let buffer = editor.focused_buf();
 
         let cursor_row = buffer.cursor.row.saturating_sub(buffer.scroll_offset);
-        let cursor_col = buffer.cursor.col;
+        let cursor_col = buffer.cursor.col.saturating_sub(buffer.scroll_left);
 
         let cell_width = surface.cell_width();
         let cell_height = surface.cell_height();
@@ -91,7 +91,7 @@ impl Component for CursorComponent {
         let buffer = editor.focused_buf();
 
         let cursor_row = buffer.cursor.row.saturating_sub(buffer.scroll_offset);
-        let cursor_col = buffer.cursor.col;
+        let cursor_col = buffer.cursor.col.saturating_sub(buffer.scroll_left);
 
         let cursor_kind = match buffer.mode {
             Mode::Insert => CursorKind::Bar,
