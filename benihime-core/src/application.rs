@@ -362,22 +362,23 @@ impl benihime_renderer::Application for Application {
         }
 
         if let Some(keys) = result.keys
-            && let Some(binding) = keys.last() {
-                let event = Event::Key(binding.clone());
+            && let Some(binding) = keys.last()
+        {
+            let event = Event::Key(binding.clone());
 
-                let mut cx = Context {
-                    editor: &mut self.editor,
-                    scroll: None,
-                    jobs: &mut self.jobs,
-                    dt: 0.0,
-                };
+            let mut cx = Context {
+                editor: &mut self.editor,
+                scroll: None,
+                jobs: &mut self.jobs,
+                dt: 0.0,
+            };
 
-                if !self.composer.handle_event(&event, &mut cx) {
-                    let binding = binding.clone();
-                    self.handle_key(binding.code, binding.modifiers);
-                }
-                return true;
+            if !self.composer.handle_event(&event, &mut cx) {
+                let binding = binding.clone();
+                self.handle_key(binding.code, binding.modifiers);
             }
+            return true;
+        }
 
         match event {
             InputEvent::Text(text) => {
