@@ -54,6 +54,14 @@ impl Editor {
             .expect("Focused buffer must exist")
     }
 
+    pub fn update_scroll(&mut self) {
+        let screen_height = self.screen_height;
+        let screen_width = self.screen_width;
+        let scroll_offset = self.config.scroll_offset;
+        let buf = self.focused_buf_mut();
+        buf.update_scroll(screen_height, scroll_offset, screen_width, scroll_offset);
+    }
+
     pub fn status_line(&self) -> String {
         let buf = self.buffer_manager.get_buffer(self.focused_buf_id).unwrap();
         let mode = match buf.mode {

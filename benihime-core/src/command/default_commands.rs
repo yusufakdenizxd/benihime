@@ -23,10 +23,8 @@ use super::{
 pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-left", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
-
-        for _ in 0..ctx.count {
-            buf.cursor.col = buf.cursor.col.saturating_sub(1);
-        }
+        for _ in 0..ctx.count { buf.cursor.col = buf.cursor.col.saturating_sub(1); }
+        ctx.editor.update_scroll();
         Ok(())
     });
 
@@ -65,10 +63,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("move-right", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
-
-        for _ in 0..ctx.count {
-            buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
-        }
+        for _ in 0..ctx.count { buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row)); }
+        ctx.editor.update_scroll();
         Ok(())
     });
 
@@ -91,12 +87,14 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("beginning-of-line", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
         buf.cursor.col = 0;
+        ctx.editor.update_scroll();
         Ok(())
     });
 
     registry.register("end-of-line", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
         buf.cursor.col = buf.line_len(buf.cursor.row);
+        ctx.editor.update_scroll();
         Ok(())
     });
 
@@ -112,7 +110,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             i = idx + 1;
         }
         buf.cursor.col = i;
-
+        ctx.editor.update_scroll();
         Ok(())
     });
 
