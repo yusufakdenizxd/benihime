@@ -206,6 +206,8 @@ impl Application {
                 if let Err(err) = result {
                     state.error_message = Some(err.to_string());
                 }
+
+                state.update_scroll();
             }
             Mode::Command => {
                 if chord.code == Key::Backspace {

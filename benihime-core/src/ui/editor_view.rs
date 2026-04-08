@@ -111,18 +111,20 @@ impl Component for EditorView {
                 let scroll_left = buffer.scroll_left;
                 let visible_cols = (area.width as f32 / cell_width).floor() as usize;
                 let start_col = scroll_left;
-                let end_col = (start_col + visible_cols).min(line_str.len());
-                let visible_text = &line_str[start_col..end_col];
-                let x_pos = editor_start_x as f32;
+                if start_col < line_str.len() {
+                    let end_col = (start_col + visible_cols).min(line_str.len());
+                    let visible_text = &line_str[start_col..end_col];
+                    let x_pos = editor_start_x as f32;
 
-                let section = benihime_renderer::text::TextSection::simple(
-                    x_pos,
-                    y,
-                    visible_text,
-                    surface.font_size(),
-                    benihime_renderer::color::Color::WHITE,
-                );
-                surface.draw_text(section);
+                    let section = benihime_renderer::text::TextSection::simple(
+                        x_pos,
+                        y,
+                        visible_text,
+                        surface.font_size(),
+                        benihime_renderer::color::Color::WHITE,
+                    );
+                    surface.draw_text(section);
+                }
             }
         }
     }
