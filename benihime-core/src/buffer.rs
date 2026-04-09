@@ -1,5 +1,5 @@
-use anyhow::{Ok, anyhow};
-use ropey::{Rope, RopeSlice, iter::Lines};
+use anyhow::{anyhow, Ok};
+use ropey::{iter::Lines, Rope, RopeSlice};
 use std::{io::Write, path::PathBuf, str::FromStr};
 
 use crate::{
@@ -151,6 +151,18 @@ impl Buffer {
 
     pub fn get_line_to_char(&self, row: usize) -> usize {
         self.lines.line_to_char(row)
+    }
+
+    pub fn line_to_byte(&self, row: usize) -> usize {
+        self.lines.line_to_byte(row)
+    }
+
+    pub fn char_to_byte(&self, row: usize, char_idx: usize) -> usize {
+        self.lines.line(row).char_to_byte(char_idx)
+    }
+
+    pub fn len_bytes(&self) -> usize {
+        self.lines.len_bytes()
     }
 
     pub fn get_slice(&self, range: std::ops::Range<usize>) -> RopeSlice<'_> {
