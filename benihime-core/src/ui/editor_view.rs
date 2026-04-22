@@ -148,7 +148,7 @@ impl Component for EditorView {
                 if start_col < line_str.len() {
                     let end_col = (start_col + visible_cols).min(line_str.len());
                     let visible_text = &line_str[start_col..end_col];
-                    let x_pos = editor_start_x as f32;
+                    let x_pos = editor_start_x as f32 + (scroll_left as f32 * cell_width);
 
                     let section = benihime_renderer::text::TextSection::simple(
                         x_pos,
