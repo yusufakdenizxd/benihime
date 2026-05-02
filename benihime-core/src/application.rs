@@ -329,7 +329,7 @@ impl benihime_renderer::Application for Application {
         }
 
         if let Some(binding) = result.command_key {
-            let event = Event::Key(binding);
+            let event = Event::Key(binding.clone());
 
             let mut cx = Context {
                 editor: &mut self.editor,
@@ -338,7 +338,11 @@ impl benihime_renderer::Application for Application {
                 dt: 0.0,
             };
 
-            return self.composer.handle_event(&event, &mut cx);
+            if !self.composer.handle_event(&event, &mut cx) {
+                let mode_before = self.editor.mode();
+                self.handle_key_with_mode(binding.code, binding.modifiers, mode_before);
+            }
+            return true;
         }
 
         if let Some(scroll) = result.scroll {
