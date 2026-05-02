@@ -146,13 +146,53 @@ impl InputProcessor {
             Key::Left => Some(UnifiedKey::Special(SpecialKey::Left)),
             Key::Right => Some(UnifiedKey::Special(SpecialKey::Right)),
             Key::F(f) => Some(UnifiedKey::Special(SpecialKey::F(f))),
-            Key::Char(ch) if key_press.has_modifier() => Some(UnifiedKey::Modified {
-                key: ch,
-                shift: key_press.modifier.shift,
-                ctrl: key_press.modifier.control,
-                alt: key_press.modifier.alt,
-                super_key: key_press.modifier.super_key,
-            }),
+            Key::Char(ch) if key_press.has_modifier() => {
+                if ch.is_ascii_alphanumeric() || ch.is_ascii_punctuation() {
+                    Some(UnifiedKey::Modified {
+                        key: ch,
+                        shift: key_press.modifier.shift,
+                        ctrl: key_press.modifier.control,
+                        alt: key_press.modifier.alt,
+                        super_key: key_press.modifier.super_key,
+                    })
+                } else {
+                    let base_key = match ch.to_ascii_lowercase() {
+                        'ø' => 'o',
+                        'π' => 'p',
+                        'ß' => 's',
+                        '∆' => 'j',
+                        '¬' => 'l',
+                        '◊' => 'k',
+                        '≈' => '=',
+                        '÷' => '/',
+                        '¥' => 'y',
+                        'å' => 'a',
+                        '∑' => '=',
+                        'œ' => 'o',
+                        'ƒ' => 'f',
+                        '∂' => 'd',
+                        '®' => 'r',
+                        '†' => 't',
+                        '©' => 'c',
+                        '™' => 't',
+                        '§' => 's',
+                        '€' => 'e',
+                        '£' => 'l',
+                        '√' => 'v',
+                        '∞' => '8',
+                        '•' => '.',
+                        '°' => ';',
+                        _ => ch,
+                    };
+                    Some(UnifiedKey::Modified {
+                        key: base_key,
+                        shift: key_press.modifier.shift,
+                        ctrl: key_press.modifier.control,
+                        alt: key_press.modifier.alt,
+                        super_key: key_press.modifier.super_key,
+                    })
+                }
+            }
             Key::Char(ch) => {
                 if self.pending_char {
                     Some(UnifiedKey::Character(ch))
@@ -174,12 +214,48 @@ impl InputProcessor {
         for ch in text.chars() {
             if self.mode == Mode::Insert || self.pending_char {
                 events.push(ProcessedInput::Key(UnifiedKey::Character(ch)));
-            } else if self.ctrl_held || self.alt_held {
+            } else if self.alt_held {
+                let base_key = match ch.to_ascii_lowercase() {
+                    'ø' => 'o',
+                    'π' => 'p',
+                    'ß' => 's',
+                    '∆' => 'j',
+                    '¬' => 'l',
+                    '◊' => 'k',
+                    '≈' => '=',
+                    '÷' => '/',
+                    '¥' => 'y',
+                    'å' => 'a',
+                    '∑' => '=',
+                    'œ' => 'o',
+                    'ƒ' => 'f',
+                    '∂' => 'd',
+                    '®' => 'r',
+                    '†' => 't',
+                    '©' => 'c',
+                    '™' => 't',
+                    '§' => 's',
+                    '€' => 'e',
+                    '£' => 'l',
+                    '√' => 'v',
+                    '∞' => '8',
+                    '•' => '.',
+                    '°' => ';',
+                    _ => ch,
+                };
+                events.push(ProcessedInput::Key(UnifiedKey::Modified {
+                    key: base_key,
+                    shift: self.shift_held,
+                    ctrl: self.ctrl_held,
+                    alt: true,
+                    super_key: self.super_held,
+                }));
+            } else if self.ctrl_held {
                 events.push(ProcessedInput::Key(UnifiedKey::Modified {
                     key: ch,
                     shift: self.shift_held,
-                    ctrl: self.ctrl_held,
-                    alt: self.alt_held,
+                    ctrl: true,
+                    alt: false,
                     super_key: self.super_held,
                 }));
             } else {
@@ -319,6 +395,7 @@ impl InputHandler {
         let mut result = InputResult::default();
 
         for input in processed {
+            println!("{:?}", input);
             match input {
                 ProcessedInput::Key(key) => match &mut self.state {
                     InputState::PendingChar => {
