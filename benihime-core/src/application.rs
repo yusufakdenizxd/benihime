@@ -285,6 +285,7 @@ impl benihime_renderer::Application for Application {
         self.input_handler.set_mode(self.editor.mode());
 
         if result.cancelled {
+            self.input_handler.clear_pending_char();
             return true;
         }
 

@@ -69,8 +69,6 @@ impl Keymap {
         mode: Mode,
         chord: &KeyChord,
     ) -> Option<(String, Option<Vec<CommandArg>>)> {
-        self.buffer.chords.clear();
-
         self.buffer.chords.push(chord.clone());
 
         let current_seq = KeySequence::new(self.buffer.chords.clone());
