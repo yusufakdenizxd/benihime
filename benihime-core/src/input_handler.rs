@@ -395,7 +395,6 @@ impl InputHandler {
         let mut result = InputResult::default();
 
         for input in processed {
-            println!("{:?}", input);
             match input {
                 ProcessedInput::Key(key) => match &mut self.state {
                     InputState::PendingChar => {

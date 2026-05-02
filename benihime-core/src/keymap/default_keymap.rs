@@ -575,4 +575,14 @@ pub fn register_default_keymap(km: &mut Keymap) {
         "previous-project",
         None,
     );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::single(KeyChord {
+            code: Key::Char('f'),
+            modifiers: KeyModifiers::ALT,
+        }),
+        "live-grep",
+        None,
+    );
 }

@@ -23,7 +23,9 @@ use super::{
 pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-left", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
-        for _ in 0..ctx.count { buf.cursor.col = buf.cursor.col.saturating_sub(1); }
+        for _ in 0..ctx.count {
+            buf.cursor.col = buf.cursor.col.saturating_sub(1);
+        }
         ctx.editor.update_scroll();
         Ok(())
     });
@@ -63,7 +65,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("move-right", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
-        for _ in 0..ctx.count { buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row)); }
+        for _ in 0..ctx.count {
+            buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
+        }
         ctx.editor.update_scroll();
         Ok(())
     });
@@ -503,9 +507,10 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("visual_select_other_end", |ctx: &mut CommandContext| {
         let buf = ctx.editor.focused_buf_mut();
         if buf.mode == Mode::Visual
-            && let Some(selection) = &mut buf.selection {
-                std::mem::swap(&mut selection.start, &mut buf.cursor);
-            }
+            && let Some(selection) = &mut buf.selection
+        {
+            std::mem::swap(&mut selection.start, &mut buf.cursor);
+        }
         Ok(())
     });
 
@@ -712,6 +717,33 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .create_read_only_buffer_from_text("*keymap*", &tree_text);
 
         ctx.editor.focused_buf_id = id;
+        Ok(())
+    });
+
+    registry.register("live-grep", |ctx| {
+        let buf = ctx.editor.focused_buf();
+        let content = buf.to_string();
+
+        let items: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+
+        let minibuffer: MiniBuffer<String> =
+            MiniBuffer::new("Search: ", items, |state: &mut Editor, line: &String| {
+                let buf = state.focused_buf_mut();
+                for (i, l) in buf.to_string().lines().enumerate() {
+                    if l == line {
+                        buf.cursor.row = i;
+                        buf.cursor.col = 0;
+                        break;
+                    }
+                }
+                Ok(None)
+            });
+
+        ctx.editor.minibuffer_manager.activate(Box::new(minibuffer));
+
+        ctx.editor
+            .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Minibuffer)]))?;
+
         Ok(())
     });
 }
