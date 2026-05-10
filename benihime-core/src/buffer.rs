@@ -8,28 +8,28 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, PartialOrd)]
-pub struct Cursor {
+pub struct Position {
     pub row: usize,
     pub col: usize,
 }
 
-impl Cursor {
-    fn new() -> Cursor {
-        Cursor { row: 0, col: 0 }
+impl Position {
+    fn new() -> Position {
+        Position { row: 0, col: 0 }
     }
 
-    pub fn start() -> Cursor {
-        Cursor { row: 0, col: 0 }
+    pub fn start() -> Position {
+        Position { row: 0, col: 0 }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Selection {
-    pub start: Cursor,
+    pub start: Position,
 }
 
 impl Selection {
-    pub fn normalized(&self, end: &Cursor) -> (Cursor, Cursor) {
+    pub fn normalized(&self, end: &Position) -> (Position, Position) {
         if self.start.row < end.row || self.start.row == end.row && self.start.col <= end.col {
             (self.start, *end)
         } else {
@@ -303,7 +303,7 @@ impl Buffer {
         }
     }
 
-    pub fn delete_selection(&mut self) -> Option<Cursor> {
+    pub fn delete_selection(&mut self) -> Option<Position> {
         if let Some(selection) = self.selection.take() {
             let (start, end) = selection.normalized(&self.cursor);
 
