@@ -1,6 +1,6 @@
-use anyhow::{anyhow, Ok};
-use ropey::{iter::Lines, Rope, RopeSlice};
-use std::{io::Write, path::PathBuf, str::FromStr};
+use anyhow::{Ok, anyhow};
+use ropey::{Rope, RopeSlice, iter::Lines};
+use std::{io::Write, path::PathBuf};
 
 use crate::{
     movement::selection::Range,
@@ -38,15 +38,6 @@ impl Selection {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Mode {
-    Normal,
-    Insert,
-    Visual,
-    Command,
-    Minibuffer,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BufferId(pub u64);
 
@@ -56,29 +47,11 @@ impl std::fmt::Display for BufferId {
     }
 }
 
-impl FromStr for Mode {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "normal" => Ok(Mode::Normal),
-            "insert" => Ok(Mode::Insert),
-            "visual" => Ok(Mode::Visual),
-            "command" => Ok(Mode::Command),
-            _ => Err(anyhow!("Invalid mode: {}", s)),
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Buffer {
     pub id: BufferId,
     lines: Rope,
     pub name: String,
-    pub cursor: Cursor,
-    pub scroll_offset: usize,
-    pub scroll_left: usize,
-    pub mode: Mode,
     pub file_path: Option<PathBuf>,
     pub selection: Option<Selection>,
     pub range: Option<Range>,
@@ -94,11 +67,7 @@ impl Buffer {
             id,
             name: name.to_string(),
             lines: Rope::new(),
-            cursor: Cursor::new(),
-            mode: Mode::Normal,
             file_path,
-            scroll_offset: 0,
-            scroll_left: 0,
             selection: None,
             range: None,
             undo_tree: UndoTree::new(),
@@ -119,11 +88,7 @@ impl Buffer {
             id,
             name: name.to_string(),
             lines: Rope::from_str(text),
-            cursor: Cursor::new(),
-            mode: Mode::Normal,
             file_path,
-            scroll_offset: 0,
-            scroll_left: 0,
             selection: None,
             range: None,
             undo_tree: UndoTree::new(),
@@ -181,8 +146,8 @@ impl Buffer {
         self.remove(start..end)
     }
 
-    pub fn get_cursor_to_char(&self) -> usize {
-        self.lines.line_to_char(self.cursor.row)
+    pub fn get_cursor_to_char(&self, row: usize) -> usize {
+        self.lines.line_to_char(row)
     }
 
     pub fn line_len(&self, row: usize) -> usize {
@@ -207,21 +172,21 @@ impl Buffer {
         }
     }
 
-    pub fn insert_char(&mut self, c: char) -> anyhow::Result<()> {
+    pub fn insert_char(&mut self, c: char, cursor: &mut Position) -> anyhow::Result<()> {
         if self.read_only {
             return Err(anyhow!("Buffer is read only"));
         }
         let mut s = String::new();
         s.push(c);
-        self.insert_str(&s)
+        self.insert_str(cursor, &s)
     }
 
-    pub fn insert_str(&mut self, s: &str) -> anyhow::Result<()> {
+    pub fn insert_str(&mut self, cursor: &mut Position, s: &str) -> anyhow::Result<()> {
         if self.read_only {
             return Err(anyhow!("Buffer is read only"));
         }
-        let row = self.cursor.row;
-        let col = self.cursor.col;
+        let row = cursor.row;
+        let col = cursor.col;
 
         if row >= self.lines.len_lines() {
             return Ok(());
@@ -246,18 +211,18 @@ impl Buffer {
         }
 
         if newlines > 0 {
-            self.cursor.row += newlines;
-            self.cursor.col = last_line_len;
+            cursor.row += newlines;
+            cursor.col = last_line_len;
         } else {
-            self.cursor.col = insert_col + last_line_len;
+            cursor.col = insert_col + last_line_len;
         }
 
         Ok(())
     }
 
-    pub fn delete_char_before_cursor(&mut self) {
-        let row = self.cursor.row;
-        let col = self.cursor.col;
+    pub fn delete_char_before_cursor(&mut self, cursor: &mut Position) {
+        let row = cursor.row;
+        let col = cursor.col;
 
         if row == 0 && col == 0 {
             return;
@@ -266,46 +231,21 @@ impl Buffer {
         if col > 0 {
             let char_idx = self.lines.line_to_char(row) + col - 1;
             self.remove(char_idx..char_idx + 1);
-            self.cursor.col -= 1;
+            cursor.col -= 1;
         } else {
             let prev_line_len = self.line_len(row - 1);
             let char_idx = self.lines.line_to_char(row);
             if char_idx > 0 {
                 self.remove(char_idx - 1..char_idx);
-                self.cursor.row -= 1;
-                self.cursor.col = prev_line_len;
+                cursor.row -= 1;
+                cursor.col = prev_line_len;
             }
         }
     }
 
-    pub fn update_scroll(
-        &mut self,
-        screen_height: usize,
-        vertical_scrolloff: usize,
-        screen_width: usize,
-        horizontal_scrolloff: usize,
-    ) {
-        let row = self.cursor.row;
-        let col = self.cursor.col;
-
-        if row < self.scroll_offset + vertical_scrolloff {
-            self.scroll_offset = row.saturating_sub(vertical_scrolloff);
-        }
-
-        if row >= self.scroll_offset + screen_height - vertical_scrolloff {
-            self.scroll_offset = row + vertical_scrolloff + 1 - screen_height;
-        }
-
-        if col < self.scroll_left + horizontal_scrolloff {
-            self.scroll_left = col.saturating_sub(horizontal_scrolloff);
-        } else if col >= self.scroll_left + screen_width - horizontal_scrolloff {
-            self.scroll_left = col.saturating_sub(screen_width - horizontal_scrolloff);
-        }
-    }
-
-    pub fn delete_selection(&mut self) -> Option<Position> {
+    pub fn delete_selection(&mut self, cursor: &mut Position) -> Option<Position> {
         if let Some(selection) = self.selection.take() {
-            let (start, end) = selection.normalized(&self.cursor);
+            let (start, end) = selection.normalized(&cursor);
 
             let start_char = self.lines.line_to_char(start.row) + start.col;
             let end_char = self.lines.line_to_char(end.row) + end.col;
@@ -314,29 +254,11 @@ impl Buffer {
                 self.remove(start_char..end_char);
             }
 
-            self.cursor = start;
+            *cursor = start;
             self.selection = None;
             Some(start)
         } else {
             None
-        }
-    }
-
-    pub fn center_cursor(&mut self, screen_height: usize) {
-        let cursor_row = self
-            .cursor
-            .row
-            .min(self.lines.len_lines().saturating_sub(1));
-
-        let half_screen = screen_height / 2;
-        if cursor_row >= half_screen {
-            self.scroll_offset = cursor_row - half_screen;
-        } else {
-            self.scroll_offset = 0;
-        }
-
-        if self.scroll_offset + screen_height > self.lines.len_lines() {
-            self.scroll_offset = self.lines.len_lines().saturating_sub(screen_height);
         }
     }
 
@@ -425,46 +347,6 @@ impl Buffer {
                 self.lines.insert(*at, text);
             }
         }
-    }
-
-    pub fn scroll_down(&mut self, lines: usize, screen_height: usize, scrolloff: usize) {
-        let max_row = self.line_count().saturating_sub(1);
-
-        let new_row = (self.cursor.row + lines).min(max_row);
-        self.cursor.row = new_row;
-
-        if new_row >= self.scroll_offset + screen_height - scrolloff {
-            self.scroll_offset = new_row + scrolloff + 1 - screen_height;
-        }
-        self.scroll_offset = self
-            .scroll_offset
-            .min(max_row.saturating_add(1).saturating_sub(screen_height));
-    }
-
-    pub fn scroll_up(&mut self, lines: usize, scrolloff: usize) {
-        let new_row = self.cursor.row.saturating_sub(lines);
-        self.cursor.row = new_row;
-
-        if new_row < self.scroll_offset + scrolloff {
-            self.scroll_offset = new_row.saturating_sub(scrolloff);
-        }
-    }
-
-    pub fn goto_first_line(&mut self) {
-        self.cursor.row = 0;
-        self.cursor.col = 0;
-        self.selection = None;
-        self.scroll_offset = 0;
-    }
-
-    pub fn goto_last_line(&mut self) {
-        let last_row = self.line_count().saturating_sub(1);
-        self.cursor.row = last_row;
-
-        let line_len = self.line_len(last_row);
-        self.cursor.col = self.cursor.col.min(line_len);
-
-        self.selection = None;
     }
 
     pub fn save(&mut self) -> anyhow::Result<()> {
