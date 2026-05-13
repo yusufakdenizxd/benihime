@@ -209,6 +209,7 @@ dependencies = [
  "parking_lot",
  "ropey",
  "serde",
+ "slotmap",
  "thiserror 2.0.17",
  "tokio",
  "toml",

@@ -25,3 +25,4 @@ unicode-general-category = "1.1.0"
 benihime-loader = {path = "../benihime-loader"}
 benihime-renderer = {path = "../benihime-renderer"}
 benihime-event = {path = "../benihime-event"}
+slotmap.workspace = true
