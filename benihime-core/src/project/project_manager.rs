@@ -4,7 +4,6 @@ use anyhow::anyhow;
 
 use crate::{
     buffer::BufferId,
-    buffer_manager::BufferManager,
     project::{Project, ProjectId},
 };
 
@@ -133,25 +132,16 @@ impl ProjectManager {
         self.current_mut().buffers.push(id);
     }
 
-    pub fn close_project(
-        &mut self,
-        id: ProjectId,
-        buffer_manager: &mut BufferManager,
-    ) -> anyhow::Result<Vec<BufferId>> {
+    pub fn close_project(&mut self, id: ProjectId) -> anyhow::Result<Vec<BufferId>> {
         if id == DEFAULT_PROJECT_ID {
             return Err(anyhow!("Cannot close the default project"));
         }
 
         let buffer_ids = self.current().buffers.clone();
 
-        let project = self
-            .projects
+        self.projects
             .remove(&id)
             .ok_or_else(|| anyhow!("Project not found"))?;
-
-        for buf_id in project.buffers {
-            buffer_manager.kill_buffer(buf_id);
-        }
 
         if self.current == id {
             self.current = DEFAULT_PROJECT_ID;

@@ -8,24 +8,21 @@ use benihime_renderer::{
 use thiserror::Error;
 
 use crate::{
-    buffer::{BufferId, Mode},
-    buffer_manager::BufferManager,
     command::{self, command_registry::CommandRegistry},
-    editor::{Editor, EditorConfig},
+    editor::{Editor, EditorConfig, Mode},
     graphics::Rect,
     input_handler::InputHandler,
     keymap::{
         self, Keymap,
         key_chord::{KeyChord, KeyModifiers},
     },
-    mini_buffer::MiniBufferManager,
     project::project_manager::ProjectManager,
     theme::theme_loader::ThemeLoader,
     ui::{
-        components::buffer_line::BufferLine,
-        components::cursor::CursorComponent,
-        components::mini_buffer::MiniBufferComponent,
-        components::status_line::StatusLine,
+        components::{
+            buffer_line::BufferLine, cursor::CursorComponent, mini_buffer::MiniBufferComponent,
+            status_line::StatusLine,
+        },
         composer::{Composer, Context, Event},
         editor_view::EditorView,
         job::Jobs,
@@ -78,8 +75,6 @@ impl Application {
     pub fn new() -> Self {
         let loader = benihime_loader::Loader::new().unwrap();
 
-        let buffer_manager = BufferManager::new();
-
         let mut command_registry = CommandRegistry::new();
         command::default_commands::register_default_commands(&mut command_registry);
 
@@ -104,30 +99,19 @@ impl Application {
         composer.push(Box::new(CursorComponent::new()));
         composer.push(Box::new(MiniBufferComponent::new()));
 
-        let c = EditorConfig::default();
-        let mut editor = Editor {
-            focused_buf_id: BufferId(0),
+        let mut editor = Editor::new(
+            area,
+            theme_loader,
             project_manager,
-            buffer_manager,
-            command_buffer: String::new(),
-            message: None,
-            error_message: None,
-            screen_height: 0,
-            screen_width: 0,
-            minibuffer_manager: MiniBufferManager::new(),
-            registry: Arc::new(command_registry),
-            theme: theme_loader.default(),
-            theme_loader: Arc::new(theme_loader),
-            prefix_arg: None,
             keymap,
-            write_count: 0,
-            needs_redraw: false,
-            config: Arc::new(c),
-        };
+            Arc::new(command_registry),
+            Arc::new(EditorConfig::default()),
+        );
 
-        let first_id = editor.create_buffer_from_text(
+        let first_id = editor.new_buffer_from_text(
             "[No Name]",
             "Welcome to Benihime!\n\nType something here...",
+            None,
         );
         editor.focused_buf_id = first_id;
 
@@ -156,12 +140,9 @@ impl Application {
 
     pub fn handle_key(&mut self, key: Key, modifiers: KeyModifiers) {
         let state = &mut self.editor;
-        let buf_mode = {
-            let buf = state.focused_buf();
-            buf.mode
-        };
+        let mode = state.focus_ref().0.mode;
 
-        self.handle_key_with_mode(key, modifiers, buf_mode);
+        self.handle_key_with_mode(key, modifiers, mode);
     }
 
     pub fn handle_key_with_mode(&mut self, key: Key, modifiers: KeyModifiers, mode: Mode) {
@@ -191,14 +172,14 @@ impl Application {
 
         match buf_mode {
             Mode::Insert => {
-                let buf = state.focused_buf_mut();
+                let (window, buf) = state.focus();
                 let result = if chord.code == Key::Backspace {
-                    buf.delete_char_before_cursor();
+                    buf.delete_char_before_cursor(&mut window.cursor);
                     Ok(())
                 } else if chord.code == Key::Enter {
-                    buf.insert_char('\n')
+                    buf.insert_char('\n', &mut window.cursor)
                 } else if let Some(c) = chord.as_char() {
-                    buf.insert_char(c)
+                    buf.insert_char(c, &mut window.cursor)
                 } else {
                     Ok(())
                 };
@@ -549,9 +530,9 @@ impl Application {
             // commands::scroll(&mut cmd_cx, lines.unsigned_abs() as usize, direction, false);
         }
 
-        let focus = self.editor.focused_buf_mut();
+        let (window, _buf) = self.editor.focus();
 
-        focus.update_scroll(
+        window.update_scroll(
             lines as usize,
             config.scroll_offset,
             cols as usize,
