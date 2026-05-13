@@ -1,4 +1,4 @@
-use benihime_renderer::{color::Color, Renderer};
+use benihime_renderer::{Renderer, color::Color};
 
 use crate::{
     graphics::Rect,
@@ -24,7 +24,7 @@ impl Default for EditorView {
 impl Component for EditorView {
     fn render(&mut self, area: Rect, surface: &mut Renderer, ctx: &mut Context) {
         let editor = &ctx.editor;
-        let buffer = editor.focused_buf();
+        let (window, buffer) = editor.focus_ref();
         let line_count = buffer.line_count();
 
         let cell_width = surface.cell_width();
@@ -68,11 +68,11 @@ impl Component for EditorView {
 
         let visible_lines = (editor_area_height as f32 / cell_height).floor() as usize;
 
-        let start_line = buffer.scroll_offset;
+        let start_line = window.scroll_offset;
         let end_line = (start_line + visible_lines).min(line_count);
-        let cursor_row = buffer.cursor.row;
+        let cursor_row = window.cursor.row;
 
-        let scroll_left = buffer.scroll_left;
+        let scroll_left = window.scroll_left;
         let visible_cols = (area.width as f32 / cell_width).floor() as usize;
 
         for (row, line_idx) in (start_line..end_line).enumerate() {

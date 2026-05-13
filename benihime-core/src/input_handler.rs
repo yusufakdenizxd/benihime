@@ -1,7 +1,7 @@
 use benihime_renderer::event::{InputEvent, Key, KeyPress, MouseEvent, ScrollDelta};
 
 use crate::{
-    buffer::Mode,
+    editor::Mode,
     keymap::key_chord::{KeyChord, KeyModifiers},
 };
 

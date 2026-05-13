@@ -3,7 +3,7 @@ pub mod key_chord;
 
 use std::collections::HashMap;
 
-use crate::{buffer::Mode, command::CommandArg, keymap::key_chord::KeyChord};
+use crate::{editor::Mode, command::CommandArg, keymap::key_chord::KeyChord};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeySequence {

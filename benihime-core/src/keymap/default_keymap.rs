@@ -1,6 +1,6 @@
 use benihime_renderer::event::Key;
 
-use crate::{buffer::Mode, command::CommandArg};
+use crate::{command::CommandArg, editor::Mode};
 
 use super::{
     key_chord::{KeyChord, KeyModifiers},
