@@ -9,11 +9,12 @@ use ignore::Walk;
 
 use crate::{
     application::HandleKeyError,
-    buffer::{Buffer, Mode, Selection},
+    buffer::{Buffer, Position, Selection},
+    editor::{Editor, Mode},
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
+    movement::movement_commands,
     project::Project,
 };
-use crate::{editor::Editor, movement::movement_commands};
 
 use super::{
     command_registry::CommandRegistry,
@@ -22,9 +23,9 @@ use super::{
 
 pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-left", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
         for _ in 0..ctx.count {
-            buf.cursor.col = buf.cursor.col.saturating_sub(1);
+            window.cursor.col = window.cursor.col.saturating_sub(1);
         }
         ctx.editor.update_scroll();
         Ok(())
@@ -33,15 +34,15 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("move-down", |ctx: &mut CommandContext| {
         let screen_height = ctx.editor.screen_height;
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
 
         for _ in 0..ctx.count {
-            buf.cursor.row = min(buf.cursor.row + 1, buf.line_count() - 1);
-            buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+            window.cursor.row = min(window.cursor.row + 1, buf.line_count() - 1);
+            window.cursor.col = min(window.cursor.col, buf.line_len(window.cursor.row));
         }
 
-        if buf.cursor.row >= buf.scroll_offset + screen_height - scroll_offset {
-            buf.scroll_offset = buf.cursor.row + scroll_offset + 1 - screen_height;
+        if window.cursor.row >= window.scroll_offset + screen_height - scroll_offset {
+            window.scroll_offset = window.cursor.row + scroll_offset + 1 - screen_height;
         }
 
         Ok(())
@@ -49,24 +50,24 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("move-up", |ctx: &mut CommandContext| {
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
 
         for _ in 0..ctx.count {
-            buf.cursor.row = buf.cursor.row.saturating_sub(1);
-            buf.cursor.col = min(buf.cursor.col, buf.line_len(buf.cursor.row));
+            window.cursor.row = window.cursor.row.saturating_sub(1);
+            window.cursor.col = min(window.cursor.col, buf.line_len(window.cursor.row));
         }
 
-        if buf.cursor.row < buf.scroll_offset + scroll_offset {
-            buf.scroll_offset = buf.cursor.row.saturating_sub(scroll_offset);
+        if window.cursor.row < window.scroll_offset + scroll_offset {
+            window.scroll_offset = window.cursor.row.saturating_sub(scroll_offset);
         }
 
         Ok(())
     });
 
     registry.register("move-right", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
         for _ in 0..ctx.count {
-            buf.cursor.col = min(buf.cursor.col + 1, buf.line_len(buf.cursor.row));
+            window.cursor.col = min(window.cursor.col + 1, buf.line_len(window.cursor.row));
         }
         ctx.editor.update_scroll();
         Ok(())
@@ -78,33 +79,33 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             ctx.editor.command_buffer.clear();
         }
 
-        let buf = ctx.editor.focused_buf_mut();
-        if buf.mode != Mode::Insert && mode == Mode::Insert {
+        let (window, buf) = ctx.editor.focus();
+        if window.mode != Mode::Insert && mode == Mode::Insert {
             buf.undo_tree.commit_group();
         }
 
-        buf.mode = mode;
+        window.mode = mode;
 
         Ok(())
     });
 
     registry.register("beginning-of-line", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        buf.cursor.col = 0;
+        let (window, buf) = ctx.editor.focus();
+        window.cursor.col = 0;
         ctx.editor.update_scroll();
         Ok(())
     });
 
     registry.register("end-of-line", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        buf.cursor.col = buf.line_len(buf.cursor.row);
+        let (window, buf) = ctx.editor.focus();
+        window.cursor.col = buf.line_len(window.cursor.row);
         ctx.editor.update_scroll();
         Ok(())
     });
 
     registry.register("first-non-blank", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        let line = buf.line(buf.cursor.row);
+        let (window, buf) = ctx.editor.focus();
+        let line = buf.line(window.cursor.row);
         let mut i = 0;
         for (idx, char) in line.chars().enumerate() {
             if !char.is_whitespace() {
@@ -113,27 +114,28 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             }
             i = idx + 1;
         }
-        buf.cursor.col = i;
+        window.cursor.col = i;
         ctx.editor.update_scroll();
         Ok(())
     });
 
     registry.register("open-above", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        let char_idx = buf.get_cursor_to_char();
+        let (window, buf) = ctx.editor.focus();
+        let char_idx = buf.get_line_to_char(window.cursor.row);
         buf.insert_idx(char_idx, "\n")?;
-        buf.cursor.col = 0;
+        window.cursor.row = window.cursor.row.saturating_sub(1);
+        window.cursor.col = 0;
         ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
         Ok(())
     });
 
     registry.register("open-below", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        let char_idx = buf.get_line_to_char(buf.cursor.row + 1);
+        let (window, buf) = ctx.editor.focus();
+        let char_idx = buf.get_line_to_char(window.cursor.row + 1);
         buf.insert_idx(char_idx, "\n")?;
-        buf.cursor.row += 1;
-        buf.cursor.col = 0;
+        window.cursor.row += 1;
+        window.cursor.col = 0;
 
         ctx.editor
             .exec("set-mode", Some(vec![CommandArg::Mode(Mode::Insert)]))?;
@@ -410,8 +412,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
     registry.register("center-cursor", |ctx: &mut CommandContext| {
         let screen_height = ctx.editor.screen_height;
-        let buf = ctx.editor.focused_buf_mut();
-        buf.center_cursor(screen_height);
+        let (window, buf) = ctx.editor.focus();
+        window.center_cursor(screen_height, buf.line_count());
         Ok(())
     });
 
@@ -489,51 +491,53 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("enter-visual-mode", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        if buf.mode != Mode::Visual {
-            buf.selection = Some(Selection { start: buf.cursor });
-            buf.mode = Mode::Visual;
+        let (window, buf) = ctx.editor.focus();
+        if window.mode != Mode::Visual {
+            buf.selection = Some(Selection {
+                start: window.cursor,
+            });
+            window.mode = Mode::Visual;
         }
         Ok(())
     });
 
     registry.register("exit-visual-mode", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
         buf.selection = None;
-        buf.mode = Mode::Normal;
+        window.mode = Mode::Normal;
         Ok(())
     });
 
     registry.register("visual_select_other_end", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        if buf.mode == Mode::Visual
+        let (window, buf) = ctx.editor.focus();
+        if window.mode == Mode::Visual
             && let Some(selection) = &mut buf.selection
         {
-            std::mem::swap(&mut selection.start, &mut buf.cursor);
+            std::mem::swap(&mut selection.start, &mut window.cursor);
         }
         Ok(())
     });
 
     registry.register("delete-selection", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        if buf.mode == Mode::Visual {
-            buf.delete_selection();
-            buf.mode = Mode::Normal;
+        let (window, buf) = ctx.editor.focus();
+        if window.mode == Mode::Visual {
+            buf.delete_selection(&mut window.cursor);
+            window.mode = Mode::Normal;
         }
         Ok(())
     });
 
     registry.register("change-selection", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        if buf.mode == Mode::Visual {
-            buf.delete_selection();
-            buf.mode = Mode::Insert;
+        let (window, buf) = ctx.editor.focus();
+        if window.mode == Mode::Visual {
+            buf.delete_selection(&mut window.cursor);
+            window.mode = Mode::Insert;
         }
         Ok(())
     });
 
     registry.register("find-buffer", |ctx: &mut CommandContext| {
-        let buffers = ctx.editor.buffer_manager.get_buffers_cloned();
+        let buffers = ctx.editor.get_buffers_cloned();
 
         let minibuffer: MiniBuffer<Buffer> = MiniBuffer::new(
             "Find Buffer: ",
@@ -553,8 +557,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register_operator("delete-range", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        let row = buf.cursor.row;
+        let (window, buf) = ctx.editor.focus();
+        let row = window.cursor.row;
         let line_start = buf.get_line_to_char(row);
         let line_end = buf.get_line_to_char(row + 1);
         let line_len = line_end - line_start;
@@ -565,9 +569,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             let del_start = line_start + start.min(line_len);
             let del_end = line_start + end.min(line_len);
             buf.remove_line(del_start, del_end);
-            buf.cursor.col = start;
+            window.cursor.col = start;
         } else if line_len > 0 {
-            let col = buf.cursor.col.min(line_len.saturating_sub(1));
+            let col = window.cursor.col.min(line_len.saturating_sub(1));
             let del_start = line_start + col;
             let del_end = del_start + 1;
             buf.remove_line(del_start, del_end);
@@ -577,8 +581,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register_operator("change-range", |ctx: &mut CommandContext| {
-        let buf = ctx.editor.focused_buf_mut();
-        let row = buf.cursor.row;
+        let (window, buf) = ctx.editor.focus();
+        let row = window.cursor.row;
         let line_start = buf.get_line_to_char(row);
         let line_end = buf.get_line_to_char(row + 1);
         let line_len = line_end - line_start;
@@ -589,8 +593,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             let del_start = line_start + start.min(line_len);
             let del_end = line_start + end.min(line_len);
             buf.remove_line(del_start, del_end);
-            buf.cursor.col = start;
-            buf.mode = Mode::Insert;
+            window.cursor.col = start;
+            window.mode = Mode::Insert;
         }
 
         Ok(())
@@ -614,13 +618,13 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("undo-tree-show", |ctx| {
         let tree_text = {
-            let buf = ctx.editor.focused_buf();
+            let buf = ctx.editor.focus_ref().1;
             buf.undo_tree.render()
         };
 
         let id = ctx
             .editor
-            .create_read_only_buffer_from_text("*undo-tree*", &tree_text);
+            .new_read_only_buffer_from_text("*undo-tree*", &tree_text);
 
         ctx.editor.focused_buf_id = id;
         Ok(())
@@ -629,45 +633,57 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     registry.register("scroll-half-down", |ctx| {
         let screen_height = ctx.editor.screen_height;
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
+        let (window, buf) = ctx.editor.focus();
         let h = screen_height / 2;
-        buf.scroll_down(h, screen_height, scroll_offset);
+        window.scroll_down(buf.line_count(), h, screen_height, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-half-up", |ctx| {
         let screen_height = ctx.editor.screen_height;
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
+        let window = ctx.editor.focus().0;
         let h = screen_height / 2;
-        buf.scroll_up(h, scroll_offset);
+        window.scroll_up(h, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-full-down", |ctx| {
         let screen_height = ctx.editor.screen_height;
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_down(screen_height, screen_height, scroll_offset);
+        let (window, buf) = ctx.editor.focus();
+        window.scroll_down(
+            buf.line_count(),
+            screen_height,
+            screen_height,
+            scroll_offset,
+        );
         Ok(())
     });
 
     registry.register("scroll-full-up", |ctx| {
         let screen_height = ctx.editor.screen_height;
         let scroll_offset = ctx.editor.config.scroll_offset;
-        let buf = ctx.editor.focused_buf_mut();
-        buf.scroll_up(screen_height, scroll_offset);
+        let window = ctx.editor.focus().0;
+        window.scroll_up(screen_height, scroll_offset);
         Ok(())
     });
     registry.register("goto-first-line", |ctx| {
-        let buf = ctx.editor.focused_buf_mut();
-        buf.goto_first_line();
+        let (window, buf) = ctx.editor.focus();
+        window.cursor = Position::start();
+        buf.selection = None;
+        window.scroll_offset = 0;
         Ok(())
     });
 
     registry.register("goto-last-line", |ctx| {
-        let buf = ctx.editor.focused_buf_mut();
-        buf.goto_last_line();
+        let (window, buf) = ctx.editor.focus();
+        let last_row = buf.line_count().saturating_sub(1);
+
+        let line_len = buf.line_len(last_row);
+
+        window.cursor.col = window.cursor.col.min(line_len);
+        buf.selection = None;
         Ok(())
     });
 
@@ -714,25 +730,25 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         let id = ctx
             .editor
-            .create_read_only_buffer_from_text("*keymap*", &tree_text);
+            .new_read_only_buffer_from_text("*keymap*", &tree_text);
 
         ctx.editor.focused_buf_id = id;
         Ok(())
     });
 
     registry.register("live-grep", |ctx| {
-        let buf = ctx.editor.focused_buf();
+        let buf = ctx.editor.focus_ref().1;
         let content = buf.to_string();
 
         let items: Vec<String> = content.lines().map(|s| s.to_string()).collect();
 
         let minibuffer: MiniBuffer<String> =
             MiniBuffer::new("Search: ", items, |state: &mut Editor, line: &String| {
-                let buf = state.focused_buf_mut();
+                let (window, buf) = state.focus();
                 for (i, l) in buf.to_string().lines().enumerate() {
                     if l == line {
-                        buf.cursor.row = i;
-                        buf.cursor.col = 0;
+                        window.cursor.row = i;
+                        window.cursor.col = 0;
                         break;
                     }
                 }
