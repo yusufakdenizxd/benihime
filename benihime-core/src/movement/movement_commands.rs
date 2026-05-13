@@ -11,19 +11,19 @@ where
     let state = &mut cx.editor;
     let count = 1; // TODO: later read it from contexts repeat count
 
-    let buf = state.focused_buf_mut();
+    let (window, buf) = state.focus();
 
-    if buf.cursor.row < buf.line_count() {
-        let rope_line: RopeSlice = buf.line(buf.cursor.row);
+    if window.cursor.row < buf.line_count() {
+        let rope_line: RopeSlice = buf.line(window.cursor.row);
 
         let selection = Range {
-            anchor: buf.cursor.col,
-            head: buf.cursor.col,
+            anchor: window.cursor.col,
+            head: window.cursor.col,
         };
 
         let new_range = move_fn(rope_line, selection, count);
 
-        buf.cursor.col = new_range.head;
+        window.cursor.col = new_range.head;
         buf.range = Some(new_range);
     }
 }
