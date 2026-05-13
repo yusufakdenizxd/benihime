@@ -4,7 +4,7 @@ pub mod default_commands;
 use anyhow::{Result, anyhow};
 use std::path::PathBuf;
 
-use crate::{buffer::Mode, editor::Editor};
+use crate::editor::{Editor, Mode};
 
 #[derive(Debug, Clone)]
 pub enum CommandArg {
@@ -23,9 +23,10 @@ impl CommandArg {
         }
 
         if let Some((row_str, col_str)) = token.split_once(',')
-            && let (Ok(row), Ok(col)) = (row_str.parse::<usize>(), col_str.parse::<usize>()) {
-                return CommandArg::Position { row, col };
-            }
+            && let (Ok(row), Ok(col)) = (row_str.parse::<usize>(), col_str.parse::<usize>())
+        {
+            return CommandArg::Position { row, col };
+        }
 
         if let Ok(mode) = token.parse::<Mode>() {
             return CommandArg::Mode(mode);
@@ -111,8 +112,8 @@ impl ArgAsOwned<bool> for CommandArg {
     }
 }
 
-impl ArgAsOwned<crate::buffer::Mode> for CommandArg {
-    fn as_type_owned(&self) -> Option<crate::buffer::Mode> {
+impl ArgAsOwned<crate::editor::Mode> for CommandArg {
+    fn as_type_owned(&self) -> Option<crate::editor::Mode> {
         match self {
             CommandArg::Mode(m) => Some(*m),
             _ => None,

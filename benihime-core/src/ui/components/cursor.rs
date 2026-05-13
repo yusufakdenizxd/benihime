@@ -2,7 +2,7 @@ use benihime_renderer::Renderer;
 
 use crate::{
     application::Application,
-    buffer::Mode,
+    editor::Mode,
     graphics::{CursorKind, Rect},
     position::Position,
     ui::composer::{Component, Context},
@@ -25,10 +25,10 @@ impl Default for CursorComponent {
 impl Component for CursorComponent {
     fn render(&mut self, area: Rect, surface: &mut Renderer, ctx: &mut Context) {
         let editor = &ctx.editor;
-        let buffer = editor.focused_buf();
+        let (window, _buf) = editor.focus_ref();
 
-        let cursor_row = buffer.cursor.row.saturating_sub(buffer.scroll_offset);
-        let cursor_col = buffer.cursor.col.saturating_sub(buffer.scroll_left);
+        let cursor_row = window.cursor.row.saturating_sub(window.scroll_offset);
+        let cursor_col = window.cursor.col.saturating_sub(window.scroll_left);
 
         let cell_width = surface.cell_width();
         let cell_height = surface.cell_height();
@@ -58,7 +58,7 @@ impl Component for CursorComponent {
         let y = y_offset as f32 + (cursor_row as f32 * cell_height);
         let x = editor_start_x as f32 + (cursor_col as f32 * cell_width);
 
-        let cursor_kind = match buffer.mode {
+        let cursor_kind = match window.mode {
             Mode::Insert => CursorKind::Bar,
             _ => CursorKind::Block,
         };
@@ -88,12 +88,12 @@ impl Component for CursorComponent {
 
     fn cursor(&self, _area: Rect, app: &Application) -> (Option<Position>, CursorKind) {
         let editor = &app.editor;
-        let buffer = editor.focused_buf();
+        let (window, _buf) = editor.focus_ref();
 
-        let cursor_row = buffer.cursor.row.saturating_sub(buffer.scroll_offset);
-        let cursor_col = buffer.cursor.col.saturating_sub(buffer.scroll_left);
+        let cursor_row = window.cursor.row.saturating_sub(window.scroll_offset);
+        let cursor_col = window.cursor.col.saturating_sub(window.scroll_left);
 
-        let cursor_kind = match buffer.mode {
+        let cursor_kind = match window.mode {
             Mode::Insert => CursorKind::Bar,
             _ => CursorKind::Block,
         };
