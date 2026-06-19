@@ -13,7 +13,7 @@ use crate::{
         project_manager::{DEFAULT_PROJECT_ID, ProjectManager},
     },
     theme::{Theme, theme_loader::ThemeLoader},
-    tree::Tree,
+    tree::{Layout, Tree},
     window::Window,
 };
 
@@ -389,6 +389,14 @@ impl Editor {
 
         self.focused_buf_id = buf_id;
         project.tree.set_single_window(window);
+    }
+
+    pub fn split_current_buffer(&mut self, layout: Layout) {
+        let window = self.focus_ref().0.clone();
+        self.project_manager
+            .current_mut()
+            .tree
+            .split(window, layout);
     }
 
     #[inline]

@@ -14,6 +14,7 @@ use crate::{
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
     movement::movement_commands,
     project::Project,
+    tree::Layout,
 };
 
 use super::{
@@ -410,6 +411,17 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
         Ok(())
     });
+
+    registry.register("split-window-horizontal", |ctx: &mut CommandContext| {
+        ctx.editor.split_current_buffer(Layout::Horizontal);
+        Ok(())
+    });
+
+    registry.register("split-window-vertical", |ctx: &mut CommandContext| {
+        ctx.editor.split_current_buffer(Layout::Vertical);
+        Ok(())
+    });
+
     registry.register("center-cursor", |ctx: &mut CommandContext| {
         let screen_height = ctx.editor.screen_height;
         let (window, buf) = ctx.editor.focus();

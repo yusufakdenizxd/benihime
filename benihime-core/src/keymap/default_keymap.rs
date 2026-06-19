@@ -504,6 +504,38 @@ pub fn register_default_keymap(km: &mut Keymap) {
         &[Mode::Normal],
         KeySequence::new(vec![
             KeyChord {
+                code: Key::Char('w'),
+                modifiers: KeyModifiers::CTRL,
+            },
+            KeyChord {
+                code: Key::Char('s'),
+                modifiers: KeyModifiers::NONE,
+            },
+        ]),
+        "split-window-horizontal",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
+                code: Key::Char('w'),
+                modifiers: KeyModifiers::CTRL,
+            },
+            KeyChord {
+                code: Key::Char('v'),
+                modifiers: KeyModifiers::NONE,
+            },
+        ]),
+        "split-window-vertical",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![
+            KeyChord {
                 code: Key::Char('g'),
                 modifiers: KeyModifiers::NONE,
             },
