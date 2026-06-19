@@ -13,7 +13,7 @@ use crate::{
         project_manager::{DEFAULT_PROJECT_ID, ProjectManager},
     },
     theme::{Theme, theme_loader::ThemeLoader},
-    tree::{Layout, Tree},
+    tree::{Direction, Layout, Tree},
     window::Window,
 };
 
@@ -389,6 +389,15 @@ impl Editor {
 
         self.focused_buf_id = buf_id;
         project.tree.set_single_window(window);
+    }
+
+    pub fn focus_move(&mut self, direction: Direction) {
+        let tree = self.tree_mut();
+        let old_focus = tree.focus;
+        tree.focus_move(direction);
+        if tree.focus != old_focus {
+            self.focused_buf_id = tree.get(tree.focus).buffer_id;
+        }
     }
 
     pub fn split_current_buffer(&mut self, layout: Layout) {

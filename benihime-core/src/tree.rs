@@ -294,6 +294,72 @@ impl Tree {
         })
     }
 
+    pub fn focus_move(&mut self, direction: Direction) {
+        let mut current = self.focus;
+        let new_focus = loop {
+            let parent = match self.nodes.get(current) {
+                Some(node) if node.parent != current => node.parent,
+                _ => return,
+            };
+
+            let (layout, children) = match &self.nodes[parent].content {
+                Content::Container(c) => (c.layout, c.children.clone()),
+                _ => return,
+            };
+
+            let moves_in_layout = match (layout, direction) {
+                (Layout::Vertical, Direction::Left | Direction::Right) => true,
+                (Layout::Horizontal, Direction::Up | Direction::Down) => true,
+                _ => false,
+            };
+
+            if moves_in_layout {
+                let pos = match children.iter().position(|&id| id == current) {
+                    Some(p) => p,
+                    None => return,
+                };
+
+                let new_pos = match direction {
+                    Direction::Left | Direction::Up => pos.checked_sub(1),
+                    Direction::Right | Direction::Down => {
+                        if pos + 1 < children.len() {
+                            Some(pos + 1)
+                        } else {
+                            None
+                        }
+                    }
+                };
+
+                if let Some(new_pos) = new_pos {
+                    break self.find_leaf(children[new_pos], direction);
+                }
+            }
+
+            current = parent;
+        };
+
+        self.focus = new_focus;
+    }
+
+    fn find_leaf(&self, node_id: WindowId, direction: Direction) -> WindowId {
+        match &self.nodes[node_id].content {
+            Content::Window(_) => node_id,
+            Content::Container(c) => {
+                if c.children.is_empty() {
+                    return node_id;
+                }
+                let prefer_first =
+                    matches!(direction, Direction::Right | Direction::Down);
+                let idx = if prefer_first {
+                    0
+                } else {
+                    c.children.len() - 1
+                };
+                self.find_leaf(c.children[idx], direction)
+            }
+        }
+    }
+
     pub fn recalculate(&mut self) {
         let root = self.root;
         let area = self.area;

@@ -534,6 +534,46 @@ pub fn register_default_keymap(km: &mut Keymap) {
 
     km.bind(
         &[Mode::Normal],
+        KeySequence::new(vec![KeyChord {
+            code: Key::Char('h'),
+            modifiers: KeyModifiers::CTRL,
+        }]),
+        "focus-left",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![KeyChord {
+            code: Key::Char('j'),
+            modifiers: KeyModifiers::CTRL,
+        }]),
+        "focus-down",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![KeyChord {
+            code: Key::Char('k'),
+            modifiers: KeyModifiers::CTRL,
+        }]),
+        "focus-up",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
+        KeySequence::new(vec![KeyChord {
+            code: Key::Char('l'),
+            modifiers: KeyModifiers::CTRL,
+        }]),
+        "focus-right",
+        None,
+    );
+
+    km.bind(
+        &[Mode::Normal],
         KeySequence::new(vec![
             KeyChord {
                 code: Key::Char('g'),

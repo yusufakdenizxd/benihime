@@ -14,7 +14,7 @@ use crate::{
     mini_buffer::{MiniBuffer, MinibufferCallbackResult},
     movement::movement_commands,
     project::Project,
-    tree::Layout,
+    tree::{Direction, Layout},
 };
 
 use super::{
@@ -419,6 +419,26 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
 
     registry.register("split-window-vertical", |ctx: &mut CommandContext| {
         ctx.editor.split_current_buffer(Layout::Vertical);
+        Ok(())
+    });
+
+    registry.register("focus-left", |ctx: &mut CommandContext| {
+        ctx.editor.focus_move(Direction::Left);
+        Ok(())
+    });
+
+    registry.register("focus-down", |ctx: &mut CommandContext| {
+        ctx.editor.focus_move(Direction::Down);
+        Ok(())
+    });
+
+    registry.register("focus-up", |ctx: &mut CommandContext| {
+        ctx.editor.focus_move(Direction::Up);
+        Ok(())
+    });
+
+    registry.register("focus-right", |ctx: &mut CommandContext| {
+        ctx.editor.focus_move(Direction::Right);
         Ok(())
     });
 
