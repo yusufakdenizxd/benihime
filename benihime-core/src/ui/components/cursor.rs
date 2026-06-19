@@ -25,6 +25,19 @@ impl Default for CursorComponent {
 impl Component for CursorComponent {
     fn render(&mut self, area: Rect, surface: &mut Renderer, ctx: &mut Context) {
         let editor = &ctx.editor;
+
+        let window_area = editor
+            .tree()
+            .windows()
+            .find_map(|(_, node_area, is_focus)| {
+                if is_focus {
+                    Some(node_area)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(area);
+
         let (window, _buf) = editor.focus_ref();
 
         let cursor_row = window.cursor.row.saturating_sub(window.scroll_offset);
@@ -43,14 +56,14 @@ impl Component for CursorComponent {
 
         let gutter_width_chars = 4;
         let gutter_width = (gutter_width_chars as f32 * cell_width).ceil();
-        let editor_start_x = area.x + gutter_width as u16;
+        let editor_start_x = window_area.x + gutter_width as u16;
 
-        let y_offset = area.y + buffer_line_height;
-        let visible_rows = area
+        let y_offset = window_area.y + buffer_line_height;
+        let visible_rows = window_area
             .height
             .saturating_sub(buffer_line_height + status_line_height + minibuffer_height)
             as usize;
-        let visible_cols = ((area.width as f32 - gutter_width) / cell_width) as usize;
+        let visible_cols = ((window_area.width as f32 - gutter_width) / cell_width) as usize;
 
         let cursor_row = cursor_row.min(visible_rows.saturating_sub(1));
         let cursor_col = cursor_col.min(visible_cols.saturating_sub(1));
