@@ -1,21 +1,19 @@
 use crate::{
     buffer::{BufferId, Position},
     editor::Mode,
-    graphics::Rect,
 };
 
 slotmap::new_key_type! {
     pub struct WindowId;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Window {
     pub id: WindowId,
     pub buffer_id: BufferId,
     pub cursor: Position,
     pub scroll_offset: usize,
     pub scroll_left: usize,
-    pub rect: Rect,
     pub mode: Mode,
 }
 
@@ -27,7 +25,6 @@ impl Window {
             cursor: Position::start(),
             scroll_offset: 0,
             scroll_left: 0,
-            rect: Rect::default(),
             mode: Mode::Normal,
         }
     }
@@ -44,8 +41,15 @@ impl Window {
         let new_row = (self.cursor.row + lines).min(max_row);
         self.cursor.row = new_row;
 
-        if new_row >= self.scroll_offset.saturating_add(screen_height).saturating_sub(scrolloff) {
-            self.scroll_offset = new_row.saturating_add(scrolloff + 1).saturating_sub(screen_height);
+        if new_row
+            >= self
+                .scroll_offset
+                .saturating_add(screen_height)
+                .saturating_sub(scrolloff)
+        {
+            self.scroll_offset = new_row
+                .saturating_add(scrolloff + 1)
+                .saturating_sub(screen_height);
         }
         self.scroll_offset = self
             .scroll_offset

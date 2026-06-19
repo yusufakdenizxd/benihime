@@ -303,7 +303,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
                     return Ok(Some(new_items));
                 } else {
                     let id = state.open_file(&path.clone());
-                    state.focused_buf_id = id;
+                    state.focus_buf(id);
                     println!("Opened file: {}", path.display());
                 }
                 Ok(None)
@@ -335,7 +335,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             files,
             |state: &mut Editor, path: &PathBuf| {
                 let id = state.open_file(&path.clone());
-                state.focused_buf_id = id;
+                state.focus_buf(id);
                 Ok(None)
             },
         );
@@ -387,7 +387,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             None => ids[0],
         };
 
-        state.focused_buf_id = next;
+        state.focus_buf(next);
 
         Ok(())
     });
@@ -406,7 +406,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             None => ids[0],
         };
 
-        state.focused_buf_id = prev;
+        state.focus_buf(prev);
 
         Ok(())
     });
@@ -543,7 +543,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             "Find Buffer: ",
             buffers,
             |state: &mut Editor, command_name: &Buffer| {
-                state.focused_buf_id = command_name.id;
+                state.focus_buf(command_name.id);
                 Ok(None)
             },
         );
@@ -626,7 +626,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .editor
             .new_read_only_buffer_from_text("*undo-tree*", &tree_text);
 
-        ctx.editor.focused_buf_id = id;
+        ctx.editor.focus_buf(id);
         Ok(())
     });
 
@@ -732,7 +732,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             .editor
             .new_read_only_buffer_from_text("*keymap*", &tree_text);
 
-        ctx.editor.focused_buf_id = id;
+        ctx.editor.focus_buf(id);
         Ok(())
     });
 

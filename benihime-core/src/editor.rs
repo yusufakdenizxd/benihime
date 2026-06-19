@@ -55,7 +55,6 @@ pub struct Editor {
     pub prefix_arg: Option<usize>,
     pub keymap: Keymap,
 
-    tree: Tree,
     buffers: BTreeMap<BufferId, Buffer>,
     next_buffer_id: BufferId,
 
@@ -67,7 +66,7 @@ pub struct Editor {
 
 impl Editor {
     pub fn new(
-        area: Rect,
+        _area: Rect,
         theme_loader: ThemeLoader,
         project_manager: ProjectManager,
 
@@ -92,10 +91,21 @@ impl Editor {
             write_count: 0,
             needs_redraw: false,
             config,
-            tree: Tree::new(area),
             buffers: BTreeMap::new(),
             next_buffer_id: BufferId(1),
         }
+    }
+
+    pub fn tree(&self) -> &Tree {
+        &self.project_manager.current().tree
+    }
+
+    pub fn tree_mut(&mut self) -> &mut Tree {
+        &mut self.project_manager.current_mut().tree
+    }
+
+    pub fn resize(&mut self, area: Rect) {
+        self.project_manager.resize(area);
     }
 
     pub fn cwd(&self) -> Option<&PathBuf> {
@@ -149,14 +159,15 @@ impl Editor {
         }
 
         project.buffers.retain(|&id| id != buf_id_to_kill);
+        project.windows.remove(&buf_id_to_kill);
 
         self.buffers.remove(&buf_id_to_kill);
 
         if let Some(&new_focus) = project.buffers.last() {
-            self.focused_buf_id = new_focus;
+            self.focus_buf(new_focus);
         } else {
             let new_buf = self.new_empty_buffer("[No Name]");
-            self.focused_buf_id = new_buf;
+            self.focus_buf(new_buf);
         }
 
         Ok(())
@@ -188,13 +199,13 @@ impl Editor {
     }
 
     pub fn switch_project(&mut self, project_id: ProjectId) {
-        let project = self.project_manager.switch_by_id(project_id);
-        if let Some(project) = project {
-            if project.buffers.is_empty() {
-                let buf = self.new_empty_buffer("[No Name]");
-                self.focused_buf_id = buf;
+        if self.project_manager.switch_by_id(project_id).is_some() {
+            let buffer_id = self.project_manager.current().buffers.first().copied();
+            if let Some(buffer_id) = buffer_id {
+                self.focus_buf(buffer_id);
             } else {
-                self.focused_buf_id = project.buffers[0];
+                let buf = self.new_empty_buffer("[No Name]");
+                self.focus_buf(buf);
             }
         }
     }
@@ -226,9 +237,9 @@ impl Editor {
 
             if last_project.buffers.is_empty() {
                 let new_buf = self.new_empty_buffer("[No Name]");
-                self.focused_buf_id = new_buf;
+                self.focus_buf(new_buf);
             } else {
-                self.focused_buf_id = last_project.buffers[0];
+                self.focus_buf(last_project.buffers[0]);
             }
         }
 
@@ -259,9 +270,9 @@ impl Editor {
 
         if project.buffers.is_empty() {
             let buf = self.new_empty_buffer("[No Name]");
-            self.focused_buf_id = buf;
+            self.focus_buf(buf);
         } else {
-            self.focused_buf_id = project.buffers[0];
+            self.focus_buf(project.buffers[0]);
         }
     }
 
@@ -317,24 +328,30 @@ impl Editor {
     }
 
     pub fn focused_buf_mut(&mut self) -> &mut Buffer {
+        let focused_buf_id = self.focus_ref().1.id;
         self.buffers
-            .get_mut(&self.focused_buf_id)
+            .get_mut(&focused_buf_id)
             .expect("Focused buffer not exist")
     }
 
     pub fn focus(&mut self) -> (&mut Window, &mut Buffer) {
-        let view = self.tree.get_mut(self.tree.focus);
-        let buf = self
-            .buffers
-            .get_mut(&self.focused_buf_id)
+        let project_manager = &mut self.project_manager;
+        let buffers = &mut self.buffers;
+        let tree = &mut project_manager.current_mut().tree;
+        let focus = tree.focus;
+        let view = tree.get_mut(focus);
+        let buffer_id = view.buffer_id;
+        let buf = buffers
+            .get_mut(&buffer_id)
             .expect("Focus buffer didn't found");
 
         return (view, buf);
     }
 
     pub fn focus_ref(&self) -> (&Window, &Buffer) {
-        let view = self.tree.get(self.tree.focus);
-        let buf = &self.buffers[&self.focused_buf_id];
+        let tree = &self.project_manager.current().tree;
+        let view = tree.get(tree.focus);
+        let buf = &self.buffers[&view.buffer_id];
 
         return (view, buf);
     }
@@ -353,8 +370,30 @@ impl Editor {
     }
 
     pub fn focus_buf(&mut self, buf_id: BufferId) {
-        let id = self.tree.insert(Window::new(buf_id));
-        self.tree.focus = id;
+        let current_window = {
+            let tree = self.tree();
+            tree.try_get(tree.focus).cloned()
+        };
+
+        let project = self.project_manager.current_mut();
+
+        if let Some(window) = current_window {
+            project.windows.insert(window.buffer_id, window);
+        }
+
+        let window = project
+            .windows
+            .get(&buf_id)
+            .cloned()
+            .unwrap_or_else(|| Window::new(buf_id));
+
+        self.focused_buf_id = buf_id;
+        project.tree.set_single_window(window);
+    }
+
+    #[inline]
+    pub fn buf(&self, id: BufferId) -> Option<&Buffer> {
+        self.buffers.get(&id)
     }
 }
 
