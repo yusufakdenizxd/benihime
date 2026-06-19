@@ -1,7 +1,7 @@
 // project.rs
-use std::path::PathBuf;
+use std::{collections::BTreeMap, path::PathBuf};
 
-use crate::buffer::BufferId;
+use crate::{buffer::BufferId, tree::Tree, window::Window};
 
 pub mod project_manager;
 
@@ -14,4 +14,6 @@ pub struct Project {
     pub name: String,
     pub root: Option<PathBuf>,
     pub buffers: Vec<BufferId>,
+    pub tree: Tree,
+    pub windows: BTreeMap<BufferId, Window>,
 }

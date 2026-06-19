@@ -1,10 +1,15 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::{BTreeMap, HashMap},
+    path::PathBuf,
+};
 
 use anyhow::anyhow;
 
 use crate::{
     buffer::BufferId,
+    graphics::Rect,
     project::{Project, ProjectId},
+    tree::Tree,
 };
 
 pub const DEFAULT_PROJECT_ID: ProjectId = ProjectId(0);
@@ -14,10 +19,11 @@ pub struct ProjectManager {
     name_index: HashMap<String, ProjectId>,
     current: ProjectId,
     next_id: u64,
+    area: Rect,
 }
 
 impl ProjectManager {
-    pub fn new() -> Self {
+    pub fn new(area: Rect) -> Self {
         let mut projects = HashMap::new();
         let mut name_index = HashMap::new();
 
@@ -26,6 +32,8 @@ impl ProjectManager {
             name: "empty".to_string(),
             root: None,
             buffers: Vec::new(),
+            tree: Tree::new(area),
+            windows: BTreeMap::new(),
         };
 
         projects.insert(DEFAULT_PROJECT_ID, default_project);
@@ -36,6 +44,7 @@ impl ProjectManager {
             name_index,
             current: DEFAULT_PROJECT_ID,
             next_id: 1,
+            area,
         }
     }
 
@@ -48,6 +57,8 @@ impl ProjectManager {
             name: name.clone(),
             root: Some(root),
             buffers: Vec::new(),
+            tree: Tree::new(self.area),
+            windows: BTreeMap::new(),
         };
 
         self.projects.insert(id, project);
@@ -70,6 +81,13 @@ impl ProjectManager {
         self.projects
             .get_mut(&self.current)
             .expect("current project id must always exist")
+    }
+
+    pub fn resize(&mut self, area: Rect) {
+        self.area = area;
+        for project in self.projects.values_mut() {
+            project.tree.resize(area);
+        }
     }
 
     pub fn current_name(&self) -> String {

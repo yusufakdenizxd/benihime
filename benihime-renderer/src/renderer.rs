@@ -694,11 +694,11 @@ impl Renderer {
         buffer.shape_until_scroll(&mut self.font_system, false);
 
         let mut measured_glyph_width = self.font_size * 0.55;
-        
+
         if let Some(run) = buffer.layout_runs().next() {
             self.cell_height = run.line_height.max(self.font_size);
             self.line_top_offset = run.line_top;
-            
+
             if run.glyphs.len() >= 2 {
                 let advance = run.glyphs[1].x - run.glyphs[0].x;
                 if advance > 0.0 {
@@ -709,10 +709,15 @@ impl Renderer {
             self.cell_height = self.font_size * LINE_HEIGHT_FACTOR;
             self.line_top_offset = 0.0;
         }
-        
+
         self.cell_width = measured_glyph_width;
-        log::info!("Font metrics: font_size={}, cell_width={}, cell_height={}, ratio={}", 
-            self.font_size, self.cell_width, self.cell_height, self.cell_width / self.font_size);
+        log::info!(
+            "Font metrics: font_size={}, cell_width={}, cell_height={}, ratio={}",
+            self.font_size,
+            self.cell_width,
+            self.cell_height,
+            self.cell_width / self.font_size
+        );
     }
 
     pub fn update_viewport(&mut self, width: u32, height: u32) -> bool {

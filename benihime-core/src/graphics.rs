@@ -1,7 +1,6 @@
 use std::cmp::{max, min};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CursorKind {
     #[default]
     Block,
@@ -10,7 +9,6 @@ pub enum CursorKind {
     Hollow,
     Hidden,
 }
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Margin {

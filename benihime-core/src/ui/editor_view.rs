@@ -1,8 +1,11 @@
 use benihime_renderer::{Renderer, color::Color};
 
 use crate::{
+    buffer::Buffer,
+    editor::Editor,
     graphics::Rect,
     ui::composer::{Component, Context},
+    window::Window,
 };
 
 pub struct EditorView {
@@ -13,18 +16,15 @@ impl EditorView {
     pub fn new() -> Self {
         Self { scroll_offset: 0 }
     }
-}
 
-impl Default for EditorView {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Component for EditorView {
-    fn render(&mut self, area: Rect, surface: &mut Renderer, ctx: &mut Context) {
-        let editor = &ctx.editor;
-        let (window, buffer) = editor.focus_ref();
+    pub fn render_view(
+        &self,
+        area: Rect,
+        surface: &mut Renderer,
+        editor: &Editor,
+        window: &Window,
+        buffer: &Buffer,
+    ) {
         let line_count = buffer.line_count();
 
         let cell_width = surface.cell_width();
@@ -160,6 +160,23 @@ impl Component for EditorView {
                     surface.draw_text(section);
                 }
             }
+        }
+    }
+}
+
+impl Default for EditorView {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Component for EditorView {
+    fn render(&mut self, _area: Rect, surface: &mut Renderer, ctx: &mut Context) {
+        let editor = &ctx.editor;
+
+        for (window, node_area, _is_focus) in editor.tree().windows() {
+            let buffer = editor.buf(window.buffer_id).unwrap();
+            self.render_view(node_area, surface, editor, window, buffer);
         }
     }
 

@@ -83,14 +83,14 @@ impl Application {
         let mut keymap = Keymap::new();
         keymap::default_keymap::register_default_keymap(&mut keymap);
 
-        let mut project_manager = ProjectManager::new();
+        let area = Rect::new(0, 0, 120, 40);
+        let mut project_manager = ProjectManager::new(area);
 
         if let Ok(dir) = paths::home_dir() {
             let projects_dir = dir.join("dev");
             project_manager.discover_in_path(&projects_dir);
         }
 
-        let area = Rect::new(0, 0, 120, 40);
         let mut composer = Composer::new(area);
 
         composer.push(Box::new(BufferLine::new()));
@@ -113,7 +113,7 @@ impl Application {
             "Welcome to Benihime!\n\nType something here...",
             None,
         );
-        editor.focused_buf_id = first_id;
+        editor.focus_buf(first_id);
 
         let mode = editor.mode();
 
@@ -406,6 +406,7 @@ impl benihime_renderer::Application for Application {
     fn resize(&mut self, width: u32, height: u32, renderer: &mut Renderer) {
         let area = Rect::new(0, 0, width as u16, height as u16);
         self.composer.resize(area);
+        self.editor.resize(area);
 
         let cell_height = renderer.cell_height() as usize;
         let cell_width = renderer.cell_width() as usize;
