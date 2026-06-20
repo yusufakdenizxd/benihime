@@ -33,7 +33,7 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("move-down", |ctx: &mut CommandContext| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let scroll_offset = ctx.editor.config.scroll_offset;
         let (window, buf) = ctx.editor.focus();
 
@@ -42,8 +42,8 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
             window.cursor.col = min(window.cursor.col, buf.line_len(window.cursor.row));
         }
 
-        if window.cursor.row >= window.scroll_offset + screen_height - scroll_offset {
-            window.scroll_offset = window.cursor.row + scroll_offset + 1 - screen_height;
+        if window.cursor.row >= window.scroll_offset + window_height - scroll_offset {
+            window.scroll_offset = window.cursor.row + scroll_offset + 1 - window_height;
         }
 
         Ok(())
@@ -443,9 +443,9 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("center-cursor", |ctx: &mut CommandContext| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let (window, buf) = ctx.editor.focus();
-        window.center_cursor(screen_height, buf.line_count());
+        window.center_cursor(window_height, buf.line_count());
         Ok(())
     });
 

@@ -378,13 +378,25 @@ impl Editor {
             .unwrap_or(self.screen_height)
     }
 
+    pub fn focused_window_width(&self) -> usize {
+        let tree = self.tree();
+        tree.area_of(tree.focus)
+            .map(|r| {
+                let cell_width = self.cell_height;
+                let gutter_width = 4.0 * cell_width;
+                let text_pixels = r.width.saturating_sub(gutter_width as u16);
+                (text_pixels as f32 / cell_width).floor() as usize
+            })
+            .unwrap_or(self.screen_width)
+    }
+
     pub fn update_scroll(&mut self) {
-        let screen_height = self.screen_height;
-        let screen_width = self.screen_width;
+        let window_height = self.focused_window_height();
+        let window_width = self.focused_window_width();
         let offset = self.config.scroll_offset;
 
         let (window, _buf) = self.focus();
-        window.update_scroll(screen_height, offset, screen_width, offset);
+        window.update_scroll(window_height, offset, window_width, offset);
     }
 
     pub fn get_buffers_cloned(&self) -> Vec<Buffer> {
