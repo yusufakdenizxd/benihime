@@ -46,6 +46,7 @@ pub struct Editor {
     pub minibuffer_manager: MiniBufferManager,
     pub screen_height: usize,
     pub screen_width: usize,
+    pub cell_height: f32,
     pub command_buffer: String,
     pub message: Option<String>,
     pub error_message: Option<String>,
@@ -82,6 +83,7 @@ impl Editor {
             error_message: None,
             screen_height: 0,
             screen_width: 0,
+            cell_height: 1.0,
             minibuffer_manager: MiniBufferManager::new(),
             registry,
             theme: theme_loader.default(),
@@ -354,6 +356,26 @@ impl Editor {
         let buf = &self.buffers[&view.buffer_id];
 
         return (view, buf);
+    }
+
+    pub fn focused_window_height(&self) -> usize {
+        let tree = self.tree();
+        tree.area_of(tree.focus)
+            .map(|r| {
+                let cell_height = self.cell_height;
+                let buffer_line_height = cell_height as u16;
+                let status_line_height = cell_height as u16;
+                let minibuffer_height = if self.minibuffer_manager.current.is_some() {
+                    cell_height as u16
+                } else {
+                    0
+                };
+                let text_pixels = r
+                    .height
+                    .saturating_sub(buffer_line_height + status_line_height + minibuffer_height);
+                (text_pixels as f32 / cell_height).floor() as usize
+            })
+            .unwrap_or(self.screen_height)
     }
 
     pub fn update_scroll(&mut self) {

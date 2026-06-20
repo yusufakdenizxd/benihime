@@ -417,6 +417,7 @@ impl benihime_renderer::Application for Application {
 
         self.editor.screen_height = editor_height / cell_height;
         self.editor.screen_width = width as usize / cell_width;
+        self.editor.cell_height = cell_height as f32;
     }
 
     fn wants_redraw(&self) -> bool {

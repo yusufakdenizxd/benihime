@@ -663,41 +663,41 @@ pub fn register_default_commands(registry: &mut CommandRegistry) {
     });
 
     registry.register("scroll-half-down", |ctx| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let scroll_offset = ctx.editor.config.scroll_offset;
         let (window, buf) = ctx.editor.focus();
-        let h = screen_height / 2;
-        window.scroll_down(buf.line_count(), h, screen_height, scroll_offset);
+        let h = window_height / 2;
+        window.scroll_down(h, window_height, scroll_offset, buf.line_count());
         Ok(())
     });
 
     registry.register("scroll-half-up", |ctx| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let scroll_offset = ctx.editor.config.scroll_offset;
         let window = ctx.editor.focus().0;
-        let h = screen_height / 2;
+        let h = window_height / 2;
         window.scroll_up(h, scroll_offset);
         Ok(())
     });
 
     registry.register("scroll-full-down", |ctx| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let scroll_offset = ctx.editor.config.scroll_offset;
         let (window, buf) = ctx.editor.focus();
         window.scroll_down(
-            buf.line_count(),
-            screen_height,
-            screen_height,
+            window_height,
+            window_height,
             scroll_offset,
+            buf.line_count(),
         );
         Ok(())
     });
 
     registry.register("scroll-full-up", |ctx| {
-        let screen_height = ctx.editor.screen_height;
+        let window_height = ctx.editor.focused_window_height();
         let scroll_offset = ctx.editor.config.scroll_offset;
         let window = ctx.editor.focus().0;
-        window.scroll_up(screen_height, scroll_offset);
+        window.scroll_up(window_height, scroll_offset);
         Ok(())
     });
     registry.register("goto-first-line", |ctx| {

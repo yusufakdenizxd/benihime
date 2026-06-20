@@ -283,6 +283,10 @@ impl Tree {
         node
     }
 
+    pub fn area_of(&self, id: WindowId) -> Option<Rect> {
+        self.nodes.get(id).map(|node| node.area)
+    }
+
     pub fn windows(&self) -> impl Iterator<Item = (&Window, Rect, bool)> {
         let focus = self.focus;
         self.nodes.iter().filter_map(move |(key, node)| match node {
